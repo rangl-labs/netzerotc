@@ -140,8 +140,8 @@ def apply_action(action, state):
         state.generator_1_previous = 1.5
         state.generator_2_previous = 0.5
     else:    
-        state.generator_1_previous = generator_1_levels_all[state.step_count - 1]
-        state.generator_2_previous = generator_2_levels_all[state.step_count - 1]
+        state.generator_1_previous = state.generator_1_levels_all[state.step_count - 1]
+        state.generator_2_previous = state.generator_2_levels_all[state.step_count - 1]
 
     # calculate ramp rates 
     generator_1_ramp = state.generator_1_level - state.generator_1_previous
