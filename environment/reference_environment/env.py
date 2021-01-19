@@ -100,12 +100,12 @@ def record(state, action, reward):
 def observation_space():
     obs_low = np.full(99, -1000, dtype=np.float32) # last 96 entries of observation are the predictions
     obs_low[0] = -1	# first entry of obervation is the timestep
-    obs_low[1] = 0	# min level of generator 1 
-    obs_low[2] = 0	# min level of generator 2
+    obs_low[1] = 0.5	# min level of generator 1 
+    obs_low[2] = 0.5	# min level of generator 2
     obs_high = np.full(99, 1000, dtype=np.float32) # last 96 entries of observation are the predictions
     obs_high[0] = param.steps_per_episode	# first entry of obervation is the timestep
-    obs_low[1] = 3	# max level of generator 1 
-    obs_low[2] = 3	# max level of generator 2
+    obs_high[1] = 3	# max level of generator 1 
+    obs_high[2] = 2	# max level of generator 2
     result = spaces.Box(obs_low, obs_high, dtype=np.float32)
     return result
 
