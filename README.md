@@ -36,6 +36,8 @@ To get started with training RL agents, head to the `local_agent_training_and_ev
 
 ## Submitting an agent
 
+**Note:** Agent submission is a Beta feature, please use Slack for feedback and support
+
 To submit an agent to the [RangL competition platform](http://challenge1-rangl.uksouth.cloudapp.azure.com:8888):
 
 1. Edit `meaningful_agent_submission/agent.py` [here](https://gitlab.com/rangl-public/generation-scheduling-challenge-january-2021/-/blob/3b181110795c2a08e6f9045ef25a8f061fa31564/meaningful_agent_submission/agent.py#L33) , so that `action` is the action returned by your agent. Ensure that any supporting files needed by your agent are also in the `meaningful_agent_submission` folder
