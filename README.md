@@ -1,6 +1,6 @@
 # RangL generation scheduling challenge
 
-Welcome to the RangL generation scheduling challenge repository! To get started, read the [challenge overview](http://20.50.123.253:8888/web/challenges/challenge-page/21/overview).
+Welcome to the RangL generation scheduling challenge repository! To get started, read the [challenge overview](http://challenge1-rangl.uksouth.cloudapp.azure.com:8888/web/challenges/challenge-page/1/overview).
 
 ## The RangL environment
 
@@ -34,7 +34,12 @@ At each step, the RangL environment uses random noise to model real-world uncert
 
 To get started with training RL agents, head to the `local_agent_training_and_evaluation` folder and check out the README.
 
-## Agent submission
+## Submitting an agent
 
-Code for submitting an agent to the [RangL competition platform](http://20.50.123.253:8888) will be added here shortly. Until then, encourage friendly competition by posting your best scores in Slack (using the channels scores-peak-phase and scores-full-phase; for comparability, average your score over the 100 seeds provided in `local_agent_training_and_evaluation/seeds.csv`).
+To submit an agent to the [RangL competition platform](http://challenge1-rangl.uksouth.cloudapp.azure.com:8888):
 
+1. Edit `meaningful_agent_submission/agent.py` [here](https://gitlab.com/rangl-public/generation-scheduling-challenge-january-2021/-/blob/3b181110795c2a08e6f9045ef25a8f061fa31564/meaningful_agent_submission/agent.py#L33) , so that `action` is the action returned by your agent. Ensure that any supporting files needed by your agent are also in the `meaningful_agent_submission` folder
+2. Create an EvalAI account (one per team is sufficient) - do not attempt to verify it by email, instead...
+3. Let us know your team name on Slack and we will manually approve it
+4. Follow the [Submission Guidelines](http://challenge1-rangl.uksouth.cloudapp.azure.com:8888/web/challenges/challenge-page/1/submission) given on the platform
+ 
