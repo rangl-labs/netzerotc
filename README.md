@@ -38,10 +38,11 @@ To get started with training RL agents, head to the `local_agent_training_and_ev
 
 **Note:** Agent submission is a Beta feature, please use Slack for feedback and support
 
-To submit an agent to the [RangL competition platform](http://challenge1-rangl.uksouth.cloudapp.azure.com:8888):
+To submit an agent: 
 
 1. Edit `meaningful_agent_submission/agent.py` [here](https://gitlab.com/rangl-public/generation-scheduling-challenge-january-2021/-/blob/3b181110795c2a08e6f9045ef25a8f061fa31564/meaningful_agent_submission/agent.py#L33) , so that `action` is the action returned by your agent. Ensure that any supporting files needed by your agent are also in the `meaningful_agent_submission` folder
-2. Create an EvalAI account (one per team is sufficient) - do not attempt to verify it by email, instead...
+2. Create an account at the [RangL competition platform](http://challenge1-rangl.uksouth.cloudapp.azure.com:8888) (one per team is sufficient) - do not attempt to verify it by email, instead...
 3. Let us know your team name on Slack and we will manually approve it
-4. Follow the [Submission Guidelines](http://challenge1-rangl.uksouth.cloudapp.azure.com:8888/web/challenges/challenge-page/1/submission) given on the platform
+4. Log in to the platform and go to All Challenges -> View Details of the Generation Scheduling Challenge -> Participate -> under My Participant Teams tick the pre-initialised team -> click Continue -> Accept the T&Cs
+5. Follow the [Submission Guidelines](http://challenge1-rangl.uksouth.cloudapp.azure.com:8888/web/challenges/challenge-page/1/submission) given on the platform
  
