@@ -1,3 +1,5 @@
+This folder is an archive for the agents developed and submitted in the competition.
+
 The final leaderboard of agents, averaged over the [100 seeds provided](https://gitlab.com/rangl-public/generation-scheduling-challenge-january-2021/-/blob/master/local_agent_training_and_evaluation/seeds.csv), was:
 
 1.    zeepkist-RL v1.1.0: 1052
