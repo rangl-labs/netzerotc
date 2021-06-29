@@ -1,7 +1,0 @@
-pandas
-numpy
-gym
-requests==2.20.0
-pytest
-docker==4.4.1
-stable-baselines3==0.10.0
