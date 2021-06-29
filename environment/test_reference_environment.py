@@ -15,7 +15,7 @@ logger.setLevel(logging.DEBUG)
 env = gym.make("reference_environment:reference-environment-v0")
 # Generate a random action and check it has the right length
 action = env.action_space.sample()
-assert len(action) == 2
+assert len(action) == 6
 
 # Reset the environment
 env.reset()
@@ -24,7 +24,7 @@ assert len(env.observation_space.sample()) == len(env.state.to_observation())
 done = False
 while not done:
     # Specify the action. Check the effect of any fixed policy by specifying the action here:
-    action = [4, 5] # env.action_space.sample()
+    action = [1, 1, 1, 1, 1, 1] # env.action_space.sample()
     observation, reward, done, _ = env.step(action)
     logger.debug(f"step_count: {env.state.step_count}")
     logger.debug(f"action: {action}")
