@@ -13,6 +13,14 @@ In this challenge you can explore the following variations on Breeze, Gale and S
 * Implement a weighted combination of the three pathways, and
 * Control the rate at which each strategy is implemented.
 
+At the first timestep you choose the scenario weights (they do not have to sum to 1, but they should not be negative). At each timestep you can do this to Breeze, Gale or Storm:
+
+* Pause, by advancing 0 years
+* Progress, by advancing 1 year
+* Accelerate, by advancing more than 1 year.
+
+Clearly, accelerating progress towards net zero reduces total carbon emissions. However it also tends to be more expensive, since technology costs tend to reduce over time. Your goal is to find the best balance.
+
 ## The RangL environment
 
 RangL uses the [Openai Gym framework](https://gym.openai.com). To install the RangL environment on your local machine, 
