@@ -95,7 +95,9 @@ def action_space():
 def apply_action(action, state):
 
     # calculate the rewards accruing to each scenario
-    scenarioWeights = action[:param.scenarios]
+    scenarioWeights = np.zeros(param.scenarios)
+    if state.step_count == 0:
+        scenarioWeights = action[:param.scenarios]
     scenarioYears = action[param.scenarios:]
     # prevent advancing beyond end of scenario
     for scenario in np.arange(param.scenarios):
