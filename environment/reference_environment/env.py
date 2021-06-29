@@ -54,7 +54,7 @@ class State:
     def to_observation(self):
         observation = (
             self.step_count,
-        ) # + tuple (self.agent_prediction)
+        ) + tuple (self.IEV_years)
         
         return observation
 
@@ -97,6 +97,10 @@ def apply_action(action, state):
     # calculate the rewards accruing to each scenario
     scenarioWeights = action[:param.scenarios]
     scenarioYears = action[param.scenarios:]
+    # prevent advancing beyond end of scenario
+    for scenario in np.arange(param.scenarios):
+        if state.IEV_years[scenario] + scenarioYears[scenario] >= param.steps_per_episode:
+            scenarioYears[scenario] = param.steps_per_episode - 1 - state.IEV_years[scenario]
     capex = 0 # this variable will aggregate all (rebased) capital expenditure for this time step
     IEV_LastRewards = 0 # this variable will aggregate all other rewards for this time step (these rewrads are all assumed to be annual rates)
     for scenario in np.arange(param.scenarios): # for each scenario
@@ -113,6 +117,7 @@ def apply_action(action, state):
             for sensitivityYear in np.arange(state.step_count, IEV_year): 
                 IEV_YearRate *= param.IEV_RewardSensitivities[scenario, sensitivityYear, rewardType] # apply each relevant sensitivity
             IEV_LastRewards += scenarioWeights[scenario] * IEV_YearRate # aggregate the weighted reward
+    state.IEV_years = np.clip(state.IEV_years + scenarioYears, 0, param.steps_per_episode - 1)
     reward = capex + IEV_LastRewards
     return state, reward
 
@@ -128,8 +133,8 @@ def plot_episode(state, fname):
     # cumulative total rewards
     plt.subplot(221)
     plt.plot(np.cumsum(state.rewards_all))
-    plt.xlabel("time")
-    plt.ylabel("cumulative reward")
+    plt.xlabel("time, avg reward: " + str(np.mean(state.rewards_all)))
+    plt.ylabel("cumulative reward") 
     plt.tight_layout()
     # could be expanded to include individual components of the reward
 
@@ -137,7 +142,7 @@ def plot_episode(state, fname):
     plt.subplot(222)
     plt.plot(np.array(state.observations_all))
     plt.xlabel("time")
-    plt.ylabel("generator levels")
+    plt.ylabel("observations")
     plt.tight_layout()
 
 

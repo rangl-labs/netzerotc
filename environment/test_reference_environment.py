@@ -24,7 +24,7 @@ assert len(env.observation_space.sample()) == len(env.state.to_observation())
 done = False
 while not done:
     # Specify the action. Check the effect of any fixed policy by specifying the action here:
-    action = [1, 1, 1, 1, 1, 1] # env.action_space.sample()
+    action = [1/3, 1/3, 1/3, 3, 2, 1] # env.action_space.sample()
     observation, reward, done, _ = env.step(action)
     logger.debug(f"step_count: {env.state.step_count}")
     logger.debug(f"action: {action}")
