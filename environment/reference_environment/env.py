@@ -34,18 +34,17 @@ class State:
 
     def initialise_state(self):
         # basic variables
-        self.scenarioWeights = np.full(param.scenarios, 1/3) # a non-negative weight for each scenario which determines its weight in the overall strategy
-        self.scenarioYears = np.ones(param.scenarios) # how many years to advance each scenario during this environment time step (0 for no progress; 1 for normal IEV speed; 2 for double IEV speed; etc)
-
+        #self.scenarioWeights = np.full(param.scenarios, 1/3) # a non-negative weight for each scenario which determines its weight in the overall strategy
+        #self.scenarioYears = np.ones(param.scenarios) # how many years to advance each scenario during this environment time step (0 for no progress; 1 for normal IEV speed; 2 for double IEV speed; etc)
         # derived variables
-        self.actions = np.concatenate((scenarioWeights,scenarioYears)) # the RL action at each time step consists of the scenario weights and years
+        #self.actions = np.concatenate((self.scenarioWeights,self.scenarioYears)) # the RL action at each time step consists of the scenario weights and years
 
         # forecast variables
 
         # time variables
         # NOTE: our convention is to update step_count at the beginning of the gym step() function
         self.step_count = -1
-        self.IEV_years = np.zeros(scenarios) # for each scenario, records the latest IEV year that has been implemented
+        self.IEV_years = np.zeros(param.scenarios, dtype=int) # for each scenario, records the latest IEV year that has been implemented
         
         # histories
         self.observations_all = []
@@ -69,7 +68,6 @@ class State:
     #    self.agent_prediction = np.reshape(self.cost_predictions, self.GVA_predictions, \
     #        self.summerDemand_predictions, self.winterDemand_predictions, -1)
         
-
 
 def record(state, action, reward):
     state.observations_all.append(state.to_observation())
@@ -97,19 +95,19 @@ def action_space():
 def apply_action(action, state):
 
     # calculate the rewards accruing to each scenario
-    scenarioWeights = action[:scenarios]
-    scenarioYears = action[scenarios:]
+    scenarioWeights = action[:param.scenarios]
+    scenarioYears = action[param.scenarios:]
     capex = 0 # this variable will aggregate all (rebased) capital expenditure for this time step
     IEV_LastRewards = 0 # this variable will aggregate all other rewards for this time step (these rewrads are all assumed to be annual rates)
     for scenario in np.arange(param.scenarios): # for each scenario
-        for IEV_year in np.arange(state.IEV_years[scenario], state.IEVyears[scenario] + scenarioYears[scenario]): # for each IEV year to be implemented this time
+        for IEV_year in np.arange(state.IEV_years[scenario], state.IEV_years[scenario] + scenarioYears[scenario]): # for each IEV year to be implemented this time
             # deal with capex first
             IEV_YearReward = param.IEV_Rewards[scenario,IEV_year,0] # get the raw capex
             for sensitivityYear in np.arange(state.step_count, IEV_year): 
                 IEV_YearReward *= param.IEV_RewardSensitivities[scenario, sensitivityYear, 0] # apply each relevant sensitivity
             capex += scenarioWeights[scenario] * IEV_YearReward # aggregate the weighted capex
         # now deal with remaining rewards
-        IEV_year = state.IEVyears[scenario] + scenarioYears[scenario] # identify the last IEV year to be implemented this time
+        IEV_year = state.IEV_years[scenario] + scenarioYears[scenario] # identify the last IEV year to be implemented this time
         for rewardType in np.arange(1, param.reward_types): # for each remaining reward type (these should all represent annual rates rather than one-off charges/rewards, and by convention we apply the last rate)
             IEV_YearRate = param.IEV_Rewards[scenario,IEV_year,rewardType] # get the raw reward rate
             for sensitivityYear in np.arange(state.step_count, IEV_year): 
@@ -176,7 +174,7 @@ class GymEnv(gym.Env):
     def initialise_state(self):
         self.state = State(seed=self.current_seed)
         self.action_space = action_space()
-        self.observation_space = observation_space()
+        self.observation_space = observation_space(self)
         self.param = param
 
     def reset(self):
