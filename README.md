@@ -1,6 +1,17 @@
-# RangL generation scheduling challenge
+# RangL Pathways to Net Zero challenge
 
-Welcome to the RangL generation scheduling challenge repository! To get started, read the [challenge overview](http://challenge1-rangl.uksouth.cloudapp.azure.com:8888/web/challenges/challenge-page/1/overview).
+Welcome to the RangL Pathways to Net Zero challenge repository! To get started, read the challenge overview.
+
+## Challenge overview
+
+Your goal is to find the optimal pathway to net zero carbon emissions for the offshore industry.
+
+Three possible pathways named Breeze, Gale and Storm have been identified in the [Integrated Energy Vision](https://ore.catapult.org.uk/press-releases/reimagining-a-net-zero-north-sea-an-integrated-energy-vision-for-2050/) study by the Net Zero Technology Centre and the Offshore Renewables Catapult. 
+
+In this challenge you can explore the following variations on Breeze, Gale and Storm:
+
+* Implement a weighted combination of the three pathways, and
+* Control the rate at which each strategy is implemented.
 
 ## The RangL environment
 
@@ -40,7 +51,7 @@ To get started with training RL agents, head to the `local_agent_training_and_ev
 
 To submit an agent: 
 
-1. Edit `meaningful_agent_submission/agent.py` [here](https://gitlab.com/rangl-public/generation-scheduling-challenge-january-2021/-/blob/3b181110795c2a08e6f9045ef25a8f061fa31564/meaningful_agent_submission/agent.py#L33) , so that `action` is the action returned by your agent. Ensure that any supporting files needed by your agent are also in the `meaningful_agent_submission` folder
+1. Edit `meaningful_agent_submission/agent.py` [here](https://github.com/moriartyjm/netzerotc/blob/fbe5b7cb003651a0d06061e4bb8eacf2a81360e5/meaningful_agent_submission/agent.py#L33) , so that `action` is the action returned by your agent. Ensure that any supporting files needed by your agent are also in the `meaningful_agent_submission` folder
 2. Create an account at the [RangL competition platform](http://challenge1-rangl.uksouth.cloudapp.azure.com:8888) (one per team is sufficient) - do not attempt to verify it by email, instead...
 3. Let us know your team name on Slack and we will manually approve it
 4. Log in to the platform and go to All Challenges -> View Details of the Generation Scheduling Challenge -> Participate -> under My Participant Teams tick the pre-initialised team -> click Continue -> Accept the T&Cs
