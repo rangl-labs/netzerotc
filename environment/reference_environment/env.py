@@ -125,7 +125,7 @@ def apply_action(action, state):
 def plot_episode(state, fname):
     fig, ax = plt.subplots(2, 2)
 
-    # cumulative total cost
+    # cumulative total rewards
     plt.subplot(221)
     plt.plot(np.cumsum(state.rewards_all))
     plt.xlabel("time")
@@ -135,8 +135,7 @@ def plot_episode(state, fname):
 
     # generator levels
     plt.subplot(222)
-    plt.plot(np.array(state.generator_1_levels_all))
-    plt.plot(np.array(state.generator_2_levels_all))
+    plt.plot(np.array(state.observations_all))
     plt.xlabel("time")
     plt.ylabel("generator levels")
     plt.tight_layout()
@@ -151,11 +150,11 @@ def plot_episode(state, fname):
 
 
     # agent predictions
-    plt.subplot(224)
-    plt.plot(np.array(state.agent_predictions_all))
-    plt.xlabel("time")
-    plt.ylabel("predictions")
-    plt.tight_layout()
+    #plt.subplot(224)
+    #plt.plot(np.array(state.agent_predictions_all))
+    #plt.xlabel("time")
+    #plt.ylabel("predictions")
+    #plt.tight_layout()
 
 
     plt.savefig(fname)

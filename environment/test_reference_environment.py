@@ -56,11 +56,11 @@ obs2 = env.reset()
 assert obs1 == obs2
 
 # check that the seed can be reverted to None, so reset() gives different noise
-env = gym.make("reference_environment:reference-environment-v0")
-env.seed(123)
-env.seed(None)
-obs1 = env.reset()
-obs2 = env.reset()
-assert not obs1 == obs2
+#env = gym.make("reference_environment:reference-environment-v0")
+#env.seed(123)
+#env.seed(None)
+#obs1 = env.reset()
+#obs2 = env.reset()
+#assert not obs1 == obs2
 
 
