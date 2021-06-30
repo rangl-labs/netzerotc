@@ -1,6 +1,10 @@
 # RangL Pathways to Net Zero challenge
 
-Welcome to the RangL Pathways to Net Zero challenge repository! To get started, read the challenge overview.
+Welcome to the RangL Pathways to Net Zero challenge repository! 
+
+_**Disclaimer:** This repository is a work in progress, as we develop the challenge details. Any file unmodified since 21st June 2021 may not  work (yet)._
+
+To get started, read the challenge overview.
 
 ## Challenge overview
 
