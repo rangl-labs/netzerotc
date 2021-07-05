@@ -50,7 +50,7 @@ class State:
         self.observations_all = []
         self.actions_all = []
         self.rewards_all = []
-        self.rewardComponents_all = [] # record individual components of the reward
+        self.weightedRewardComponents_all = [] 
 
     def to_observation(self):
         observation = (
@@ -70,11 +70,11 @@ class State:
     #        self.summerDemand_predictions, self.winterDemand_predictions, -1)
         
 
-def record(state, action, reward):
+def record(state, action, reward, weightedRewardComponents):
     state.observations_all.append(state.to_observation())
     state.actions_all.append(action)
     state.rewards_all.append(reward)
-    state.rewardComponents_all.append(rewardComponents)
+    state.weightedRewardComponents_all.append(weightedRewardComponents)
     # state.agent_predictions_all.append(state.agent_prediction)
 
 
@@ -106,7 +106,7 @@ def apply_action(action, state):
         if state.IEV_years[scenario] + scenarioYears[scenario] >= param.steps_per_episode:
             scenarioYears[scenario] = param.steps_per_episode - 1 - state.IEV_years[scenario]
     #capex = 0 # this variable will aggregate all (rebased) capital expenditure for this time step
-    rewardComponents = np.zeros((scenarios, reward_types)) # for each scenario, this array will hold all components of reward for this time step
+    rewardComponents = np.zeros((param.scenarios, param.reward_types)) # for each scenario, this array will hold all components of reward for this time step
     IEV_LastRewards = 0 # this variable will aggregate all other rewards for this time step (these rewards are all assumed to be annual rates)
     
     for scenario in np.arange(param.scenarios): # for each scenario
@@ -128,9 +128,9 @@ def apply_action(action, state):
     reward = np.sum(weightedRewardComponents) # sum up the weighted reward components
     return state, reward, weightedRewardComponents
 
-def verify_constraints(state):
+#def verify_constraints(state):
     # Constraint 1
-    state.
+    #state.
 
 
 #def update_prediction_array(prediction_array):
@@ -206,7 +206,7 @@ class GymEnv(gym.Env):
         #self.state.set_agent_prediction()
         observation = self.state.to_observation()
         done = self.state.is_done()
-        record(self.state, action, reward)
+        record(self.state, action, reward, weightedRewardComponents)
         return observation, reward, done, {}
 
     def seed(self, seed=None):
