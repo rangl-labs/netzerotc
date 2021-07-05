@@ -128,9 +128,17 @@ def apply_action(action, state):
     reward = np.sum(weightedRewardComponents) # sum up the weighted reward components
     return state, reward, weightedRewardComponents
 
-#def verify_constraints(state):
-    # Constraint 1
-    #state.
+def verify_constraints(state):
+    verify = True
+    # Constraint 1: no decrease in jobs in excess of 25,000 per year
+    if state.step_count > 1:
+        if state.weightedRewardComponents_all[-1][3] - state.weightedRewardComponents_all[-2][3] < -25000:
+            verify = False;
+    # Constraint 2: no decrease in jobs in excess of 37,500 per two years
+    if state.step_count > 2:
+        if state.weightedRewardComponents_all[-1][3] - state.weightedRewardComponents_all[-3][3] < -37500:
+            verify = False;
+    return verify
 
 
 #def update_prediction_array(prediction_array):
@@ -203,6 +211,8 @@ class GymEnv(gym.Env):
         #    self.state.prediction_array
         #)
         self.state, reward, weightedRewardComponents = apply_action(action, self.state)
+        if verify_constraints(self.state) == False:
+            reward = -1000
         #self.state.set_agent_prediction()
         observation = self.state.to_observation()
         done = self.state.is_done()
