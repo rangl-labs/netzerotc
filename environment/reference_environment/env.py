@@ -140,6 +140,13 @@ def verify_constraints(state):
             verify = False;
     return verify
 
+def randomise(state, action):
+    pass
+    # uncomment to apply multiplicative noise to reward sensitivities
+    #param.IEV_RewardSensitivities *= 1
+    # uncomment to apply random delay to implementation of IEV years
+    #action[param.scenarios:] = np.random.default_rng().integers(np.array(action[param.scenarios:]), endpoint = True)
+    
 
 #def update_prediction_array(prediction_array):
     #prediction_array = prediction_array + 0.1 * np.random.randn(1,len(prediction_array))[0]
@@ -210,6 +217,7 @@ class GymEnv(gym.Env):
         #self.state.prediction_array = update_prediction_array(
         #    self.state.prediction_array
         #)
+        randomise(self.state, action)
         self.state, reward, weightedRewardComponents = apply_action(action, self.state)
         if verify_constraints(self.state) == False:
             reward = -1000
