@@ -50,6 +50,7 @@ class State:
         self.observations_all = []
         self.actions_all = []
         self.rewards_all = []
+        self.rewardComponents_all = [] # record individual components of the reward
 
     def to_observation(self):
         observation = (
@@ -73,6 +74,7 @@ def record(state, action, reward):
     state.observations_all.append(state.to_observation())
     state.actions_all.append(action)
     state.rewards_all.append(reward)
+    state.rewardComponents_all.append(rewardComponents)
     # state.agent_predictions_all.append(state.agent_prediction)
 
 
@@ -103,25 +105,32 @@ def apply_action(action, state):
     for scenario in np.arange(param.scenarios):
         if state.IEV_years[scenario] + scenarioYears[scenario] >= param.steps_per_episode:
             scenarioYears[scenario] = param.steps_per_episode - 1 - state.IEV_years[scenario]
-    capex = 0 # this variable will aggregate all (rebased) capital expenditure for this time step
-    IEV_LastRewards = 0 # this variable will aggregate all other rewards for this time step (these rewrads are all assumed to be annual rates)
+    #capex = 0 # this variable will aggregate all (rebased) capital expenditure for this time step
+    rewardComponents = np.zeros((scenarios, reward_types)) # for each scenario, this array will hold all components of reward for this time step
+    IEV_LastRewards = 0 # this variable will aggregate all other rewards for this time step (these rewards are all assumed to be annual rates)
+    
     for scenario in np.arange(param.scenarios): # for each scenario
         for IEV_year in np.arange(state.IEV_years[scenario], state.IEV_years[scenario] + scenarioYears[scenario]): # for each IEV year to be implemented this time
-            # deal with capex first
+            # deal with capex first: include the capex from *each* IEV year to be implemented this time
             IEV_YearReward = param.IEV_Rewards[scenario,IEV_year,0] # get the raw capex
             for sensitivityYear in np.arange(state.step_count, IEV_year): 
                 IEV_YearReward *= param.IEV_RewardSensitivities[scenario, sensitivityYear, 0] # apply each relevant sensitivity
-            capex += scenarioWeights[scenario] * IEV_YearReward # aggregate the weighted capex
-        # now deal with remaining rewards
+            rewardComponents[scenario, 0] += IEV_YearReward
+        # now deal with remaining rewards: include the annual rates from *only* the last IEV year to be implemented this time
         IEV_year = state.IEV_years[scenario] + scenarioYears[scenario] # identify the last IEV year to be implemented this time
         for rewardType in np.arange(1, param.reward_types): # for each remaining reward type (these should all represent annual rates rather than one-off charges/rewards, and by convention we apply the last rate)
             IEV_YearRate = param.IEV_Rewards[scenario,IEV_year,rewardType] # get the raw reward rate
             for sensitivityYear in np.arange(state.step_count, IEV_year): 
                 IEV_YearRate *= param.IEV_RewardSensitivities[scenario, sensitivityYear, rewardType] # apply each relevant sensitivity
-            IEV_LastRewards += scenarioWeights[scenario] * IEV_YearRate # aggregate the weighted reward
-    state.IEV_years = np.clip(state.IEV_years + scenarioYears, 0, param.steps_per_episode - 1)
-    reward = capex + IEV_LastRewards
-    return state, reward
+            rewardComponents[scenario, rewardType] = IEV_YearRate
+    weightedRewardComponents = np.matmul(scenarioWeights, rewardComponents) # weight the reward components by the scenario weights
+    state.IEV_years = np.clip(state.IEV_years + scenarioYears, 0, param.steps_per_episode - 1) # record the latest IEV year implemented
+    reward = np.sum(weightedRewardComponents) # sum up the weighted reward components
+    return state, reward, weightedRewardComponents
+
+def verify_constraints(state):
+    # Constraint 1
+    state.
 
 
 #def update_prediction_array(prediction_array):
@@ -193,7 +202,7 @@ class GymEnv(gym.Env):
         #self.state.prediction_array = update_prediction_array(
         #    self.state.prediction_array
         #)
-        self.state, reward = apply_action(action, self.state)
+        self.state, reward, weightedRewardComponents = apply_action(action, self.state)
         #self.state.set_agent_prediction()
         observation = self.state.to_observation()
         done = self.state.is_done()
