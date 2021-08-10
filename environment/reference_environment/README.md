@@ -28,10 +28,10 @@ and the Helper functions are:
 
 * observation_space -- specifies the agent's observation space
 * action_space -- specifies the agent's action space
-* apply_action -- applies an action to the state
-* to_reward -- returns the reward at the current step. **Note:** this helper has three versions to choose from, depending on the competition phase  
+* apply_action -- applies an action to the state and calculates the reward
+* verify_constraints -- checks whether the actions have violated any pre-specified constraints
+* randomise -- adds random noise to the state (representing uncertainty over the future) 
 * record -- records data for graphing at the end of the episode
-* update_prediction_array -- allows the predictions to be updated 
 * plot_episode -- plots the recorded data
 * score -- returns score for the full episode
 
