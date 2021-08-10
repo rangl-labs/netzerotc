@@ -56,16 +56,3 @@ At each step, the RangL environment uses random noise to model real-world uncert
 ## Training 
 
 To get started with training RL agents, head to the `local_agent_training_and_evaluation` folder and check out the README.
-
-## Submitting an agent
-
-**Note:** Agent submission is a Beta feature, please use Slack for feedback and support
-
-To submit an agent: 
-
-1. Edit `meaningful_agent_submission/agent.py` [here](https://github.com/moriartyjm/netzerotc/blob/fbe5b7cb003651a0d06061e4bb8eacf2a81360e5/meaningful_agent_submission/agent.py#L33) , so that `action` is the action returned by your agent. Ensure that any supporting files needed by your agent are also in the `meaningful_agent_submission` folder
-2. Create an account at the [RangL competition platform](http://challenge1-rangl.uksouth.cloudapp.azure.com:8888) (one per team is sufficient) - do not attempt to verify it by email, instead...
-3. Let us know your team name on Slack and we will manually approve it
-4. Log in to the platform and go to All Challenges -> View Details of the Generation Scheduling Challenge -> Participate -> under My Participant Teams tick the pre-initialised team -> click Continue -> Accept the T&Cs
-5. Follow the [Submission Guidelines](http://challenge1-rangl.uksouth.cloudapp.azure.com:8888/web/challenges/challenge-page/1/submission) given on the platform
- 
