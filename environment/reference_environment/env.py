@@ -111,7 +111,7 @@ def apply_action(action, state):
     
     for scenario in np.arange(param.scenarios): # for each scenario
         for IEV_year in np.arange(state.IEV_years[scenario], state.IEV_years[scenario] + scenarioYears[scenario]): # for each IEV year to be implemented this time
-            # deal with capex first: include the capex from *each* IEV year to be implemented this time
+            IEV_year = int(IEV_year)
             IEV_YearReward = param.IEV_Rewards[scenario,IEV_year,0] # get the raw capex
             for sensitivityYear in np.arange(state.step_count, IEV_year): 
                 IEV_YearReward *= param.IEV_RewardSensitivities[scenario, sensitivityYear, 0] # apply each relevant sensitivity
@@ -119,6 +119,7 @@ def apply_action(action, state):
         # now deal with remaining rewards: include the annual rates from *only* the last IEV year to be implemented this time
         IEV_year = state.IEV_years[scenario] + scenarioYears[scenario] # identify the last IEV year to be implemented this time
         for rewardType in np.arange(1, param.reward_types): # for each remaining reward type (these should all represent annual rates rather than one-off charges/rewards, and by convention we apply the last rate)
+            IEV_year = int(IEV_year)
             IEV_YearRate = param.IEV_Rewards[scenario,IEV_year,rewardType] # get the raw reward rate
             for sensitivityYear in np.arange(state.step_count, IEV_year): 
                 IEV_YearRate *= param.IEV_RewardSensitivities[scenario, sensitivityYear, rewardType] # apply each relevant sensitivity
