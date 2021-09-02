@@ -19,17 +19,18 @@ class Parameters:
     IEV_Rewards = np.ones((scenarios, steps_per_episode, reward_types)) # rewards for each scenario in each year in the IEV model, by reward type (capex first, then opex, revenue, ...)
     IEV_RewardSensitivities = np.full_like(IEV_Rewards,1.01) # in any strategy, when any investment is brought forward by one year, its associated rewards must be multiplied by this factor to account for changing costs/reevenues over time
     
-    totalCapexSensitivityRatio = np.genfromtxt('../sensitivities/Pathways to Net Zero 1-Year Shifting - Total capex Sensitivity Ratio.csv',delimiter=',')
-    totalOpexSensitivityRatio = np.genfromtxt('../sensitivities/Pathways to Net Zero 1-Year Shifting - Total opex Sensitivity Ratio.csv',delimiter=',')
-    totalRevenueSensitivityRatio = np.genfromtxt('../sensitivities/Pathways to Net Zero 1-Year Shifting - Total revenue Sensitivity Ratio.csv',delimiter=',')
-    totalJobsSensitivityRatio = np.genfromtxt('../sensitivities/IEV 1-Year Shifting Total Jobs Sensitivity Ratio BoundaryCalc.csv',delimiter=',')
-    totalEconomicImpactRatio = np.genfromtxt('../sensitivities/IEV 1-Year Shifting Total Economic Impact Sensitivity Ratio.csv',delimiter=',')
-    IEV_RewardSensitivities[:,0:-1,0] = totalCapexSensitivityRatio # 0:-1 means from 2021 to 2049
-    IEV_RewardSensitivities[:,0:-1,1] = totalOpexSensitivityRatio
-    IEV_RewardSensitivities[:,0:-1,2] = totalRevenueSensitivityRatio
-    IEV_RewardSensitivities[:,0:-1,3] = totalJobsSensitivityRatio # including direct and indirect, but without induced; may read the "IEV 1-Year Shifting Total Jobs Including Induced Sensitivity Ratio Boundary Calc.csv" to load the sensitivity for induced job included.
-    # IEV_RewardSensitivities[:,0:-1,4] unsure about emissions reward
-    IEV_RewardSensitivities[:,0:-1,5] = totalEconomicImpactRatio
+    IEV_Rewards[:,:,0] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Original - Total capex.xlsx'))[:,4:],dtype=np.float64) # [:,4:] corresponds to 2021 -> 2050, 30 values/steps in total
+    IEV_Rewards[:,:,1] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Original - Total opex.xlsx'))[:,4:],dtype=np.float64)
+    IEV_Rewards[:,:,2] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Original - Total revenue.xlsx'))[:,4:],dtype=np.float64)
+    IEV_Rewards[:,:,3] = np.array(np.array(pd.read_excel('./sensitivities/IEV - Original - Total Jobs.xlsx'))[:,2:],dtype=np.float64) # for jobs only, [:,2:] corresponds to 2021 -> 2050, 30 values/steps in total
+    IEV_Rewards[:,:,4] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Original - Carbon tax for uncaptured carbon.xlsx'))[:,4:],dtype=np.float64)
+    IEV_Rewards[:,:,5] = np.array(np.array(pd.read_excel('./sensitivities/IEV - Original - Total Economic Impact.xlsx'))[:,4:],dtype=np.float64)
+    IEV_RewardSensitivities[:,0:-1,0] = np.genfromtxt('./sensitivities/Pathways to Net Zero - Total capex Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',') # 0:-1 corresponds to 2021 -> 2049
+    IEV_RewardSensitivities[:,0:-1,1] = np.genfromtxt('./sensitivities/Pathways to Net Zero - Total opex Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',')
+    IEV_RewardSensitivities[:,0:-1,2] = np.genfromtxt('./sensitivities/Pathways to Net Zero - Total revenue Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',')
+    IEV_RewardSensitivities[:,0:-1,3] = np.genfromtxt('./sensitivities/IEV - Total Jobs Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',') # including direct and indirect, but without induced; may read the "IEV - Total Jobs Including Induced Sensitivity Ratio for 1-Year Shifting.csv" to load the sensitivity for induced jobs included.
+    IEV_RewardSensitivities[:,0:-1,4] = np.genfromtxt('./sensitivities/Pathways to Net Zero - Total emissions (uncaptured carbon tax) Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',')
+    IEV_RewardSensitivities[:,0:-1,5] = np.genfromtxt('./sensitivities/IEV - Total Economic Impact Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',')
 
 
 param = Parameters()  # parameters singleton
