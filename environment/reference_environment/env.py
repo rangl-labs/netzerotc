@@ -19,6 +19,7 @@ class Parameters:
     IEV_Rewards = np.ones((scenarios, steps_per_episode, reward_types)) # rewards for each scenario in each year in the IEV model, by reward type (capex first, then opex, revenue, ...)
     IEV_RewardSensitivities = np.full_like(IEV_Rewards,1.01) # in any strategy, when any investment is brought forward by one year, its associated rewards must be multiplied by this factor to account for changing costs/reevenues over time
     
+    # Ref for importing xlsx file: https://stackoverflow.com/a/49815693
     IEV_Rewards[:,:,0] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Original - Total capex.xlsx'))[:,4:],dtype=np.float64) # [:,4:] corresponds to 2021 -> 2050, 30 values/steps in total
     IEV_Rewards[:,:,1] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Original - Total opex.xlsx'))[:,4:],dtype=np.float64)
     IEV_Rewards[:,:,2] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Original - Total revenue.xlsx'))[:,4:],dtype=np.float64)
@@ -110,9 +111,9 @@ def action_space():
 def apply_action(action, state):
 
     # calculate the rewards accruing to each scenario
-    scenarioWeights = np.zeros(param.scenarios)
-    if state.step_count == 0:
-        scenarioWeights = action[:param.scenarios]
+    # scenarioWeights = np.zeros(param.scenarios)
+    # if state.step_count == 0:
+    scenarioWeights = action[:param.scenarios]
     scenarioYears = action[param.scenarios:]
     # prevent advancing beyond end of scenario
     for scenario in np.arange(param.scenarios):
@@ -133,13 +134,14 @@ def apply_action(action, state):
         IEV_year = state.IEV_years[scenario] + scenarioYears[scenario] # identify the last IEV year to be implemented this time
         for rewardType in np.arange(1, param.reward_types): # for each remaining reward type (these should all represent annual rates rather than one-off charges/rewards, and by convention we apply the last rate)
             IEV_year = int(IEV_year)
-            IEV_YearRate = param.IEV_Rewards[scenario,IEV_year,rewardType] # get the raw reward rate
-            for sensitivityYear in np.arange(state.step_count, IEV_year): 
+            IEV_YearRate = param.IEV_Rewards[scenario,IEV_year-1,rewardType] # get the raw reward rate
+            for sensitivityYear in np.arange(state.step_count, IEV_year-1): 
                 IEV_YearRate *= param.IEV_RewardSensitivities[scenario, sensitivityYear, rewardType] # apply each relevant sensitivity
             rewardComponents[scenario, rewardType] = IEV_YearRate
     weightedRewardComponents = np.matmul(scenarioWeights, rewardComponents) # weight the reward components by the scenario weights
     state.IEV_years = np.clip(state.IEV_years + scenarioYears, 0, param.steps_per_episode - 1) # record the latest IEV year implemented
-    reward = np.sum(weightedRewardComponents) # sum up the weighted reward components
+    # reward = np.sum(weightedRewardComponents) # sum up the weighted reward components
+    reward = weightedRewardComponents # 
     return state, reward, weightedRewardComponents
 
 def verify_constraints(state):
@@ -261,3 +263,42 @@ class GymEnv(gym.Env):
     def close(self):
         pass
 
+
+
+
+# For debugging purpose only:
+import logging
+
+import gym
+import reference_environment
+
+from pathlib import Path
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+# Checks
+
+# Create an environment named env
+env = gym.make("reference_environment:reference-environment-v0")
+# Generate a random action and check it has the right length
+action = env.action_space.sample()
+assert len(action) == 6
+
+# Reset the environment
+env.reset()
+# Check the to_observation method
+assert len(env.observation_space.sample()) == len(env.state.to_observation())
+done = False
+action = [1, 0, 0, 2, 2, 2]
+while not done:
+    # Specify the action. Check the effect of any fixed policy by specifying the action here:
+    observation, reward, done, _ = env.step(action)
+    logger.debug(f"step_count: {env.state.step_count}")
+    logger.debug(f"action: {action}")
+    logger.debug(f"observation: {observation}")
+    logger.debug(f"reward: {reward}")
+    logger.debug(f"done: {done}")
+    print()
+    action = [1, 0, 0, 1, 1, 1] # env.action_space.sample()
