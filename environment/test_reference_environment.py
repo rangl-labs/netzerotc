@@ -47,14 +47,18 @@ scenario = 0 # 0 for Breeze, 1 for Gale, 2 for Storm; should be adjusted accordi
 IEV_Rewards_1YearShifting[:,0] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - 1-Year Shifting - Total capex.xlsx'))[scenario,4:],dtype=np.float64)
 IEV_Rewards_1YearShifting[:,1] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - 1-Year Shifting - Total opex.xlsx'))[scenario,4:],dtype=np.float64)
 IEV_Rewards_1YearShifting[:,2] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - 1-Year Shifting - Total revenue.xlsx'))[scenario,4:],dtype=np.float64)
-IEV_Rewards_1YearShifting[:,3] = np.array(np.array(pd.read_excel('./sensitivities/IEV - 1-Year Shifting - Total Jobs.xlsx'))[scenario,2:],dtype=np.float64)
-IEV_Rewards_1YearShifting[:,4] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - 1-Year Shifting - Carbon tax for uncaptured carbon.xlsx'))[scenario,4:],dtype=np.float64)
-IEV_Rewards_1YearShifting[:,5] = np.array(np.array(pd.read_excel('./sensitivities/IEV - 1-Year Shifting - Total Economic Impact.xlsx'))[scenario,4:],dtype=np.float64)
+IEV_Rewards_1YearShifting[:,3] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - 1-Year Shifting - Carbon tax for uncaptured carbon.xlsx'))[scenario,4:],dtype=np.float64)
+# IEV_Rewards_1YearShifting[:,4] = np.array(np.array(pd.read_excel('./sensitivities/IEV - 1-Year Shifting - Total Jobs.xlsx'))[scenario,2:],dtype=np.float64)
+# IEV_Rewards_1YearShifting[:,5] = np.array(np.array(pd.read_excel('./sensitivities/IEV - 1-Year Shifting - Total Economic Impact.xlsx'))[scenario,4:],dtype=np.float64)
+IEV_Rewards_1YearShifting[:,4] = np.array(np.array(pd.read_excel('./sensitivities/IEV - capex+Delta100 - Total Jobs.xlsx.xlsx'))[scenario,2:],dtype=np.float64)
+IEV_Rewards_1YearShifting[:,5] = np.array(np.array(pd.read_excel('./sensitivities/IEV - capex+Delta100 - Total Economic Impact.xlsx'))[scenario,4:],dtype=np.float64)
+
 
 # up to now, the rewards output by env.py are correct up to year 2048, so the 
 # calculation for the last 2 elements for year 2049 and 2050 needs to be double checked:
 # (Ref: https://stackoverflow.com/questions/19141432/python-numpy-machine-epsilon)
 assert np.amax(np.abs(rewards_all[0:-2,:] - IEV_Rewards_1YearShifting[0:-2,:])) < np.finfo(np.float32).eps # env.py uses float32 in calculation, so numpy.float32's epsilon should be used for checking
+print(rewards_all[0:-2,:] - IEV_Rewards_1YearShifting[0:-2,:])
 
 # Plot the episode
 env.plot("fixed_policy.png")

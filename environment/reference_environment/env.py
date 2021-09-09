@@ -14,24 +14,27 @@ class Parameters:
     
     techs = 2 # number of technologies
     scenarios = 3 # number of strategies ('scenarios' in the IEV terminology, eg Breeze, Gale, Storm)
-    reward_types = 6 # capex first, then opex, revenue, jobs, emissions, total economic impact
+    reward_types = 6 # capex first, then opex, revenue, emissions, jobs, total economic impact
     steps_per_episode = 30 # number of years in the planning horizon (eg. 2021 -> 2050 = 30)
     IEV_Rewards = np.ones((scenarios, steps_per_episode, reward_types)) # rewards for each scenario in each year in the IEV model, by reward type (capex first, then opex, revenue, ...)
     IEV_RewardSensitivities = np.full_like(IEV_Rewards,1.01) # in any strategy, when any investment is brought forward by one year, its associated rewards must be multiplied by this factor to account for changing costs/reevenues over time
+    IEV_RewardDerivatives = np.full_like(IEV_Rewards,1.01) # only the last 2 reward types (jobs, total economic impact) will be used
     
     # Ref for importing xlsx file: https://stackoverflow.com/a/49815693
     IEV_Rewards[:,:,0] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Original - Total capex.xlsx'))[:,4:],dtype=np.float64) # [:,4:] corresponds to 2021 -> 2050, 30 values/steps in total
     IEV_Rewards[:,:,1] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Original - Total opex.xlsx'))[:,4:],dtype=np.float64)
     IEV_Rewards[:,:,2] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Original - Total revenue.xlsx'))[:,4:],dtype=np.float64)
-    IEV_Rewards[:,:,3] = np.array(np.array(pd.read_excel('./sensitivities/IEV - Original - Total Jobs.xlsx'))[:,2:],dtype=np.float64) # for jobs only, [:,2:] corresponds to 2021 -> 2050, 30 values/steps in total
-    IEV_Rewards[:,:,4] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Original - Carbon tax for uncaptured carbon.xlsx'))[:,4:],dtype=np.float64)
+    IEV_Rewards[:,:,3] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Original - Carbon tax for uncaptured carbon.xlsx'))[:,4:],dtype=np.float64)
+    IEV_Rewards[:,:,4] = np.array(np.array(pd.read_excel('./sensitivities/IEV - Original - Total Jobs.xlsx'))[:,2:],dtype=np.float64) # for jobs only, [:,2:] corresponds to 2021 -> 2050, 30 values/steps in total
     IEV_Rewards[:,:,5] = np.array(np.array(pd.read_excel('./sensitivities/IEV - Original - Total Economic Impact.xlsx'))[:,4:],dtype=np.float64)
     IEV_RewardSensitivities[:,0:-1,0] = np.genfromtxt('./sensitivities/Pathways to Net Zero - Total capex Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',') # 0:-1 corresponds to 2021 -> 2049
     IEV_RewardSensitivities[:,0:-1,1] = np.genfromtxt('./sensitivities/Pathways to Net Zero - Total opex Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',')
     IEV_RewardSensitivities[:,0:-1,2] = np.genfromtxt('./sensitivities/Pathways to Net Zero - Total revenue Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',')
-    IEV_RewardSensitivities[:,0:-1,3] = np.genfromtxt('./sensitivities/IEV - Total Jobs Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',') # including direct and indirect, but without induced; may read the "IEV - Total Jobs Including Induced Sensitivity Ratio for 1-Year Shifting.csv" to load the sensitivity for induced jobs included.
-    IEV_RewardSensitivities[:,0:-1,4] = np.genfromtxt('./sensitivities/Pathways to Net Zero - Total emissions (uncaptured carbon tax) Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',')
+    IEV_RewardSensitivities[:,0:-1,3] = np.genfromtxt('./sensitivities/Pathways to Net Zero - Total emissions (uncaptured carbon tax) Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',')
+    IEV_RewardSensitivities[:,0:-1,4] = np.genfromtxt('./sensitivities/IEV - Total Jobs Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',') # including direct and indirect, but without induced; may read the "IEV - Total Jobs Including Induced Sensitivity Ratio for 1-Year Shifting.csv" to load the sensitivity for induced jobs included.
     IEV_RewardSensitivities[:,0:-1,5] = np.genfromtxt('./sensitivities/IEV - Total Economic Impact Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',')
+    IEV_RewardDerivatives[:,:,4] = np.genfromtxt('./sensitivities/IEV - Total Jobs Derivative for capex+Delta100.csv',delimiter=',')
+    IEV_RewardDerivatives[:,:,5] = np.genfromtxt('./sensitivities/IEV - Total Economic Impact Derivative for capex+Delta100.csv',delimiter=',')
 
 
 param = Parameters()  # parameters singleton
@@ -127,12 +130,21 @@ def apply_action(action, state):
         for IEV_year in np.arange(state.IEV_years[scenario], state.IEV_years[scenario] + scenarioYears[scenario]): # for each IEV year to be implemented this time
             IEV_year = int(IEV_year)
             IEV_YearReward = param.IEV_Rewards[scenario,IEV_year,0] # get the raw capex
+            IEV_YearJobs = param.IEV_Rewards[scenario,IEV_year,4] # get the raw total jobs
+            IEV_YearEconoImpact = param.IEV_Rewards[scenario,IEV_year,5] # get the raw total economic impact
             for sensitivityYear in np.arange(state.step_count, IEV_year): 
                 IEV_YearReward *= param.IEV_RewardSensitivities[scenario, sensitivityYear, 0] # apply each relevant sensitivity
+                # IEV_YearJobs += param.IEV_RewardDerivatives[scenario, sensitivityYear, 4] * param.IEV_Rewards[scenario,sensitivityYear,0]*(param.IEV_RewardSensitivities[scenario,sensitivityYear,0]-1.0)
+                # IEV_YearEconoImpact += param.IEV_RewardDerivatives[scenario, sensitivityYear, 5] * param.IEV_Rewards[scenario,sensitivityYear,0]*(param.IEV_RewardSensitivities[scenario,sensitivityYear,0]-1.0)
+                # for testing purpose only, manually set delta capex to be 200 from 2021 or 300 from 2031
+                IEV_YearJobs += param.IEV_RewardDerivatives[scenario, sensitivityYear, 4] * 200
+                IEV_YearEconoImpact += param.IEV_RewardDerivatives[scenario, sensitivityYear, 5] * 200
             rewardComponents[scenario, 0] += IEV_YearReward
+            rewardComponents[scenario, 4] = IEV_YearJobs
+            rewardComponents[scenario, 5] = IEV_YearEconoImpact
         # now deal with remaining rewards: include the annual rates from *only* the last IEV year to be implemented this time
         IEV_year = state.IEV_years[scenario] + scenarioYears[scenario] # identify the last IEV year to be implemented this time
-        for rewardType in np.arange(1, param.reward_types): # for each remaining reward type (these should all represent annual rates rather than one-off charges/rewards, and by convention we apply the last rate)
+        for rewardType in np.arange(1, param.reward_types-2): # for each remaining reward type (these should all represent annual rates rather than one-off charges/rewards, and by convention we apply the last rate)
             IEV_year = int(IEV_year)
             IEV_YearRate = param.IEV_Rewards[scenario,IEV_year-1,rewardType] # get the raw reward rate
             for sensitivityYear in np.arange(state.step_count, IEV_year-1): 
