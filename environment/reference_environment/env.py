@@ -130,24 +130,28 @@ def apply_action(action, state):
         for IEV_year in np.arange(state.IEV_years[scenario], state.IEV_years[scenario] + scenarioYears[scenario]): # for each IEV year to be implemented this time
             IEV_year = int(IEV_year)
             IEV_YearReward = param.IEV_Rewards[scenario,IEV_year,0] # get the raw capex
-            IEV_YearJobs = param.IEV_Rewards[scenario,IEV_year,4] # get the raw total jobs
-            IEV_YearEconoImpact = param.IEV_Rewards[scenario,IEV_year,5] # get the raw total economic impact
-            for sensitivityYear in np.arange(state.step_count, IEV_year): 
+            for sensitivityYear in np.arange(state.IEV_years[scenario], IEV_year): 
                 IEV_YearReward *= param.IEV_RewardSensitivities[scenario, sensitivityYear, 0] # apply each relevant sensitivity
-                # IEV_YearJobs += param.IEV_RewardDerivatives[scenario, sensitivityYear, 4] * param.IEV_Rewards[scenario,sensitivityYear,0]*(param.IEV_RewardSensitivities[scenario,sensitivityYear,0]-1.0)
-                # IEV_YearEconoImpact += param.IEV_RewardDerivatives[scenario, sensitivityYear, 5] * param.IEV_Rewards[scenario,sensitivityYear,0]*(param.IEV_RewardSensitivities[scenario,sensitivityYear,0]-1.0)
-                # for testing purpose only, manually set delta capex to be 200 from 2021 or 300 from 2031
-                IEV_YearJobs += param.IEV_RewardDerivatives[scenario, sensitivityYear, 4] * 200
-                IEV_YearEconoImpact += param.IEV_RewardDerivatives[scenario, sensitivityYear, 5] * 200
             rewardComponents[scenario, 0] += IEV_YearReward
-            rewardComponents[scenario, 4] = IEV_YearJobs
-            rewardComponents[scenario, 5] = IEV_YearEconoImpact
+        # calculate the actual change in jobs & EconoImpact by multiplying the approximated partial derivatives to actual change of capex 
+        # (of the year with index = state.IEV_years[scenario], and this index is assigned to the re-used loop variable 'IEV_year'):
+        IEV_year = int(state.IEV_years[scenario])
+        IEV_YearJobs = param.IEV_Rewards[scenario,IEV_year,4] + (rewardComponents[scenario,0]-param.IEV_Rewards[scenario,IEV_year,0]) * param.IEV_RewardDerivatives[scenario,IEV_year,4]
+        IEV_YearEconoImpact = param.IEV_Rewards[scenario,IEV_year,5] + (rewardComponents[scenario,0]-param.IEV_Rewards[scenario,IEV_year,0]) * param.IEV_RewardDerivatives[scenario,IEV_year,5]
+        # For testing purpose only, manually set actual change of capex to be 200 from 2021 or 300 from 2031:
+        IEV_YearJobs = param.IEV_Rewards[scenario,IEV_year,4] + 200 * param.IEV_RewardDerivatives[scenario,IEV_year,4]
+        IEV_YearEconoImpact = param.IEV_Rewards[scenario,IEV_year,5] + 200 * param.IEV_RewardDerivatives[scenario,IEV_year,5]
+        for sensitivityYear in np.arange(state.step_count, IEV_year): 
+            IEV_YearJobs *= param.IEV_RewardSensitivities[scenario, sensitivityYear, 4]
+            IEV_YearEconoImpact *= param.IEV_RewardSensitivities[scenario, sensitivityYear, 5]
+        rewardComponents[scenario, 4] = IEV_YearJobs
+        rewardComponents[scenario, 5] = IEV_YearEconoImpact
         # now deal with remaining rewards: include the annual rates from *only* the last IEV year to be implemented this time
-        IEV_year = state.IEV_years[scenario] + scenarioYears[scenario] # identify the last IEV year to be implemented this time
+        IEV_year = state.IEV_years[scenario] + scenarioYears[scenario] - 1 # identify the last IEV year's *index* to be implemented this time
         for rewardType in np.arange(1, param.reward_types-2): # for each remaining reward type (these should all represent annual rates rather than one-off charges/rewards, and by convention we apply the last rate)
             IEV_year = int(IEV_year)
-            IEV_YearRate = param.IEV_Rewards[scenario,IEV_year-1,rewardType] # get the raw reward rate
-            for sensitivityYear in np.arange(state.step_count, IEV_year-1): 
+            IEV_YearRate = param.IEV_Rewards[scenario,IEV_year,rewardType] # get the raw reward rate
+            for sensitivityYear in np.arange(state.step_count, IEV_year): 
                 IEV_YearRate *= param.IEV_RewardSensitivities[scenario, sensitivityYear, rewardType] # apply each relevant sensitivity
             rewardComponents[scenario, rewardType] = IEV_YearRate
     weightedRewardComponents = np.matmul(scenarioWeights, rewardComponents) # weight the reward components by the scenario weights
