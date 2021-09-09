@@ -133,9 +133,12 @@ def apply_action(action, state):
             for sensitivityYear in np.arange(state.IEV_years[scenario], IEV_year): 
                 IEV_YearReward *= param.IEV_RewardSensitivities[scenario, sensitivityYear, 0] # apply each relevant sensitivity
             rewardComponents[scenario, 0] += IEV_YearReward
-        # calculate the actual change in jobs & EconoImpact by multiplying the approximated partial derivatives to actual change of capex 
+        # calculate the new jobs (& EconoImpact) = old jobs (& EconoImpact) + actual change in jobs (& EconoImpact)
+        # where the actual change is calculated by multiplying the approximated partial derivatives with actual change of capex 
         # (of the year with index = state.IEV_years[scenario], and this index is assigned to the re-used loop variable 'IEV_year'):
         IEV_year = int(state.IEV_years[scenario])
+        # using the following formula for year with index IEV_year = state.IEV_years[scenario]: 
+        # new jobs = old jobs + (new capex - old capex) * jobs' partial derivative w.r.t. capex:
         IEV_YearJobs = param.IEV_Rewards[scenario,IEV_year,4] + (rewardComponents[scenario,0]-param.IEV_Rewards[scenario,IEV_year,0]) * param.IEV_RewardDerivatives[scenario,IEV_year,4]
         IEV_YearEconoImpact = param.IEV_Rewards[scenario,IEV_year,5] + (rewardComponents[scenario,0]-param.IEV_Rewards[scenario,IEV_year,0]) * param.IEV_RewardDerivatives[scenario,IEV_year,5]
         # For testing purpose only, manually set actual change of capex to be 200 from 2021 or 300 from 2031:
