@@ -172,18 +172,19 @@ def apply_action(action, state):
     weightedRewardComponents = np.matmul(scenarioWeights, rewardComponents) # weight the reward components by the scenario weights
     state.IEV_years = np.clip(state.IEV_years + scenarioYears, 0, param.steps_per_episode - 1) # record the latest IEV year implemented (to be implemented as the 1st year in the next step)
     # reward = np.sum(weightedRewardComponents) # sum up the weighted reward components
-    reward = weightedRewardComponents # 
+    # reward = weightedRewardComponents # 
+    reward = weightedRewardComponents[-1] - weightedRewardComponents[-3] # proposed reward formula: Reward = Total economic impact - emissions
     return state, reward, weightedRewardComponents
 
 def verify_constraints(state):
     verify = True
     # Constraint 1: no decrease in jobs in excess of 25,000 per year
-    if state.step_count > 1:
-        if state.weightedRewardComponents_all[-1][3] - state.weightedRewardComponents_all[-2][3] < -25000:
+    if state.step_count > 1: # Note: the index of jobs in reward_types is changed from 3 to 4: capex first, then opex, revenue, emissions, jobs, total economic impact
+        if state.weightedRewardComponents_all[-1][4] - state.weightedRewardComponents_all[-2][4] < -25000:
             verify = False;
     # Constraint 2: no decrease in jobs in excess of 37,500 per two years
-    if state.step_count > 2:
-        if state.weightedRewardComponents_all[-1][3] - state.weightedRewardComponents_all[-3][3] < -37500:
+    if state.step_count > 2: # Previously in the original env.py, the ordering of reward_types is capex first, then opex, revenue, jobs, emissions
+        if state.weightedRewardComponents_all[-1][4] - state.weightedRewardComponents_all[-3][4] < -37500:
             verify = False;
     return verify
 
