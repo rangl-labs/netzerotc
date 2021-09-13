@@ -2,8 +2,6 @@
 
 Welcome to the RangL Pathways to Net Zero challenge repository! 
 
-_**Disclaimer:** This repository is a work in progress, as we develop the challenge details. Any file unmodified since 21st June 2021 may not  work (yet)._
-
 To get started, read the challenge overview.
 
 ## Challenge overview
@@ -17,11 +15,21 @@ In this challenge you can explore the following variations on Breeze, Gale and S
 * Implement a weighted combination of the three pathways, and
 * Control the rate at which each strategy is implemented.
 
-At the first timestep you choose the scenario weights (they do not have to sum to 1, but they should not be negative). At each timestep you can do this to Breeze, Gale or Storm:
+At the first timestep you choose the scenario weights (they should be non-negative, sum to 1, and should not change). At each timestep you can do this to Breeze, Gale or Storm:
 
-* Pause, by advancing 0 years
 * Progress, by advancing 1 year
 * Accelerate, by advancing more than 1 year.
+
+Your action has the form ((weights),(years)). For example, the action (0, 0.5, 0.5, 1, 2, 1) corresponds to:
+
+* Placing weight 0 on Breeze, 0.5 on Gale and 0.5 on Storm
+* Advancing the Breeze schedule by 1 year, Gale by 2 years, and Storm by 1 year
+
+Note that:
+
+* The weights are fixed: i.e. the weights used at each timestep t>1 must be equal to the weights used at timestep 1
+* For each scenario and each step, the minimum number of years to advance is 1 
+* In the above example, accelerating Breeze would have no effect on the rewards since Breeze has weight 0
 
 Clearly, accelerating progress towards net zero reduces total carbon emissions. However it also tends to be more expensive, since technology costs tend to reduce over time. Your goal is to find the best balance.
 
