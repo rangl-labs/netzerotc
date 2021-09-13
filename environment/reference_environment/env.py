@@ -105,7 +105,7 @@ def observation_space(self):
 
 
 def action_space():
-    act_low = np.concatenate((np.zeros(param.scenarios),np.ones(param.scenarios)), dtype=np.float32) 
+    act_low = np.concatenate((np.zeros(param.scenarios, dtype=np.float32),np.ones(param.scenarios, dtype=np.float32))) 
     # action has the form ((weights),(years)): firstly the (fixed) weight per scenario, then the (variable) years to advance per scenario
     # Use np.ones because we must advance at least one year per scenario per step
     act_high = np.full(2 * param.scenarios, param.steps_per_episode, dtype=np.float32)
