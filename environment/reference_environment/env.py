@@ -226,7 +226,20 @@ def plot_episode(state, fname):
     plt.xlabel("time")
     plt.ylabel("actions")
     plt.tight_layout()
-
+    
+    # jobs
+    plt.subplot(224)
+    plt.plot(np.vstack((np.array(state.weightedRewardComponents_all)[:,4],np.hstack((np.nan,np.diff(np.array(state.weightedRewardComponents_all)[:,4]))))).T)
+    plt.xlabel("time")
+    plt.ylabel("jobs and increments")
+    plt.tight_layout()
+    
+    # # increments in jobs
+    # plt.subplot(235)
+    # plt.plot(np.diff(np.array(state.weightedRewardComponents_all)[:,4]))
+    # plt.xlabel("time")
+    # plt.ylabel("increments in jobs")
+    # plt.tight_layout()
 
     # agent predictions
     #plt.subplot(224)
