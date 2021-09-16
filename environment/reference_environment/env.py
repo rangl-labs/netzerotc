@@ -27,12 +27,18 @@ class Parameters:
     IEV_Rewards[:,:,3] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Original - Carbon tax for uncaptured carbon.xlsx'))[:,4:],dtype=np.float64)
     IEV_Rewards[:,:,4] = np.array(np.array(pd.read_excel('./sensitivities/IEV - Original - Total Jobs.xlsx'))[:,2:],dtype=np.float64) # for jobs only, [:,2:] corresponds to 2021 -> 2050, 30 values/steps in total
     IEV_Rewards[:,:,5] = np.array(np.array(pd.read_excel('./sensitivities/IEV - Original - Total Economic Impact.xlsx'))[:,4:],dtype=np.float64)
-    IEV_RewardSensitivities[:,0:-1,0] = np.genfromtxt('./sensitivities/Pathways to Net Zero - Total capex Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',') # 0:-1 corresponds to 2021 -> 2049
-    IEV_RewardSensitivities[:,0:-1,1] = np.genfromtxt('./sensitivities/Pathways to Net Zero - Total opex Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',')
-    IEV_RewardSensitivities[:,0:-1,2] = np.genfromtxt('./sensitivities/Pathways to Net Zero - Total revenue Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',')
-    IEV_RewardSensitivities[:,0:-1,3] = np.genfromtxt('./sensitivities/Pathways to Net Zero - Total emissions (uncaptured carbon tax) Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',')
-    IEV_RewardSensitivities[:,0:-1,4] = np.genfromtxt('./sensitivities/IEV - Total Jobs Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',') # including direct and indirect, but without induced; may read the "IEV - Total Jobs Including Induced Sensitivity Ratio for 1-Year Shifting.csv" to load the sensitivity for induced jobs included.
-    IEV_RewardSensitivities[:,0:-1,5] = np.genfromtxt('./sensitivities/IEV - Total Economic Impact Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',')
+    # IEV_RewardSensitivities[:,0:-1,0] = np.genfromtxt('./sensitivities/Pathways to Net Zero - Total capex Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',') # 0:-1 corresponds to 2021 -> 2049
+    # IEV_RewardSensitivities[:,0:-1,1] = np.genfromtxt('./sensitivities/Pathways to Net Zero - Total opex Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',')
+    # IEV_RewardSensitivities[:,0:-1,2] = np.genfromtxt('./sensitivities/Pathways to Net Zero - Total revenue Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',')
+    # IEV_RewardSensitivities[:,0:-1,3] = np.genfromtxt('./sensitivities/Pathways to Net Zero - Total emissions (uncaptured carbon tax) Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',')
+    # IEV_RewardSensitivities[:,0:-1,4] = np.genfromtxt('./sensitivities/IEV - Total Jobs Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',') # including direct and indirect, but without induced; may read the "IEV - Total Jobs Including Induced Sensitivity Ratio for 1-Year Shifting.csv" to load the sensitivity for induced jobs included.
+    # IEV_RewardSensitivities[:,0:-1,5] = np.genfromtxt('./sensitivities/IEV - Total Economic Impact Sensitivity Ratio for 1-Year Shifting.csv',delimiter=',')
+    IEV_RewardSensitivities[:,0:-1,0] = np.genfromtxt('./sensitivities/Pathways to Net Zero - Total capex Sensitivity Ratio for Exact 1-Year Shifting No Wave+Tidal.csv',delimiter=',') # 0:-1 corresponds to 2021 -> 2049
+    IEV_RewardSensitivities[:,0:-1,1] = np.genfromtxt('./sensitivities/Pathways to Net Zero - Total opex Sensitivity Ratio for Exact 1-Year Shifting No Wave+Tidal.csv',delimiter=',')
+    IEV_RewardSensitivities[:,0:-1,2] = np.genfromtxt('./sensitivities/Pathways to Net Zero - Total revenue Sensitivity Ratio for Exact 1-Year Shifting No Wave+Tidal.csv',delimiter=',')
+    IEV_RewardSensitivities[:,0:-1,3] = np.genfromtxt('./sensitivities/Pathways to Net Zero - Total emissions (uncaptured carbon tax) Sensitivity Ratio for Exact 1-Year Shifting No Wave+Tidal.csv',delimiter=',')
+    IEV_RewardSensitivities[:,0:-1,4] = np.genfromtxt('./sensitivities/IEV - Total Jobs Sensitivity Ratio for Exact 1-Year Shifting No Wave+Tidal.csv',delimiter=',') # including direct and indirect, but without induced; may read the "IEV - Total Jobs Including Induced Sensitivity Ratio for 1-Year Shifting.csv" to load the sensitivity for induced jobs included.
+    IEV_RewardSensitivities[:,0:-1,5] = np.genfromtxt('./sensitivities/IEV - Total Economic Impact Sensitivity Ratio for Exact 1-Year Shifting No Wave+Tidal.csv',delimiter=',')
     IEV_RewardDerivatives[:,:,4] = np.genfromtxt('./sensitivities/IEV - Total Jobs Derivative for capex+Delta100.csv',delimiter=',')
     IEV_RewardDerivatives[:,:,5] = np.genfromtxt('./sensitivities/IEV - Total Economic Impact Derivative for capex+Delta100.csv',delimiter=',')
 
@@ -62,6 +68,8 @@ class State:
         # NOTE: our convention is to update step_count at the beginning of the gym step() function
         self.step_count = -1
         self.IEV_years = np.zeros(param.scenarios, dtype=int) # for each scenario, records the latest IEV year that has been implemented
+        self.jobs = np.float32(139964) # initial jobs of year 2020, extracted from the IEV model spreadsheet
+        self.jobs_increment = np.zeros(1, dtype=np.float32) # initialized as 0
         
         # histories
         self.observations_all = []
@@ -72,7 +80,7 @@ class State:
     def to_observation(self):
         observation = (
             self.step_count,
-        ) + tuple (self.IEV_years)
+        ) + tuple (self.IEV_years) + (self.jobs,) + (self.jobs_increment,)
         
         return observation
 
@@ -98,8 +106,11 @@ def record(state, action, reward, weightedRewardComponents):
 def observation_space(self):
     obs_low = np.full_like(self.state.to_observation(), 0, dtype=np.float32)
     obs_low[0] = -1	# first entry of obervation is the timestep
+    obs_low[-1] = -37500 # last entry of obervation is the increment in jobs; Constraint 2: no decrease in jobs in excess of 37,500 per two years
     obs_high = np.full_like(self.state.to_observation(), 1000, dtype=np.float32) 
     obs_high[0] = param.steps_per_episode	# first entry of obervation is the timestep
+    obs_high[-2] = 10 * 139964 # 2nd last entry of obervation is the jobs; 10 times initial jobs in 2020 = 10*139964, large enough
+    obs_high[-1] = 139964 # last entry of obervation is the increment in jobs; jobs should can't be doubled in a year or increased by the number of total jobs in 2020
     result = spaces.Box(obs_low, obs_high, dtype=np.float32)
     return result
 
@@ -171,8 +182,10 @@ def apply_action(action, state):
             rewardComponents[scenario, rewardType] = IEV_YearRate
     weightedRewardComponents = np.matmul(scenarioWeights, rewardComponents) # weight the reward components by the scenario weights
     state.IEV_years = np.clip(state.IEV_years + scenarioYears, 0, param.steps_per_episode - 1) # record the latest IEV year implemented (to be implemented as the 1st year in the next step)
+    state.jobs_increment = weightedRewardComponents[-2] - state.jobs
+    state.jobs = weightedRewardComponents[-2]
     # reward = np.sum(weightedRewardComponents) # sum up the weighted reward components
-    # reward = weightedRewardComponents # 
+    # reward = weightedRewardComponents # for testing/checking all components separately, using test_reference_environment.py
     reward = weightedRewardComponents[-1] - weightedRewardComponents[-3] # proposed reward formula: Reward = Total economic impact - emissions
     return state, reward, weightedRewardComponents
 
@@ -214,7 +227,8 @@ def plot_episode(state, fname):
 
     # generator levels
     plt.subplot(222)
-    plt.plot(np.array(state.observations_all))
+    plt.plot(np.array(state.observations_all)[:,:4]) # first 4 elements of observations are step counts and 3 IEV years
+    # plt.plot(np.array(state.observations_all)[:,-2:]) # last 2 elements of observations are jobs and increments in jobs
     plt.xlabel("time")
     plt.ylabel("observations")
     plt.tight_layout()
