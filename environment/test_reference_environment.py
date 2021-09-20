@@ -69,6 +69,13 @@ IEV_Rewards_1YearShifting[:,2] = np.array(np.array(pd.read_excel('./sensitivitie
 IEV_Rewards_1YearShifting[:,3] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Real 1-Year Shifting No Wave+Tidal - Carbon tax for uncaptured carbon.xlsx'))[scenario,4:],dtype=np.float64)
 IEV_Rewards_1YearShifting[:,4] = np.array(np.array(pd.read_excel('./sensitivities/IEV - Real 1-Year Shifting No Wave+Tidal - Total Jobs.xlsx'))[scenario,2:],dtype=np.float64)
 IEV_Rewards_1YearShifting[:,5] = np.array(np.array(pd.read_excel('./sensitivities/IEV - Real 1-Year Shifting No Wave+Tidal - Total Economic Impact.xlsx'))[scenario,4:],dtype=np.float64)
+# for a 1-year acceleration/double-deployment in 2021, followed by all 1 year normal pace, the last step should implement the original 2050's rewards, so it should be compared to the original one, without sensitivity ratio etc.
+IEV_Rewards_1YearShifting[-1,0] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Original - Total capex.xlsx'))[scenario,-1],dtype=np.float64)
+IEV_Rewards_1YearShifting[-1,1] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Original - Total opex.xlsx'))[scenario,-1],dtype=np.float64)
+IEV_Rewards_1YearShifting[-1,2] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Original - Total revenue.xlsx'))[scenario,-1],dtype=np.float64)
+IEV_Rewards_1YearShifting[-1,3] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Original - Carbon tax for uncaptured carbon.xlsx'))[scenario,-1],dtype=np.float64)
+IEV_Rewards_1YearShifting[-1,4] = np.array(np.array(pd.read_excel('./sensitivities/IEV - Original - Total Jobs.xlsx'))[scenario,-1],dtype=np.float64)
+IEV_Rewards_1YearShifting[-1,5] = np.array(np.array(pd.read_excel('./sensitivities/IEV - Original - Total Economic Impact.xlsx'))[scenario,-1],dtype=np.float64)
 # IEV_Rewards_capexDelta[:,4] = np.array(np.array(pd.read_excel('./sensitivities/IEV - capex+Delta100 - Total Jobs.xlsx'))[scenario,2:],dtype=np.float64)
 # IEV_Rewards_capexDelta[:,5] = np.array(np.array(pd.read_excel('./sensitivities/IEV - capex+Delta100 - Total Economic Impact.xlsx'))[scenario,4:],dtype=np.float64)
 # IEV_RewardFormula_1YearShifting = np.array(np.array(pd.read_excel('./sensitivities/IEV - Real 1-Year Shifting No Wave+Tidal - Reward ( = Total Economic Impact - Carbon tax).xlsx'))[scenario,4:],dtype=np.float64)
@@ -116,8 +123,8 @@ print(rewards_all[0:-2,:] - IEV_Rewards_1YearShifting[0:-2,:])
 # # in an IDE, e.g., Spyder or VSCode:
 # errors = rewards_all - IEV_Rewards_capexDelta
 # print(errors)
-# errors = rewards_all - IEV_Rewards_1YearShifting
-# print(errors)
+errors = rewards_all - IEV_Rewards_1YearShifting
+print(errors)
 
 
 # Plot the episode
