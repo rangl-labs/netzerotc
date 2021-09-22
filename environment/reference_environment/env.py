@@ -201,7 +201,8 @@ def apply_action(action, state):
     state.jobs = weightedRewardComponents[-2]
     # reward = np.sum(weightedRewardComponents) # sum up the weighted reward components
     # reward = weightedRewardComponents # for testing/checking all components separately, using test_reference_environment.py
-    reward = weightedRewardComponents[-1] - weightedRewardComponents[-3] # proposed reward formula: Reward = Total economic impact - emissions
+    # reward = weightedRewardComponents[-1] - weightedRewardComponents[-3] # proposed reward formula: Reward = Total economic impact - emissions
+    reward = weightedRewardComponents[2] - np.sum(weightedRewardComponents[[0,1,3]]) - 1050 # new reward formula: - (capex + opex + decomm - revenue) - emissions, where oil & gas decomm is a fixed constant 1050/year for all scenarios
     return state, reward, weightedRewardComponents
 
 def verify_constraints(state):
@@ -214,6 +215,10 @@ def verify_constraints(state):
     if state.step_count > 2: # Previously in the original env.py, the ordering of reward_types is capex first, then opex, revenue, jobs, emissions
         if state.weightedRewardComponents_all[-1][4] - state.weightedRewardComponents_all[-3][4] < -37500:
             verify = False;
+    # Constraint 3: amount of deployment possible in a single year should be less than the maximum single-year capex in any scenario
+    # which is the total capex from Storm in 2050 = 26390
+    if state.weightedRewardComponents_all[-1][0] > 26390:
+        verify = False;
     return verify
 
 def randomise(state, action):
