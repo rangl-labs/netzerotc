@@ -139,6 +139,7 @@ def apply_action(action, state):
     BlueHydrogen = np.clip(BlueHydrogen + action[1], BlueHydrogen, 270)
     GreenHydrogen = param.Pathways2Net0.evaluate('GALE!Y'+str(param.Pathways2Net0RowInds[state.step_count]-1))
     GreenHydrogen = np.clip(GreenHydrogen + action[2], GreenHydrogen, 252.797394)
+    
     # set these newly actioned deployment numbers into the corresponding cells in 'Gale' spreadsheet of the compiled object:
     # Note: the compiled object is essentially graphs with vertices/nodes and edges for cells and their relations (formulae)
     # if a cell contains raw values/numbers, its cell map/address will already exist; but if a cell originally contains 
@@ -149,6 +150,27 @@ def apply_action(action, state):
     param.Pathways2Net0.evaluate('GALE!P'+str(param.Pathways2Net0RowInds[state.step_count]))
     param.Pathways2Net0.evaluate('GALE!X'+str(param.Pathways2Net0RowInds[state.step_count]))
     param.Pathways2Net0.evaluate('GALE!Y'+str(param.Pathways2Net0RowInds[state.step_count]))
+    # also, before resetting the current year's deployment values, the capex opex revenue and emissions of the current year
+    # have to be evaluated to initialize the cell's map/address:
+    capex_all = np.float32([param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'24'), 
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'28'),
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'32'),
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'36'),
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'41')])
+    opex_all = np.float32([param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'25'), 
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'29'),
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'33'),
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'37'),
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'42')])
+    revenue_all = np.float32([param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'26'), 
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'30'),
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'34'),
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'38'),
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'43')])
+    emissions = np.float32(param.Pathways2Net0.evaluate('CCUS!'+param.Pathways2Net0ColumnInds[state.step_count]+'68'))
+    # again, before resetting the following 3 values, the above all reward components have to be evaluated first,
+    # and after the following resetting, the reward components need to be evaluated again to calculate based on the newly
+    # reset values:
     param.Pathways2Net0.set_value('GALE!P'+str(param.Pathways2Net0RowInds[state.step_count]), OffshoreWind)
     param.Pathways2Net0.set_value('GALE!X'+str(param.Pathways2Net0RowInds[state.step_count]), BlueHydrogen)
     param.Pathways2Net0.set_value('GALE!Y'+str(param.Pathways2Net0RowInds[state.step_count]), GreenHydrogen)

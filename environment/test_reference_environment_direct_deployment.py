@@ -25,7 +25,7 @@ env.reset()
 assert len(env.observation_space.sample()) == len(env.state.to_observation())
 done = False
 
-action = [10.0, 10.0, 20.0] # [increment in offshore wind capacity GW, increment in blue hydrogen energy TWh, increment in green hydrogen energy TWh]
+action = [1.0, 1.0, 2.0] # [increment in offshore wind capacity GW, increment in blue hydrogen energy TWh, increment in green hydrogen energy TWh]
 while not done:
     # Specify the action. Check the effect of any fixed policy by specifying the action here:
     observation, reward, done, _ = env.step(action)
@@ -35,11 +35,11 @@ while not done:
     logger.debug(f"reward: {reward}")
     logger.debug(f"done: {done}")
     print()
-    action = [5.0, 5.0, 10.0] # env.action_space.sample()
+    action = [2.0, 2.0, 5.0] # env.action_space.sample()
 
 # logger.debug(f"env.param.IEV_RewardSensitivities: {env.param.IEV_RewardSensitivities}")
 
-# rewards_all = np.array(env.state.weightedRewardComponents_all)
+rewards_all = np.array(env.state.weightedRewardComponents_all)
 # IEV_Rewards_1YearShifting = np.ones(np.shape(rewards_all))
 # # IEV_Rewards_capexDelta = np.ones(np.shape(rewards_all))
 # scenario = 1 # 0 for Breeze, 1 for Gale, 2 for Storm; should be adjusted according to the 'action' above in line 33/35 and 46
