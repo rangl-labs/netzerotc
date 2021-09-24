@@ -19,7 +19,10 @@ class Parameters:
     reward_types = 6 # capex first, then opex, revenue, emissions, jobs, total economic impact
     steps_per_episode = 20 # number of years in the planning horizon (eg. 2031 -> 2050 = 20)
     # Compile the 'Pathways to Net Zero' Excel work book to a Python object:
-    Pathways2Net0 = ExcelCompiler(filename='./sensitivities/Pathways to Net Zero - Original.xlsx')
+    Pathways2Net0 = ExcelCompiler(filename='./compiled_workbook_objects/Pathways to Net Zero - Simplified.xlsx')
+    # Pathways2Net0.to_file('./compiled_workbook_objects/Pathways to Net Zero - Simplified - Compiled')
+    # read the compiled object from hard drive
+    # Pathways2Net0 = ExcelCompiler.from_file('./compiled_workbook_objects/Pathways to Net Zero - Simplified - Compiled')
     # hard code the columns indices corresponding to year 2031 to 2050 in spreadsheets 'Outputs' and 'CCUS' of the above work book:
     Pathways2Net0ColumnInds = np.array(['P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI'])
     # hard code the row indices corresponding to year 2031 to 2050 in spreadsheets 'BREEZE', 'GALE', and 'STORM' of the above work book:
@@ -113,7 +116,7 @@ def observation_space(self):
 
 
 def action_space():
-    # the actions are [increment in offshore wind capacity GW, increment in blue hydrogen energy GW, increment in green hydrogen energy GW]
+    # the actions are [increment in offshore wind capacity GW, increment in blue hydrogen energy TWh, increment in green hydrogen energy TWh]
     # so the lower bound should be zero because the already deployed cannot be reduced and can only be increased
     act_low = np.zeros(param.techs, dtype=np.float32)
     # the upper bound is set to the highest 2050's target among all 3 scenarios; in other word, the action should not increase the deployment by more than the highest target:
@@ -203,8 +206,9 @@ def verify_constraints(state):
             verify = False;
     # Constraint 3: amount of deployment possible in a single year should be less than the maximum single-year capex in any scenario
     # which is the total capex from Storm in 2050 = 26390
-    # if state.weightedRewardComponents_all[-1][0] > 26390:
-    #     verify = False;
+    if state.step_count > 0:
+        if state.weightedRewardComponents_all[-1][0] > 26390:
+            verify = False;
     return verify
 
 def randomise(state, action):
@@ -329,41 +333,3 @@ class GymEnv(gym.Env):
         pass
 
 
-
-
-# For debugging purpose only:
-import logging
-
-import gym
-import reference_environment_direct_deployment
-
-from pathlib import Path
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-# Checks
-
-# Create an environment named env
-env = gym.make("reference_environment_direct_deployment:reference-environment-direct-deployment-v0")
-# Generate a random action and check it has the right length
-action = env.action_space.sample()
-assert len(action) == 3
-
-# Reset the environment
-env.reset()
-# Check the to_observation method
-assert len(env.observation_space.sample()) == len(env.state.to_observation())
-done = False
-action = [10.0, 10.0, 20.0]
-while not done:
-    # Specify the action. Check the effect of any fixed policy by specifying the action here:
-    observation, reward, done, _ = env.step(action)
-    logger.debug(f"step_count: {env.state.step_count}")
-    logger.debug(f"action: {action}")
-    logger.debug(f"observation: {observation}")
-    logger.debug(f"reward: {reward}")
-    logger.debug(f"done: {done}")
-    print()
-    action = [5.0, 5.0, 10.0] # env.action_space.sample()
