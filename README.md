@@ -13,8 +13,8 @@ The economic and energy system model is adapted from the [Integrated Energy Visi
 Each timestep corresponds to one year. Beginning in 2031, at each timestep you choose how many gigawatts to deploy for each technology in the coming year. For example, at timestep `t` the action (3, 0.5, 1) corresponds to deploying 
 
 * 3 GW of offshore wind capacity
-* 0.5 GW of blue hydrogen capacity
-* 1 GW of green hydrogen capacity
+* 0.5 TWh of blue hydrogen capacity
+* 1 TWh of green hydrogen capacity
 
 in the year `2030 + t`.
 
