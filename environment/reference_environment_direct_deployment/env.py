@@ -206,8 +206,13 @@ def apply_action(action, state):
     # weightedRewardComponents[4] = param.IEV_EconomicModel.evaluate()
     # weightedRewardComponents[5] = param.IEV_EconomicModel.evaluate()
     # currently set the jobs and economic impact to be the previous values (the above should be implemented after testing):
-    weightedRewardComponents[4] = state.jobs
+    # weightedRewardComponents[4] = state.jobs
     weightedRewardComponents[5] = state.EconoImpact
+    # Update: based on the workshop on 20 Sep, the jobs number calculation we discussed was a simple one: 
+    # 25% of total costs are spent on salaries and the average salary is GBP 50,000. 
+    # Since the monetary unit of capex, opex, revenue, decom, etc. is millions of GBP in the compiled Excel workbook, 
+    # the jobs number in each year should be: 0.25 * (capex + opex + decomm) / 0.05, where the decomm is a fixed constant 1050:
+    weightedRewardComponents[4] = 0.25 * (weightedRewardComponents[0] + weightedRewardComponents[1] + 1050)/0.05
     state.jobs_increment = weightedRewardComponents[-2] - state.jobs
     state.jobs = weightedRewardComponents[-2]
     # reward = np.sum(weightedRewardComponents) # sum up the weighted reward components
