@@ -6,30 +6,23 @@ To get started, read the challenge overview.
 
 ## Challenge overview
 
-Your goal is to find the optimal pathway to net zero carbon emissions for the offshore industry.
+Your goal is to find the optimal pathway to net zero carbon emissions for the offshore industry, by controlling the rate of deployment of three specific technologies between 2031 and 2050. The technologies are offshore wind, blue hydrogen (that is, hydrogen produced from natural gas, combined with carbon capture and storage) and green hydrogen (produced from water and renewable electricity by electrolysis).
 
-Three possible pathways named Breeze, Gale and Storm have been identified in the [Integrated Energy Vision](https://ore.catapult.org.uk/press-releases/reimagining-a-net-zero-north-sea-an-integrated-energy-vision-for-2050/) study by the Net Zero Technology Centre and the Offshore Renewables Catapult. 
+The economic and energy system model is adapted from the [Integrated Energy Vision](https://ore.catapult.org.uk/press-releases/reimagining-a-net-zero-north-sea-an-integrated-energy-vision-for-2050/) study by the Net Zero Technology Centre and the Offshore Renewables Catapult. The deployment of the three technologies from the present day to 2030, and of other relevant technologies from the present day to 2050, is based on the IEV 'Gale' scenario.
 
-In this challenge you can explore the following variations on Breeze, Gale and Storm:
+Each timestep corresponds to one year. Beginning in 2031, at each timestep you choose how many gigawatts to deploy for each technology in the coming year. For example, at timestep `t` the action (3, 0.5, 1) corresponds to deploying 
 
-* Implement a weighted combination of the three pathways, and
-* Control the rate at which each strategy is implemented.
+* 3 GW of offshore wind capacity
+* 0.5 GW of blue hydrogen capacity
+* 1 GW of green hydrogen capacity
 
-At the first timestep you choose the scenario weights (they should be non-negative, sum to 1, and should not change). At each timestep you can do this to Breeze, Gale or Storm:
+in the year `2030 + t`.
 
-* Progress, by advancing 1 year
-* Accelerate, by advancing more than 1 year.
+The reward at each timestep is given by the formula
 
-Your action has the form ((weights),(years)). For example, the action (0, 0.5, 0.5, 1, 2, 1) corresponds to:
+`Revenue - (Capex + Opex + Decomm + Emissions)`
 
-* Placing weight 0 on Breeze, 0.5 on Gale and 0.5 on Storm
-* Advancing the Breeze schedule by 1 year, Gale by 2 years, and Storm by 1 year
-
-Note that:
-
-* The weights are fixed: i.e. the weights used at each timestep t>1 must be equal to the weights used at timestep 1
-* For each scenario and each step, the minimum number of years to advance is 1 
-* In the above example, accelerating Breeze would have no effect on the rewards since Breeze has weight 0
+whose components are respectively revenue, capital expenditure, operating expenditure, decommissioning costs, and emissions costs.
 
 Clearly, accelerating progress towards net zero reduces total carbon emissions. However it also tends to be more expensive, since technology costs tend to reduce over time. Your goal is to find the best balance.
 
