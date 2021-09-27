@@ -5,7 +5,8 @@ from stable_baselines3 import PPO
 
 from util import Evaluate
 
-env = gym.make("reference_environment:reference-environment-v0")
+# env = gym.make("reference_environment:reference-environment-v0")
+env = gym.make("reference_environment_direct_deployment:reference-environment-direct-deployment-v0")
 agent = PPO.load("MODEL_0")
 
 
