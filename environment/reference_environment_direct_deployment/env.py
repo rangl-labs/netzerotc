@@ -80,7 +80,7 @@ class State:
     def to_observation(self):
         observation = (
             self.step_count,
-        ) + (self.jobs,) + (self.jobs_increment,) + (self.EconoImpact,)
+        )# + (self.jobs,) + (self.jobs_increment,)# + (self.EconoImpact,)
         
         return observation
 
@@ -106,11 +106,11 @@ def record(state, action, reward, weightedRewardComponents):
 def observation_space(self):
     obs_low = np.full_like(self.state.to_observation(), 0, dtype=np.float32)
     obs_low[0] = -1	# first entry of obervation is the timestep
-    obs_low[-1] = -37500 # last entry of obervation is the increment in jobs; Constraint 2: no decrease in jobs in excess of 37,500 per two years
+    # obs_low[-1] = -37500 # last entry of obervation is the increment in jobs; Constraint 2: no decrease in jobs in excess of 37,500 per two years
     obs_high = np.full_like(self.state.to_observation(), 1000, dtype=np.float32) 
     obs_high[0] = param.steps_per_episode	# first entry of obervation is the timestep
-    obs_high[-2] = 10 * 139964 # 2nd last entry of obervation is the jobs; 10 times initial jobs in 2020 = 10*139964, large enough
-    obs_high[-1] = 139964 # last entry of obervation is the increment in jobs; jobs should can't be doubled in a year or increased by the number of total jobs in 2020
+    # obs_high[-2] = 10 * 139964 # 2nd last entry of obervation is the jobs; 10 times initial jobs in 2020 = 10*139964, large enough
+    # obs_high[-1] = 139964 # last entry of obervation is the increment in jobs; jobs should can't be doubled in a year or increased by the number of total jobs in 2020
     result = spaces.Box(obs_low, obs_high, dtype=np.float32)
     return result
 

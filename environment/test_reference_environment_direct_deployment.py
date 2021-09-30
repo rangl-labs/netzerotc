@@ -125,6 +125,8 @@ rewards_all = np.array(env.state.weightedRewardComponents_all)
 # env.plot("fixed_policy_Gale1YearNormalPace.png")
 # env.plot("fixed_policy_Storm1YearNormalPace.png")
 env.plot("fixed_policy_DirectDeployment.png")
+env.plot("10models_100episodes_DirectDeployment.png")
+env.plot("10models_100episodes_DirectDeployment_MODEL_1.png")
 assert Path("fixed_policy.png").is_file()
 
 # logger.info(f"observations_all: {env.state.observations_all}")
