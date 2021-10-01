@@ -26,5 +26,5 @@ print(env.state.weightedRewardComponents_all[-1][3])
 rewards_all = np.array(env.state.weightedRewardComponents_all)
 
 os.chdir("../environment/")
-env.plot("MODEL_9_10models_100episodes_DirectDeploymentRandomized.png")
+env.plot("MODEL_9_10models_100episodes_DirectDeploymentRandomized_max(noise,0.001).png")
 os.chdir("../local_agent_training_and_evaluation/")
