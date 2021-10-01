@@ -267,8 +267,8 @@ def randomise(state, action):
     # generate Gaussian N~(1,0.1):
     RowInds_CCUS = np.array([23,24,26])
     RowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 158, 159, 163, 164, 165, 166])
-    MultiplicativeNoise_CCUS = np.random.randn(len(RowInds_CCUS))*0.1 + 1
-    MultiplicativeNoise_Outputs = np.random.randn(len(RowInds_Outputs))*0.1 + 1
+    MultiplicativeNoise_CCUS = np.maximum(0.1, np.random.randn(len(RowInds_CCUS))*0.1 + 1)
+    MultiplicativeNoise_Outputs = np.maximum(0.1, np.random.randn(len(RowInds_Outputs))*0.1 + 1)
     # for yearColumnID in param.Pathways2Net0ColumnInds:
     for yearColumnID in param.Pathways2Net0ColumnInds[state.step_count:]:
         for costRowID in np.arange(len(RowInds_CCUS)):
