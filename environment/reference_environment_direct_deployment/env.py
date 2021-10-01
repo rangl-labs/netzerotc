@@ -239,12 +239,46 @@ def verify_constraints(state):
     return verify
 
 def randomise(state, action):
-    pass
+    # pass
     # uncomment to apply multiplicative noise to reward sensitivities
     #param.IEV_RewardSensitivities *= 1
     # uncomment to apply random delay to implementation of IEV years
     #action[param.scenarios:] = np.random.default_rng().integers(np.array(action[param.scenarios:]), endpoint = True)
     
+    # Apply multiplicative noise repeatedly (for each step) to carbon price in 'CCUS' spreadsheet row [23,24,26]
+    # and 'Outputs' spreadsheet row [148, 149, 150, 153, 154, 155, 158, 159, 163, 164, 165, 166]:
+    # Again, before setting the new values to the carbon price, first evaluate rewards components needed: capex opex revenue and emissions
+    np.float32([param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'24'), 
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'28'),
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'32'),
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'36'),
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'41')])
+    np.float32([param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'25'), 
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'29'),
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'33'),
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'37'),
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'42')])
+    np.float32([param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'26'), 
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'30'),
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'34'),
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'38'),
+                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'43')])
+    np.float32(param.Pathways2Net0.evaluate('CCUS!'+param.Pathways2Net0ColumnInds[state.step_count]+'68'))
+    # generate Gaussian N~(1,0.1):
+    RowInds_CCUS = np.array([23,24,26])
+    RowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 158, 159, 163, 164, 165, 166])
+    MultiplicativeNoise_CCUS = np.random.randn(len(RowInds_CCUS))*0.1 + 1
+    MultiplicativeNoise_Outputs = np.random.randn(len(RowInds_Outputs))*0.1 + 1
+    # for yearColumnID in param.Pathways2Net0ColumnInds:
+    for yearColumnID in param.Pathways2Net0ColumnInds[state.step_count:]:
+        for costRowID in np.arange(len(RowInds_CCUS)):
+            currentCost = param.Pathways2Net0.evaluate('CCUS!'+yearColumnID+str(RowInds_CCUS[costRowID]))
+            param.Pathways2Net0.set_value('CCUS!'+yearColumnID+str(RowInds_CCUS[costRowID]), MultiplicativeNoise_CCUS[costRowID] * currentCost)
+        for costRowID in np.arange(len(RowInds_Outputs)):
+            currentCost = param.Pathways2Net0.evaluate('Outputs!'+yearColumnID+str(RowInds_Outputs[costRowID]))
+            param.Pathways2Net0.set_value('Outputs!'+yearColumnID+str(RowInds_Outputs[costRowID]), MultiplicativeNoise_Outputs[costRowID] * currentCost)
+
+
 
 #def update_prediction_array(prediction_array):
     #prediction_array = prediction_array + 0.1 * np.random.randn(1,len(prediction_array))[0]
