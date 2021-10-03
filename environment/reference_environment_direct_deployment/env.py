@@ -1,4 +1,5 @@
 import math
+from pathlib import Path
 
 import pandas as pd
 import numpy as np
@@ -7,7 +8,6 @@ from gym import spaces, logger
 from gym.utils import seeding
 import matplotlib.pyplot as plt
 from pycel import ExcelCompiler
-from IPython.display import FileLink
 
 
 class Parameters:
@@ -23,8 +23,15 @@ class Parameters:
         20  # number of years in the planning horizon (eg. 2031 -> 2050 = 20)
     )
     # Compile the 'Pathways to Net Zero' Excel work book to a Python object:
+
+    # get the path to the current file
+    p = Path(__file__)
+    # determine the relatve path to the workbooks directory
+    workbooks = p.resolve().parent.parent / "compiled_workbook_objects"
+    sensitivities = p.resolve().parent.parent / "sensitivities"
+
     Pathways2Net0 = ExcelCompiler(
-        filename="./compiled_workbook_objects/Pathways to Net Zero - Simplified.xlsx"
+        filename=f"{workbooks}/Pathways to Net Zero - Simplified.xlsx"
     )
     # Pathways2Net0.to_file('./compiled_workbook_objects/Pathways to Net Zero - Simplified - Compiled')
     # read the compiled object from hard drive
@@ -68,7 +75,8 @@ class Parameters:
     IEV_Rewards[:, :, 0] = np.array(
         np.array(
             pd.read_excel(
-                "./sensitivities/Pathways to Net Zero - Original - Total capex.xlsx"
+                f"{sensitivities}/Pathways to Net Zero - Original - Total capex.xlsx",
+                engine="openpyxl",
             )
         )[:, -steps_per_episode:],
         dtype=np.float64,
@@ -76,7 +84,8 @@ class Parameters:
     IEV_Rewards[:, :, 1] = np.array(
         np.array(
             pd.read_excel(
-                "./sensitivities/Pathways to Net Zero - Original - Total opex.xlsx"
+                f"{sensitivities}/Pathways to Net Zero - Original - Total opex.xlsx",
+                engine="openpyxl",
             )
         )[:, -steps_per_episode:],
         dtype=np.float64,
@@ -84,7 +93,8 @@ class Parameters:
     IEV_Rewards[:, :, 2] = np.array(
         np.array(
             pd.read_excel(
-                "./sensitivities/Pathways to Net Zero - Original - Total revenue.xlsx"
+                f"{sensitivities}/Pathways to Net Zero - Original - Total revenue.xlsx",
+                engine="openpyxl",
             )
         )[:, -steps_per_episode:],
         dtype=np.float64,
@@ -92,20 +102,26 @@ class Parameters:
     IEV_Rewards[:, :, 3] = np.array(
         np.array(
             pd.read_excel(
-                "./sensitivities/Pathways to Net Zero - Original - Carbon tax for uncaptured carbon.xlsx"
+                f"{sensitivities}/Pathways to Net Zero - Original - Carbon tax for uncaptured carbon.xlsx",
+                engine="openpyxl",
             )
         )[:, -steps_per_episode:],
         dtype=np.float64,
     )
     IEV_Rewards[:, :, 4] = np.array(
-        np.array(pd.read_excel("./sensitivities/IEV - Original - Total Jobs.xlsx"))[
-            :, -steps_per_episode:
-        ],
+        np.array(
+            pd.read_excel(
+                f"{sensitivities}/IEV - Original - Total Jobs.xlsx", engine="openpyxl"
+            )
+        )[:, -steps_per_episode:],
         dtype=np.float64,
     )
     IEV_Rewards[:, :, 5] = np.array(
         np.array(
-            pd.read_excel("./sensitivities/IEV - Original - Total Economic Impact.xlsx")
+            pd.read_excel(
+                f"{sensitivities}/IEV - Original - Total Economic Impact.xlsx",
+                engine="openpyxl",
+            )
         )[:, -steps_per_episode:],
         dtype=np.float64,
     )
