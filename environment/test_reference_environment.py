@@ -43,14 +43,14 @@ while not done:
     logger.debug(f"reward: {reward}")
     logger.debug(f"done: {done}")
     print()
-    action = [0, 1, 0, 1, 1, 1] # env.action_space.sample()
+    action = [0, 1, 0, 1, 1, 1]  # env.action_space.sample()
 
 logger.debug(f"env.param.IEV_RewardSensitivities: {env.param.IEV_RewardSensitivities}")
 
 rewards_all = np.array(env.state.weightedRewardComponents_all)
 IEV_Rewards_1YearShifting = np.ones(np.shape(rewards_all))
 # IEV_Rewards_capexDelta = np.ones(np.shape(rewards_all))
-scenario = 1 # 0 for Breeze, 1 for Gale, 2 for Storm; should be adjusted according to the 'action' above in line 33/35 and 46
+scenario = 1  # 0 for Breeze, 1 for Gale, 2 for Storm; should be adjusted according to the 'action' above in line 33/35 and 46
 # IEV_Rewards_1YearShifting[:,0] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - 1-Year Shifting - Total capex.xlsx'))[scenario,4:],dtype=np.float64)
 # IEV_Rewards_1YearShifting[:,1] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - 1-Year Shifting - Total opex.xlsx'))[scenario,4:],dtype=np.float64)
 # IEV_Rewards_1YearShifting[:,2] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - 1-Year Shifting - Total revenue.xlsx'))[scenario,4:],dtype=np.float64)
@@ -63,49 +63,132 @@ scenario = 1 # 0 for Breeze, 1 for Gale, 2 for Storm; should be adjusted accordi
 # IEV_Rewards_1YearShifting[:,3] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Exact 1-Year Shifting No Double-Deployment - Carbon tax for uncaptured carbon.xlsx'))[scenario,4:],dtype=np.float64)
 # IEV_Rewards_1YearShifting[:,4] = np.array(np.array(pd.read_excel('./sensitivities/IEV - Exact 1-Year Shifting No Double-Deployment - Total Jobs.xlsx'))[scenario,2:],dtype=np.float64)
 # IEV_Rewards_1YearShifting[:,5] = np.array(np.array(pd.read_excel('./sensitivities/IEV - Exact 1-Year Shifting No Double-Deployment - Total Economic Impact.xlsx'))[scenario,4:],dtype=np.float64)
-IEV_Rewards_1YearShifting[:,0] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Real 1-Year Shifting No Wave+Tidal - Total capex.xlsx'))[scenario,4:],dtype=np.float64)
-IEV_Rewards_1YearShifting[:,1] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Real 1-Year Shifting No Wave+Tidal - Total opex.xlsx'))[scenario,4:],dtype=np.float64)
-IEV_Rewards_1YearShifting[:,2] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Real 1-Year Shifting No Wave+Tidal - Total revenue.xlsx'))[scenario,4:],dtype=np.float64)
-IEV_Rewards_1YearShifting[:,3] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Real 1-Year Shifting No Wave+Tidal - Carbon tax for uncaptured carbon.xlsx'))[scenario,4:],dtype=np.float64)
-IEV_Rewards_1YearShifting[:,4] = np.array(np.array(pd.read_excel('./sensitivities/IEV - Real 1-Year Shifting No Wave+Tidal - Total Jobs.xlsx'))[scenario,2:],dtype=np.float64)
-IEV_Rewards_1YearShifting[:,5] = np.array(np.array(pd.read_excel('./sensitivities/IEV - Real 1-Year Shifting No Wave+Tidal - Total Economic Impact.xlsx'))[scenario,4:],dtype=np.float64)
+IEV_Rewards_1YearShifting[:, 0] = np.array(
+    np.array(
+        pd.read_excel(
+            "./sensitivities/Pathways to Net Zero - Real 1-Year Shifting No Wave+Tidal - Total capex.xlsx"
+        )
+    )[scenario, 4:],
+    dtype=np.float64,
+)
+IEV_Rewards_1YearShifting[:, 1] = np.array(
+    np.array(
+        pd.read_excel(
+            "./sensitivities/Pathways to Net Zero - Real 1-Year Shifting No Wave+Tidal - Total opex.xlsx"
+        )
+    )[scenario, 4:],
+    dtype=np.float64,
+)
+IEV_Rewards_1YearShifting[:, 2] = np.array(
+    np.array(
+        pd.read_excel(
+            "./sensitivities/Pathways to Net Zero - Real 1-Year Shifting No Wave+Tidal - Total revenue.xlsx"
+        )
+    )[scenario, 4:],
+    dtype=np.float64,
+)
+IEV_Rewards_1YearShifting[:, 3] = np.array(
+    np.array(
+        pd.read_excel(
+            "./sensitivities/Pathways to Net Zero - Real 1-Year Shifting No Wave+Tidal - Carbon tax for uncaptured carbon.xlsx"
+        )
+    )[scenario, 4:],
+    dtype=np.float64,
+)
+IEV_Rewards_1YearShifting[:, 4] = np.array(
+    np.array(
+        pd.read_excel(
+            "./sensitivities/IEV - Real 1-Year Shifting No Wave+Tidal - Total Jobs.xlsx"
+        )
+    )[scenario, 2:],
+    dtype=np.float64,
+)
+IEV_Rewards_1YearShifting[:, 5] = np.array(
+    np.array(
+        pd.read_excel(
+            "./sensitivities/IEV - Real 1-Year Shifting No Wave+Tidal - Total Economic Impact.xlsx"
+        )
+    )[scenario, 4:],
+    dtype=np.float64,
+)
 # for a 1-year acceleration/double-deployment in 2021, followed by all 1 year normal pace, the last step should implement the original 2050's rewards, so it should be compared to the original one, without sensitivity ratio etc.
-IEV_Rewards_1YearShifting[-1,0] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Original - Total capex.xlsx'))[scenario,-1],dtype=np.float64)
-IEV_Rewards_1YearShifting[-1,1] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Original - Total opex.xlsx'))[scenario,-1],dtype=np.float64)
-IEV_Rewards_1YearShifting[-1,2] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Original - Total revenue.xlsx'))[scenario,-1],dtype=np.float64)
-IEV_Rewards_1YearShifting[-1,3] = np.array(np.array(pd.read_excel('./sensitivities/Pathways to Net Zero - Original - Carbon tax for uncaptured carbon.xlsx'))[scenario,-1],dtype=np.float64)
-IEV_Rewards_1YearShifting[-1,4] = np.array(np.array(pd.read_excel('./sensitivities/IEV - Original - Total Jobs.xlsx'))[scenario,-1],dtype=np.float64)
-IEV_Rewards_1YearShifting[-1,5] = np.array(np.array(pd.read_excel('./sensitivities/IEV - Original - Total Economic Impact.xlsx'))[scenario,-1],dtype=np.float64)
+IEV_Rewards_1YearShifting[-1, 0] = np.array(
+    np.array(
+        pd.read_excel(
+            "./sensitivities/Pathways to Net Zero - Original - Total capex.xlsx"
+        )
+    )[scenario, -1],
+    dtype=np.float64,
+)
+IEV_Rewards_1YearShifting[-1, 1] = np.array(
+    np.array(
+        pd.read_excel(
+            "./sensitivities/Pathways to Net Zero - Original - Total opex.xlsx"
+        )
+    )[scenario, -1],
+    dtype=np.float64,
+)
+IEV_Rewards_1YearShifting[-1, 2] = np.array(
+    np.array(
+        pd.read_excel(
+            "./sensitivities/Pathways to Net Zero - Original - Total revenue.xlsx"
+        )
+    )[scenario, -1],
+    dtype=np.float64,
+)
+IEV_Rewards_1YearShifting[-1, 3] = np.array(
+    np.array(
+        pd.read_excel(
+            "./sensitivities/Pathways to Net Zero - Original - Carbon tax for uncaptured carbon.xlsx"
+        )
+    )[scenario, -1],
+    dtype=np.float64,
+)
+IEV_Rewards_1YearShifting[-1, 4] = np.array(
+    np.array(pd.read_excel("./sensitivities/IEV - Original - Total Jobs.xlsx"))[
+        scenario, -1
+    ],
+    dtype=np.float64,
+)
+IEV_Rewards_1YearShifting[-1, 5] = np.array(
+    np.array(
+        pd.read_excel("./sensitivities/IEV - Original - Total Economic Impact.xlsx")
+    )[scenario, -1],
+    dtype=np.float64,
+)
 # IEV_Rewards_capexDelta[:,4] = np.array(np.array(pd.read_excel('./sensitivities/IEV - capex+Delta100 - Total Jobs.xlsx'))[scenario,2:],dtype=np.float64)
 # IEV_Rewards_capexDelta[:,5] = np.array(np.array(pd.read_excel('./sensitivities/IEV - capex+Delta100 - Total Economic Impact.xlsx'))[scenario,4:],dtype=np.float64)
 # IEV_RewardFormula_1YearShifting = np.array(np.array(pd.read_excel('./sensitivities/IEV - Real 1-Year Shifting No Wave+Tidal - Reward ( = Total Economic Impact - Carbon tax).xlsx'))[scenario,4:],dtype=np.float64)
 
 
-# up to now, the rewards output by env.py are correct up to year 2048, so the 
+# up to now, the rewards output by env.py are correct up to year 2048, so the
 # calculation for the last 2 elements for year 2049 and 2050 needs to be double checked:
 # (Ref: https://stackoverflow.com/questions/19141432/python-numpy-machine-epsilon)
-# (!Update!: after modifying the env.py for derivative w.r.t. capex: 
+# (!Update!: after modifying the env.py for derivative w.r.t. capex:
 # when the first action = [0, 1, 0, 2, 2, 2] is accelerating for 1 year so that 2021 is a double-deployment,
 # the following line should be used to check the first 4 rewards: capex, opex, revenue, emissions only,
 # because now the jobs & economic impact are now calculated by derivatives approximation + sensitivity ratio,
-# but not just the sensitivity ratio as before; however, for capex calculation itself in the updated version of env.py, 
-# the sensitivityYear loop is changed from 
-# for sensitivityYear in np.arange(state.step_count, IEV_year): 
-# to 
+# but not just the sensitivity ratio as before; however, for capex calculation itself in the updated version of env.py,
+# the sensitivityYear loop is changed from
+# for sensitivityYear in np.arange(state.step_count, IEV_year):
+# to
 # for sensitivityYear in np.arange(state.IEV_years[scenario], IEV_year):
 # i.e., the sensitivity ratio will be applied to state.IEV_years[scenario] but no longer back to state.step_count,
 # the new capex for the actual year state.step_count won't be correct, but the capex change on year state.IEV_years[scenario]
 # is still correct for multiplying by the derivative to calculate the approximated change of jobs & economic impact.
 # Therefore, the following line will only check if opex, revenue, emissions are correct)
-# (!Update 2!: after adding codes in env.py to map the state.IEV_years' new capex (with year-shifting + accumulation) back to 
+# (!Update 2!: after adding codes in env.py to map the state.IEV_years' new capex (with year-shifting + accumulation) back to
 # the state.step_count using the product of sensitivities, the capex should be correct as well, and also the jobs and economic
 # impact should be correct as well, because all following years after 2021 are fixed 1-year normal pace actions, so except for
 # the 1st step, all other steps' capex's change at the state.IEV_years are 0, so jobs and economic impact at the state.IEV_years
 # should have no change due to size sensitivity/derivative w.r.t. capex, and then multiplying by the 1-year shifting sensitivity
 # ratio to map jobs & economic impact back to state.step_count, they should be the same as the saved xlsx files storing the
 # 1-year shifted jobs & economic impact for all steps/years after 2021, which are checked by the following updated line)
-assert np.amax(np.abs(rewards_all[1:-2,:] - IEV_Rewards_1YearShifting[1:-2,:])) < np.finfo(np.float32).eps # env.py uses float32 in calculation, so numpy.float32's epsilon should be used for checking
-print(rewards_all[0:-2,:] - IEV_Rewards_1YearShifting[0:-2,:])
+assert (
+    np.amax(np.abs(rewards_all[1:-2, :] - IEV_Rewards_1YearShifting[1:-2, :]))
+    < np.finfo(np.float32).eps
+)  # env.py uses float32 in calculation, so numpy.float32's epsilon should be used for checking
+print(rewards_all[0:-2, :] - IEV_Rewards_1YearShifting[0:-2, :])
 
 # # for jobs & economic impact derivatives w.r.t. capex, using fixed 1-year normal pace actions, the jobs & economic impact from
 # # env.py should be the same as the xlsx files from year 2021 to 2030, when total capex change is manually set to 200 in env.py
@@ -115,7 +198,7 @@ print(rewards_all[0:-2,:] - IEV_Rewards_1YearShifting[0:-2,:])
 
 # # for jobs & economic impact derivatives w.r.t. capex, using fixed 1-year normal pace actions, the jobs & economic impact from
 # # env.py should be the same as the xlsx files from year 2031 to 2050, when total capex change is manually set to 300 in env.py
-# # (the following line will only check the jobs & economic impact for year 2031 to 2050): 
+# # (the following line will only check the jobs & economic impact for year 2031 to 2050):
 # assert np.amax(np.abs(rewards_all[10:,-2:] - IEV_Rewards_capexDelta[10:,-2:])) < np.finfo(np.float32).eps
 # print(rewards_all[10:,-2:] - IEV_Rewards_capexDelta[10:,-2:])
 
@@ -152,11 +235,9 @@ obs2 = env.reset()
 assert obs1 == obs2
 
 # check that the seed can be reverted to None, so reset() gives different noise
-#env = gym.make("reference_environment:reference-environment-v0")
-#env.seed(123)
-#env.seed(None)
-#obs1 = env.reset()
-#obs2 = env.reset()
-#assert not obs1 == obs2
-
-
+# env = gym.make("reference_environment:reference-environment-v0")
+# env.seed(123)
+# env.seed(None)
+# obs1 = env.reset()
+# obs2 = env.reset()
+# assert not obs1 == obs2
