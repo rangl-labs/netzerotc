@@ -26,7 +26,7 @@ class Parameters:
 
     # get the path to the current file
     p = Path(__file__)
-    # determine the relatve path to the workbooks directory
+    # determine the relative path to the workbooks directory
     workbooks = p.resolve().parent.parent / "compiled_workbook_objects"
     sensitivities = p.resolve().parent.parent / "sensitivities"
 
