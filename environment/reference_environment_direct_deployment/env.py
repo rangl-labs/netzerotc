@@ -25,7 +25,7 @@ class Parameters:
     p = Path(__file__)
     # determine the relative path to the workbooks directory
     workbooks = p.resolve().parent.parent / "compiled_workbook_objects"
-    sensitivities = p.resolve().parent.parent / "sensitivities"
+    # sensitivities = p.resolve().parent.parent / "sensitivities"
 
     # Pathways2Net0 = ExcelCompiler(filename=f"{workbooks}/Pathways to Net Zero - Simplified.xlsx")
     # Pathways2Net0.to_file('./compiled_workbook_objects/Pathways to Net Zero - Simplified - Compiled')
@@ -36,8 +36,13 @@ class Parameters:
     Pathways2Net0ColumnInds = np.array(['P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI'])
     # hard code the row indices corresponding to year 2031 to 2050 in spreadsheets 'BREEZE', 'GALE', and 'STORM' of the above work book:
     Pathways2Net0RowInds = np.arange(36,36+steps_per_episode)
-    # Pathways2Net0ColumnInds[state.step_count] and Pathways2Net0RowInds[state.step_count] will give the 
+    # such that Pathways2Net0ColumnInds[state.step_count] and Pathways2Net0RowInds[state.step_count] will give the 
     # corresponding row and column in the spreadsheets
+    # Rows in spreadsheet 'CCUS' to be (independently) randomized:
+    Pathways2Net0RandomRowInds_CCUS = np.array([23,24,26])
+    # Rows in spreadsheet 'Outputs' to be (independently) randomized:
+    Pathways2Net0RandomRowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 159, 163, 164, 165, 166])
+    
 
     # Compile the IEV economic model work book to a Python object (to be implemented after initial testing):
     
@@ -71,6 +76,9 @@ class State:
         #self.actions = np.concatenate((self.scenarioWeights,self.scenarioYears)) # the RL action at each time step consists of the scenario weights and years
 
         # forecast variables
+        
+        # randomized variables (randomized costs or prices)
+        self.randomized_costs = np.ones(len(param.Pathways2Net0RandomRowInds_CCUS) + len(param.Pathways2Net0RandomRowInds_Outputs))
 
         # time variables
         # NOTE: our convention is to update step_count at the beginning of the gym step() function
@@ -89,7 +97,7 @@ class State:
     def to_observation(self):
         observation = (
             self.step_count,
-        )# + (self.jobs,) + (self.jobs_increment,)# + (self.EconoImpact,)
+        ) + tuple(self.randomized_costs)# + (self.jobs,) + (self.jobs_increment,)# + (self.EconoImpact,)
         
         return observation
 
@@ -114,8 +122,10 @@ def observation_space(self):
     obs_low = np.full_like(self.state.to_observation(), 0, dtype=np.float32)
     obs_low[0] = -1	# first entry of obervation is the timestep
     # obs_low[-1] = -37500 # last entry of obervation is the increment in jobs; Constraint 2: no decrease in jobs in excess of 37,500 per two years
-    obs_high = np.full_like(self.state.to_observation(), 1000, dtype=np.float32)
+    obs_high = np.full_like(self.state.to_observation(), 1e+4, dtype=np.float32)
     obs_high[0] = param.steps_per_episode  # first entry of obervation is the timestep
+    obs_high[4] = 1e+5 # corresponding to 'Outputs' row 149 Offshore wind capex, whose original maximum is about 2648
+    obs_high[6] = 1e+5 # corresponding to 'Outputs' row 153 Hydrogen green Electrolyser Capex, whose original maximum is about 1028
     # obs_high[-2] = 10 * 139964 # 2nd last entry of obervation is the jobs; 10 times initial jobs in 2020 = 10*139964, large enough
     # obs_high[-1] = 139964 # last entry of obervation is the increment in jobs; jobs should can't be doubled in a year or increased by the number of total jobs in 2020
     result = spaces.Box(obs_low, obs_high, dtype=np.float32)
@@ -274,20 +284,33 @@ def randomise(state, action):
                           param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'43')])
     np.float32(param.Pathways2Net0.evaluate('CCUS!'+param.Pathways2Net0ColumnInds[state.step_count]+'68'))
     # generate Gaussian N~(1,0.1):
-    RowInds_CCUS = np.array([23,24,26])
-    RowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 158, 159, 163, 164, 165, 166])
+    # RowInds_CCUS = np.array([23,24,26])
+    RowInds_CCUS = param.Pathways2Net0RandomRowInds_CCUS
+    # RowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 158, 159, 163, 164, 165, 166])
+    # RowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 159, 163, 164, 165, 166])
+    RowInds_Outputs = param.Pathways2Net0RandomRowInds_Outputs
     # for multiplicative noise, make sure that the prices/costs are not multiplied by a negative number or zero:
     MultiplicativeNoise_CCUS = np.maximum(0.001, np.random.randn(len(RowInds_CCUS))*0.1 + 1)
     MultiplicativeNoise_Outputs = np.maximum(0.001, np.random.randn(len(RowInds_Outputs))*0.1 + 1)
     # for yearColumnID in param.Pathways2Net0ColumnInds:
+    year_counter = 0
     for yearColumnID in param.Pathways2Net0ColumnInds[state.step_count:]:
         for costRowID in np.arange(len(RowInds_CCUS)):
             currentCost = param.Pathways2Net0.evaluate('CCUS!'+yearColumnID+str(RowInds_CCUS[costRowID]))
             param.Pathways2Net0.set_value('CCUS!'+yearColumnID+str(RowInds_CCUS[costRowID]), MultiplicativeNoise_CCUS[costRowID] * currentCost)
+            if year_counter == 0:
+                state.randomized_costs[costRowID] = MultiplicativeNoise_CCUS[costRowID] * currentCost
         for costRowID in np.arange(len(RowInds_Outputs)):
             currentCost = param.Pathways2Net0.evaluate('Outputs!'+yearColumnID+str(RowInds_Outputs[costRowID]))
             param.Pathways2Net0.set_value('Outputs!'+yearColumnID+str(RowInds_Outputs[costRowID]), MultiplicativeNoise_Outputs[costRowID] * currentCost)
-
+            if year_counter == 0:
+                state.randomized_costs[len(RowInds_CCUS)+costRowID] = MultiplicativeNoise_Outputs[costRowID] * currentCost
+        # https://github.com/rangl-labs/netzerotc/issues/36 correlated costs:
+        # #3: Hydrogen price = blue hydrogen gas feedstock price + 20, i.e., set row 158 = row 159 + 20 in 'Outputs' spreadsheet:
+        param.Pathways2Net0.set_value('Outputs!'+yearColumnID+'158', 
+                                      param.Pathways2Net0.evaluate('Outputs!'+yearColumnID+'159') + 20.0)
+        # proceed to future years, such that only assigning the current state.step_count/year's randomized costs to state.randomized_costs:
+        year_counter = year_counter + 1
 
 
 #def update_prediction_array(prediction_array):
