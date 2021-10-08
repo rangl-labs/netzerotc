@@ -105,7 +105,7 @@ class Evaluate:
             self.env.seed(seed)
             obs = self.env.reset()
             while not self.env.state.is_done():
-                action, _states = model.predict(obs, deterministic=True)
+                action, _states = model.predict(obs,deterministic=True)
                 obs, _, _, _ = self.env.step(action)
             rewards.append(sum(self.env.state.rewards_all))
         return np.mean(rewards)
