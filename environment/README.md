@@ -2,7 +2,7 @@
 
 ## Installation
 
-To install the environment, first copy a suitable economic model spreadsheet with the filename `Pathways to Net Zero - Simplified.xlsx` into the `compiled_workbook_objects` folder.
+To install the environment, first copy a python object serialised from a suitable economic model spreadsheet with the filename `PathwaysToNetZero_Simplified_Compiled.pkl` into the `compiled_workbook_objects` folder.
 
 ## Overview
 

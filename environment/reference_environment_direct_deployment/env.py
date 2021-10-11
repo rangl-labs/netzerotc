@@ -79,6 +79,7 @@ class State:
         
         # randomized variables (randomized costs or prices)
         self.randomized_costs = np.ones(len(param.Pathways2Net0RandomRowInds_CCUS) + len(param.Pathways2Net0RandomRowInds_Outputs))
+        
 
         # time variables
         # NOTE: our convention is to update step_count at the beginning of the gym step() function
@@ -124,8 +125,8 @@ def observation_space(self):
     # obs_low[-1] = -37500 # last entry of obervation is the increment in jobs; Constraint 2: no decrease in jobs in excess of 37,500 per two years
     obs_high = np.full_like(self.state.to_observation(), 1e+4, dtype=np.float32)
     obs_high[0] = param.steps_per_episode  # first entry of obervation is the timestep
-    obs_high[4] = 1e+5 # corresponding to 'Outputs' row 149 Offshore wind capex, whose original maximum is about 2648
-    obs_high[6] = 1e+5 # corresponding to 'Outputs' row 153 Hydrogen green Electrolyser Capex, whose original maximum is about 1028
+    obs_high[5] = 1e+5 # corresponding to 'Outputs' row 149 Offshore wind capex, whose original maximum is about 2648
+    obs_high[7] = 1e+5 # corresponding to 'Outputs' row 153 Hydrogen green Electrolyser Capex, whose original maximum is about 1028
     # obs_high[-2] = 10 * 139964 # 2nd last entry of obervation is the jobs; 10 times initial jobs in 2020 = 10*139964, large enough
     # obs_high[-1] = 139964 # last entry of obervation is the increment in jobs; jobs should can't be doubled in a year or increased by the number of total jobs in 2020
     result = spaces.Box(obs_low, obs_high, dtype=np.float32)
