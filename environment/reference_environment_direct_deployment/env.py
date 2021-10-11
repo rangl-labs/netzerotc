@@ -38,11 +38,12 @@ class Parameters:
     Pathways2Net0RowInds = np.arange(36,36+steps_per_episode)
     # such that Pathways2Net0ColumnInds[state.step_count] and Pathways2Net0RowInds[state.step_count] will give the 
     # corresponding row and column in the spreadsheets
-    # Rows in spreadsheet 'CCUS' to be (independently) randomized:
+    # Rows in spreadsheet 'CCUS' to be randomized:
     Pathways2Net0RandomRowInds_CCUS = np.array([23,24,26])
     # Rows in spreadsheet 'Outputs' to be (independently) randomized:
-    Pathways2Net0RandomRowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 159, 163, 164, 165, 166])
-    
+    # Pathways2Net0RandomRowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 159, 163, 164, 165, 166])
+    # Rows in spreadsheet 'Outputs' to be randomized:
+    Pathways2Net0RandomRowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 158, 159, 163, 164, 165, 166])
 
     # Compile the IEV economic model work book to a Python object (to be implemented after initial testing):
     
@@ -78,8 +79,20 @@ class State:
         # forecast variables
         
         # randomized variables (randomized costs or prices)
-        self.randomized_costs = np.ones(len(param.Pathways2Net0RandomRowInds_CCUS) + len(param.Pathways2Net0RandomRowInds_Outputs))
-        
+        self.randomized_costs = np.ones(
+            len(param.Pathways2Net0RandomRowInds_CCUS) + len(param.Pathways2Net0RandomRowInds_Outputs)
+            )
+        # initialize randomized costs by setting them to fixed (non-randomized) 2030's values (column 'O' in 'CCUS' and 'Outputs'):
+        for costRowID in np.arange(len(param.Pathways2Net0RandomRowInds_CCUS)):
+            self.randomized_costs[costRowID] = param.Pathways2Net0.evaluate(
+                'CCUS!O'+str(param.Pathways2Net0RandomRowInds_CCUS[costRowID])
+                )
+        for costRowID in np.arange(len(param.Pathways2Net0RandomRowInds_Outputs)):
+            self.randomized_costs[
+                len(param.Pathways2Net0RandomRowInds_CCUS)+costRowID
+                ] = param.Pathways2Net0.evaluate(
+                    'Outputs!O'+str(param.Pathways2Net0RandomRowInds_Outputs[costRowID])
+                    )
 
         # time variables
         # NOTE: our convention is to update step_count at the beginning of the gym step() function
@@ -123,10 +136,10 @@ def observation_space(self):
     obs_low = np.full_like(self.state.to_observation(), 0, dtype=np.float32)
     obs_low[0] = -1	# first entry of obervation is the timestep
     # obs_low[-1] = -37500 # last entry of obervation is the increment in jobs; Constraint 2: no decrease in jobs in excess of 37,500 per two years
-    obs_high = np.full_like(self.state.to_observation(), 1e+4, dtype=np.float32)
+    obs_high = np.full_like(self.state.to_observation(), 1e+5, dtype=np.float32)
     obs_high[0] = param.steps_per_episode  # first entry of obervation is the timestep
-    obs_high[5] = 1e+5 # corresponding to 'Outputs' row 149 Offshore wind capex, whose original maximum is about 2648
-    obs_high[7] = 1e+5 # corresponding to 'Outputs' row 153 Hydrogen green Electrolyser Capex, whose original maximum is about 1028
+    obs_high[5] = 1e+6 # corresponding to 'Outputs' row 149 Offshore wind capex, whose original maximum is about 2648
+    obs_high[7] = 1e+6 # corresponding to 'Outputs' row 153 Hydrogen green Electrolyser Capex, whose original maximum is about 1028
     # obs_high[-2] = 10 * 139964 # 2nd last entry of obervation is the jobs; 10 times initial jobs in 2020 = 10*139964, large enough
     # obs_high[-1] = 139964 # last entry of obervation is the increment in jobs; jobs should can't be doubled in a year or increased by the number of total jobs in 2020
     result = spaces.Box(obs_low, obs_high, dtype=np.float32)
@@ -310,6 +323,12 @@ def randomise(state, action):
         # #3: Hydrogen price = blue hydrogen gas feedstock price + 20, i.e., set row 158 = row 159 + 20 in 'Outputs' spreadsheet:
         param.Pathways2Net0.set_value('Outputs!'+yearColumnID+'158', 
                                       param.Pathways2Net0.evaluate('Outputs!'+yearColumnID+'159') + 20.0)
+        # more correlated costs in https://github.com/rangl-labs/netzerotc/issues/36:
+        
+        if year_counter == 0:
+            state.randomized_costs[len(RowInds_CCUS)+6] = param.Pathways2Net0.evaluate('Outputs!'+yearColumnID+'158')
+            # storing more correlated randomized costs to state.randomized_costs:
+            
         # proceed to future years, such that only assigning the current state.step_count/year's randomized costs to state.randomized_costs:
         year_counter = year_counter + 1
 
@@ -318,6 +337,24 @@ def randomise(state, action):
     #prediction_array = prediction_array + 0.1 * np.random.randn(1,len(prediction_array))[0]
     #return prediction_array
 
+def reset_param(param):
+    # assuming that the xlsx file contains spreadsheets 'GALE_Backup', 'CCUS_Backup', 'Outputs_Backup' which are duplicated from
+    # spreadsheets 'GALE', 'CCUS', 'Outputs' before they are filled with actions in deployments or randomized in the costs/prices,
+    # such that 'GALE_Backup', 'CCUS_Backup', 'Outputs_Backup' contain the original blank/empty or pre-randomized values
+    Spreadsheets = np.array(['GALE','CCUS','Outputs'])
+    ColumnInds_BySheets = np.array([np.array(['P','X','Y']), 
+                                    param.Pathways2Net0ColumnInds, 
+                                    param.Pathways2Net0ColumnInds])
+    RowInds_BySheets = np.array([param.Pathways2Net0RowInds, 
+                                 param.Pathways2Net0RandomRowInds_CCUS, 
+                                 param.Pathways2Net0RandomRowInds_Outputs])
+    for iSheet in np.arange(len(Spreadsheets)):
+        for iColumn in ColumnInds_BySheets[iSheet]:
+            for iRow in RowInds_BySheets[iSheet]:
+                param.Pathways2Net0.set_value(Spreadsheets[iSheet] + "!" + iColumn + str(iRow),
+                                              param.Pathways2Net0.evaluate(Spreadsheets[iSheet] + "_Backup!" + iColumn + str(iRow))
+                    )
+    return param
 
 def plot_episode(state, fname):
     fig, ax = plt.subplots(2, 2)
@@ -385,6 +422,8 @@ class GymEnv(gym.Env):
         self.observation_space = observation_space(self)
         # self.param = param
         self.param = Parameters()
+        # In case that loading the serialized .pkl is too slow when creating a new param by Parameters() above:
+        # self.param = reset_param(self.param)
 
     def reset(self):
         self.initialise_state()
