@@ -3,7 +3,7 @@ import os
 from util import Client
 
 # when running the agent locally, assume that the environment is accesible at localhost:5000
-# when running a containerised agent, assume that the environment is accesible at $RANGL_ENVIRONMENT_URL (typically http://environment:5000)
+# when running a containerised agent, assume that the environment is accesible at $RANGL_ENVIRONMENT_URL (typically http://nztc:5000)
 remote_base = os.getenv("RANGL_ENVIRONMENT_URL", "http://localhost:5000/")
 
 client = Client(remote_base)

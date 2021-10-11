@@ -1,6 +1,6 @@
 version: "3"
 services:
-  environment:
+  nztc:
     build:
       context: environment
       dockerfile: Dockerfile

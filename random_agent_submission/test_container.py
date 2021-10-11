@@ -32,7 +32,7 @@ for seed in seeds:
         # command="sleep infinity",  # debug
         environment={
             "RANGL_SEED": seed,
-            "RANGL_ENVIRONMENT_URL": "http://environment:5000",
+            "RANGL_ENVIRONMENT_URL": "http://nztc:5000",
         },
     )
     logger.debug(f"Created submission")
