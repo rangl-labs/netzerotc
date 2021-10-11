@@ -9,4 +9,4 @@ services:
 
 networks:
   default:
-    name: local_rangl
+    name: evalai_rangl
