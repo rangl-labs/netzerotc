@@ -26,7 +26,7 @@ for seed in seeds:
     submission = client.containers.run(
         image="submission:v0.1.0",
         name="agent",
-        network="local_rangl",
+        network="evalai_rangl",
         detach=False,
         auto_remove=True,
         # command="sleep infinity",  # debug
