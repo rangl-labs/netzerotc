@@ -1,6 +1,9 @@
-# Random-agent submission
+# Agent testing and submission
 
-This agent can be submitted to the EvalAI platform for evaluation.
+This folder contains 
+* `agent.py`, a simple agent which performs random actions for testing purposes
+* `test_container.py`, a script which tests locally that `agent.py` works in a container
+* the files necessary to submit an agent to the competition platform
 
 Install the dependencies:
 
@@ -15,6 +18,45 @@ make build
 ```
 
 At present this will create a local image named `submission:v0.1.0`.
+
+## Local testing
+
+We have included a testing script allowing the agent to be tested with:
+
+```shell
+python test_container.py
+```
+
+For this to work, the following must hold:
+
+1. An environment container named `nztc` must be running on the docker network named `evalai_rangl`. To create the appropriate container, run the following:
+
+   ```shell
+   cd environment
+   docker-compose up --build
+   ```
+
+Typical output is as follows:
+
+```shell
+$ ./test_container.py
+DEBUG:__main__:Created submission
+DEBUG:__main__:Completed submission
+output
+51458b8b -55459.6455078125
+...
+51458b8b 37825.09130859375
+51458b8b
+done True
+51458b8b
+DEBUG:__main__:Instance id: 51458b8b
+score: 511894.40615844727
+...
+Evaluation completed using 5 seeds.
+Final average score:  492320.25009155273
+```
+
+## Submission
 
 The image can be submitted as follows:
 
@@ -41,175 +83,6 @@ The image can be submitted as follows:
    ```shell
    evalai push submission:v0.1.0 --phase nztc-dev-5
    ```
-
-   
-## Contributing
-
-### Local testing
-
-We have included a testing script allowing the agent to be tested with:
-
-```shell
-python test_container.py
-```
-
-For this to work, the following must hold:
-
-1. An environment container named `nztc` must be running on the docker network named `evalai_rangl`. To create the appropriate container, run the following:
-
-   ```shell
-   cd environment
-   docker-compose up --build
-   ```
-
-Typical output is as follows:
-
-```shell
-$ ./test_container.py
-DEBUG:__main__:Created submission
-DEBUG:__main__:Completed submission
-output
-51458b8b -55459.6455078125
-51458b8b -1000
-51458b8b -1000
-51458b8b -1000
-51458b8b -1000
-51458b8b 33963.824951171875
-51458b8b 34930.28106689453
-51458b8b 36984.4638671875
-51458b8b 37672.76208496094
-51458b8b 37308.82482910156
-51458b8b 37788.06884765625
-51458b8b 37210.697265625
-51458b8b 38675.51513671875
-51458b8b 39245.389404296875
-51458b8b 40577.14514160156
-51458b8b 41195.61535644531
-51458b8b 40812.2919921875
-51458b8b 38965.895080566406
-51458b8b 38198.18533325195
-51458b8b 37825.09130859375
-51458b8b
-done True
-51458b8b
-DEBUG:__main__:Instance id: 51458b8b
-score: 511894.40615844727
-DEBUG:__main__:Created submission
-DEBUG:__main__:Completed submission
-output
-2576dbfd -205516.9951171875
-2576dbfd -1000
-2576dbfd -1000
-2576dbfd -1000
-2576dbfd -1000
-2576dbfd 36891.50427246094
-2576dbfd 38966.64074707031
-2576dbfd 39910.656494140625
-2576dbfd 40719.575439453125
-2576dbfd 40733.81689453125
-2576dbfd 41741.535888671875
-2576dbfd 40878.878173828125
-2576dbfd 42481.13671875
-2576dbfd 42631.225341796875
-2576dbfd 43022.89599609375
-2576dbfd 43596.039306640625
-2576dbfd 43564.45556640625
-2576dbfd 41776.94842529297
-2576dbfd 41911.902435302734
-2576dbfd 41794.798095703125
-2576dbfd
-done True
-2576dbfd
-DEBUG:__main__:Instance id: 2576dbfd
-score: 411105.0146789551
-DEBUG:__main__:Created submission
-DEBUG:__main__:Completed submission
-output
-033095a7 -24065.4638671875
-033095a7 -1000
-033095a7 -1000
-033095a7 -1000
-033095a7 -1000
-033095a7 32697.605590820312
-033095a7 37049.486572265625
-033095a7 39171.84680175781
-033095a7 40077.542724609375
-033095a7 38085.47998046875
-033095a7 39462.951416015625
-033095a7 39087.22998046875
-033095a7 40995.529296875
-033095a7 41363.203369140625
-033095a7 41396.035888671875
-033095a7 41691.34411621094
-033095a7 42471.3388671875
-033095a7 43706.618713378906
-033095a7 42512.07931518555
-033095a7 42747.90771484375
-033095a7
-done True
-033095a7
-DEBUG:__main__:Instance id: 033095a7
-score: 574450.7364807129
-DEBUG:__main__:Created submission
-DEBUG:__main__:Completed submission
-output
-f2823fdf -79790.125
-f2823fdf -1000
-f2823fdf -1000
-f2823fdf -1000
-f2823fdf -1000
-f2823fdf 35075.43896484375
-f2823fdf 37604.31707763672
-f2823fdf 38975.915954589844
-f2823fdf 39097.28857421875
-f2823fdf 36527.37451171875
-f2823fdf 39033.34130859375
-f2823fdf 37716.197265625
-f2823fdf 39847.614013671875
-f2823fdf 41252.53076171875
-f2823fdf 41489.27880859375
-f2823fdf 42701.66101074219
-f2823fdf 43422.317626953125
-f2823fdf 44458.82873535156
-f2823fdf 43003.85134887695
-f2823fdf 43944.783203125
-f2823fdf
-done True
-f2823fdf
-DEBUG:__main__:Instance id: f2823fdf
-score: 520360.61416625977
-DEBUG:__main__:Created submission
-DEBUG:__main__:Completed submission
-output
-c567504e -115167.61328125
-c567504e -1000
-c567504e -1000
-c567504e -1000
-c567504e -1000
-c567504e -1000
-c567504e 39720.33825683594
-c567504e 41831.365173339844
-c567504e 41128.1960144043
-c567504e 37672.25927734375
-c567504e 38712.83642578125
-c567504e 38307.2255859375
-c567504e 39946.487548828125
-c567504e 41066.176025390625
-c567504e 40734.710693359375
-c567504e 41410.34484863281
-c567504e 41625.554931640625
-c567504e 42160.94055175781
-c567504e 40148.92742919922
-c567504e 39492.7294921875
-c567504e
-done True
-c567504e
-DEBUG:__main__:Instance id: c567504e
-score: 443790.4789733887
-Evaluation completed using 5 seeds.
-Final average score:  492320.25009155273
-```
-
 
 
 
