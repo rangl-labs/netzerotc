@@ -1,11 +1,11 @@
-import math
+# import math
 from pathlib import Path
 
-import pandas as pd
+# import pandas as pd
 import numpy as np
 import gym
-from gym import spaces, logger
-from gym.utils import seeding
+# from gym import spaces, logger
+# from gym.utils import seeding
 import matplotlib.pyplot as plt
 from pycel import ExcelCompiler
 # from IPython.display import FileLink
@@ -27,23 +27,23 @@ class Parameters:
     workbooks = p.resolve().parent.parent / "compiled_workbook_objects"
     # sensitivities = p.resolve().parent.parent / "sensitivities"
 
-    # Pathways2Net0 = ExcelCompiler(filename=f"{workbooks}/Pathways to Net Zero - Simplified.xlsx")
-    # Pathways2Net0.to_file('./compiled_workbook_objects/Pathways to Net Zero - Simplified - Compiled')
+    # pathways2Net0 = ExcelCompiler(filename=f"{workbooks}/Pathways to Net Zero - Simplified.xlsx")
+    # pathways2Net0.to_file('./compiled_workbook_objects/Pathways to Net Zero - Simplified - Compiled')
     # read the compiled object from hard drive
-    # Pathways2Net0 = ExcelCompiler.from_file('./compiled_workbook_objects/Pathways to Net Zero - Simplified - Compiled')
-    Pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks}/PathwaysToNetZero_Simplified_Compiled")
+    # pathways2Net0 = ExcelCompiler.from_file('./compiled_workbook_objects/Pathways to Net Zero - Simplified - Compiled')
+    pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks}/PathwaysToNetZero_Simplified_Compiled")
     # hard code the columns indices corresponding to year 2031 to 2050 in spreadsheets 'Outputs' and 'CCUS' of the above work book:
-    Pathways2Net0ColumnInds = np.array(['P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI'])
+    pathways2Net0ColumnInds = np.array(['P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI'])
     # hard code the row indices corresponding to year 2031 to 2050 in spreadsheets 'BREEZE', 'GALE', and 'STORM' of the above work book:
-    Pathways2Net0RowInds = np.arange(36,36+steps_per_episode)
-    # such that Pathways2Net0ColumnInds[state.step_count] and Pathways2Net0RowInds[state.step_count] will give the 
+    pathways2Net0RowInds = np.arange(36,36+steps_per_episode)
+    # such that pathways2Net0ColumnInds[state.step_count] and pathways2Net0RowInds[state.step_count] will give the 
     # corresponding row and column in the spreadsheets
     # Rows in spreadsheet 'CCUS' to be randomized:
-    Pathways2Net0RandomRowInds_CCUS = np.array([23,24,26])
+    pathways2Net0RandomRowInds_CCUS = np.array([23,24,26])
     # Rows in spreadsheet 'Outputs' to be (independently) randomized:
-    # Pathways2Net0RandomRowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 159, 163, 164, 165, 166])
+    # pathways2Net0RandomRowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 159, 163, 164, 165, 166])
     # Rows in spreadsheet 'Outputs' to be randomized:
-    Pathways2Net0RandomRowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 158, 159, 163, 164, 165, 166])
+    pathways2Net0RandomRowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 158, 159, 163, 164, 165, 166])
     # multiplicative noise's mu and sigma, and clipping point:
     noise_mu = 1.0
     noise_sigma = 0.0 # or try 0.01, 0.1, 0.0, np.sqrt(0.001)
@@ -84,18 +84,18 @@ class State:
         
         # randomized variables (randomized costs or prices)
         self.randomized_costs = np.ones(
-            len(param.Pathways2Net0RandomRowInds_CCUS) + len(param.Pathways2Net0RandomRowInds_Outputs)
+            len(param.pathways2Net0RandomRowInds_CCUS) + len(param.pathways2Net0RandomRowInds_Outputs)
             )
         # initialize randomized costs by setting them to fixed (non-randomized) 2030's values (column 'O' in 'CCUS' and 'Outputs'):
-        for costRowID in np.arange(len(param.Pathways2Net0RandomRowInds_CCUS)):
-            self.randomized_costs[costRowID] = param.Pathways2Net0.evaluate(
-                'CCUS!O'+str(param.Pathways2Net0RandomRowInds_CCUS[costRowID])
+        for costRowID in np.arange(len(param.pathways2Net0RandomRowInds_CCUS)):
+            self.randomized_costs[costRowID] = param.pathways2Net0.evaluate(
+                'CCUS!O'+str(param.pathways2Net0RandomRowInds_CCUS[costRowID])
                 )
-        for costRowID in np.arange(len(param.Pathways2Net0RandomRowInds_Outputs)):
+        for costRowID in np.arange(len(param.pathways2Net0RandomRowInds_Outputs)):
             self.randomized_costs[
-                len(param.Pathways2Net0RandomRowInds_CCUS)+costRowID
-                ] = param.Pathways2Net0.evaluate(
-                    'Outputs!O'+str(param.Pathways2Net0RandomRowInds_Outputs[costRowID])
+                len(param.pathways2Net0RandomRowInds_CCUS)+costRowID
+                ] = param.pathways2Net0.evaluate(
+                    'Outputs!O'+str(param.pathways2Net0RandomRowInds_Outputs[costRowID])
                     )
 
         # time variables
@@ -104,10 +104,10 @@ class State:
         # self.IEV_years = np.zeros(param.scenarios, dtype=int) # for each scenario, records the latest IEV year that has been implemented
         self.jobs = np.float32(110484) # initial jobs of year 2030, extracted from the IEV model spreadsheet for Gale scenario
         self.jobs_increment = np.zeros(1, dtype=np.float32) # initialized as 0
-        self.EconoImpact = np.float32(49938.9809739566) # initial economic impact of year 2030, extracted from the IEV model spreadsheet for Gale scenario
-        self.deployments = np.array([param.Pathways2Net0.evaluate('GALE!P35'), 
-                                     param.Pathways2Net0.evaluate('GALE!X35'), 
-                                     param.Pathways2Net0.evaluate('GALE!Y35')], 
+        self.econoImpact = np.float32(49938.9809739566) # initial economic impact of year 2030, extracted from the IEV model spreadsheet for Gale scenario
+        self.deployments = np.array([param.pathways2Net0.evaluate('GALE!P35'), 
+                                     param.pathways2Net0.evaluate('GALE!X35'), 
+                                     param.pathways2Net0.evaluate('GALE!Y35')], 
                                     dtype=np.float32) # initial deployment numbers of 3 techs in 2030 of Gale scenario
         
         # histories
@@ -120,7 +120,7 @@ class State:
     def to_observation(self):
         observation = (
             self.step_count,
-        ) + tuple(self.randomized_costs)# + (self.jobs,) + (self.jobs_increment,)# + (self.EconoImpact,)
+        ) + tuple(self.randomized_costs)# + (self.jobs,) + (self.jobs_increment,)# + (self.econoImpact,)
         
         return observation
 
@@ -172,16 +172,16 @@ def apply_action(action, state):
     weightedRewardComponents = np.zeros(param.reward_types) # this array will hold all components of reward for this time step
     # IEV_LastRewards = 0 # this variable will aggregate all other rewards for this time step (these rewards are all assumed to be annual rates)
 
-    # calculate the current state.step_count's deployment after action/increments from previous step (corresponding to row param.Pathways2Net0RowInds[state.step_count] - 1),
+    # calculate the current state.step_count's deployment after action/increments from previous step (corresponding to row param.pathways2Net0RowInds[state.step_count] - 1),
     # but clip it to the highest 2050 target among 3 scenarios in the spreadsheet:
-    OffshoreWind = param.Pathways2Net0.evaluate('GALE!P'+str(param.Pathways2Net0RowInds[state.step_count]-1))
-    OffshoreWind = np.clip(OffshoreWind + action[0], OffshoreWind, 150)
-    BlueHydrogen = param.Pathways2Net0.evaluate('GALE!X'+str(param.Pathways2Net0RowInds[state.step_count]-1))
-    BlueHydrogen = np.clip(BlueHydrogen + action[1], BlueHydrogen, 270)
-    GreenHydrogen = param.Pathways2Net0.evaluate('GALE!Y'+str(param.Pathways2Net0RowInds[state.step_count]-1))
-    GreenHydrogen = np.clip(GreenHydrogen + action[2], GreenHydrogen, 252.797394)
+    offshoreWind = param.pathways2Net0.evaluate('GALE!P'+str(param.pathways2Net0RowInds[state.step_count]-1))
+    offshoreWind = np.clip(offshoreWind + action[0], offshoreWind, 150)
+    blueHydrogen = param.pathways2Net0.evaluate('GALE!X'+str(param.pathways2Net0RowInds[state.step_count]-1))
+    blueHydrogen = np.clip(blueHydrogen + action[1], blueHydrogen, 270)
+    greenHydrogen = param.pathways2Net0.evaluate('GALE!Y'+str(param.pathways2Net0RowInds[state.step_count]-1))
+    greenHydrogen = np.clip(greenHydrogen + action[2], greenHydrogen, 252.797394)
     # after actions of increments and clipping, assign current state.step_count's deployment numbers to state.deployments:
-    state.deployments = np.array([OffshoreWind, BlueHydrogen, GreenHydrogen], dtype=np.float32)
+    state.deployments = np.array([offshoreWind, blueHydrogen, greenHydrogen], dtype=np.float32)
 
     # set these newly actioned deployment numbers into the corresponding cells in 'Gale' spreadsheet of the compiled object:
     # Note: the compiled object is essentially graphs with vertices/nodes and edges for cells and their relations (formulae)
@@ -190,56 +190,56 @@ def apply_action(action, state):
     # so it has to be evaluated first such that the cell map/address corresponding to the node/vertex can be generated:
     # pycel's error message if not evaluate to "initialize" the cell map/address: 
     # AssertionError: Address "GALE!P36" not found in the cell map. Evaluate the address, or an address that references it, to place it in the cell map.
-    param.Pathways2Net0.evaluate('GALE!P'+str(param.Pathways2Net0RowInds[state.step_count]))
-    param.Pathways2Net0.evaluate('GALE!X'+str(param.Pathways2Net0RowInds[state.step_count]))
-    param.Pathways2Net0.evaluate('GALE!Y'+str(param.Pathways2Net0RowInds[state.step_count]))
+    param.pathways2Net0.evaluate('GALE!P'+str(param.pathways2Net0RowInds[state.step_count]))
+    param.pathways2Net0.evaluate('GALE!X'+str(param.pathways2Net0RowInds[state.step_count]))
+    param.pathways2Net0.evaluate('GALE!Y'+str(param.pathways2Net0RowInds[state.step_count]))
     # also, before resetting the current year's deployment values, the capex opex revenue and emissions of the current year
     # have to be evaluated to initialize the cell's map/address:
-    capex_all = np.float32([param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'24'), 
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'28'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'32'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'36'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'41')])
-    opex_all = np.float32([param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'25'), 
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'29'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'33'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'37'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'42')])
-    revenue_all = np.float32([param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'26'), 
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'30'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'34'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'38'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'43')])
-    emissions = np.float32(param.Pathways2Net0.evaluate('CCUS!'+param.Pathways2Net0ColumnInds[state.step_count]+'68'))
+    capex_all = np.float32([param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'24'), 
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'28'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'32'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'36'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'41')])
+    opex_all = np.float32([param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'25'), 
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'29'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'33'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'37'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'42')])
+    revenue_all = np.float32([param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'26'), 
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'30'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'34'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'38'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'43')])
+    emissions = np.float32(param.pathways2Net0.evaluate('CCUS!'+param.pathways2Net0ColumnInds[state.step_count]+'68'))
     # again, before resetting the following 3 values, the above all reward components have to be evaluated first,
     # and after the following resetting, the reward components need to be evaluated again to calculate based on the newly
     # reset values:
-    param.Pathways2Net0.set_value('GALE!P'+str(param.Pathways2Net0RowInds[state.step_count]), OffshoreWind)
-    param.Pathways2Net0.set_value('GALE!X'+str(param.Pathways2Net0RowInds[state.step_count]), BlueHydrogen)
-    param.Pathways2Net0.set_value('GALE!Y'+str(param.Pathways2Net0RowInds[state.step_count]), GreenHydrogen)
+    param.pathways2Net0.set_value('GALE!P'+str(param.pathways2Net0RowInds[state.step_count]), offshoreWind)
+    param.pathways2Net0.set_value('GALE!X'+str(param.pathways2Net0RowInds[state.step_count]), blueHydrogen)
+    param.pathways2Net0.set_value('GALE!Y'+str(param.pathways2Net0RowInds[state.step_count]), greenHydrogen)
     # extract current state.step_count's capex, opex, revenue for all 3 techs, and the emission/carbon tax:
-    capex_all = np.float32([param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'24'), 
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'28'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'32'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'36'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'41')])
-    opex_all = np.float32([param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'25'), 
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'29'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'33'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'37'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'42')])
-    revenue_all = np.float32([param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'26'), 
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'30'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'34'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'38'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'43')])
+    capex_all = np.float32([param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'24'), 
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'28'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'32'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'36'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'41')])
+    opex_all = np.float32([param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'25'), 
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'29'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'33'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'37'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'42')])
+    revenue_all = np.float32([param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'26'), 
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'30'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'34'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'38'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'43')])
     # For current testing only, not involving the IEV economic model work book: 
     # one can add new rows in the original 'Outputs' spreadsheets of 'Pathways to Net Zero.xlsx' to calculate the sum,
     # and then directly evaluate the single cell to get the sum, which may be faster or slower than this current approach
-    # (that is, running param.Pathways2Net0.evaluate() for 5 times and then np.sum(), compared to compiling a slighly complicated
-    # workbook with a new row to compute the sum, and then running param.Pathways2Net0.evaluate() for 1 time)
+    # (that is, running param.pathways2Net0.evaluate() for 5 times and then np.sum(), compared to compiling a slighly complicated
+    # workbook with a new row to compute the sum, and then running param.pathways2Net0.evaluate() for 1 time)
     # If the IEV economic model work book is needed, then these values have to be evaluated one by one & input to the IEV model
-    emissions = np.float32(param.Pathways2Net0.evaluate('CCUS!'+param.Pathways2Net0ColumnInds[state.step_count]+'68'))
+    emissions = np.float32(param.pathways2Net0.evaluate('CCUS!'+param.pathways2Net0ColumnInds[state.step_count]+'68'))
     # calculate the total capxe, opex, revenue
     weightedRewardComponents[0] = np.sum(capex_all)
     weightedRewardComponents[1] = np.sum(opex_all)
@@ -250,7 +250,7 @@ def apply_action(action, state):
     # weightedRewardComponents[5] = param.IEV_EconomicModel.evaluate()
     # currently set the jobs and economic impact to be the previous values (the above should be implemented after testing):
     # weightedRewardComponents[4] = state.jobs
-    weightedRewardComponents[5] = state.EconoImpact
+    weightedRewardComponents[5] = state.econoImpact
     # Update: based on the workshop on 20 Sep, the jobs number calculation we discussed was a simple one: 
     # 25% of total costs are spent on salaries and the average salary is GBP 50,000. 
     # Since the monetary unit of capex, opex, revenue, decom, etc. is millions of GBP in the compiled Excel workbook, 
@@ -293,54 +293,54 @@ def randomise(state, action):
     # Apply multiplicative noise repeatedly (for each step) to carbon price in 'CCUS' spreadsheet row [23,24,26]
     # and 'Outputs' spreadsheet row [148, 149, 150, 153, 154, 155, 158, 159, 163, 164, 165, 166]:
     # Again, before setting the new values to the carbon price, first evaluate rewards components needed: capex opex revenue and emissions
-    np.float32([param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'24'), 
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'28'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'32'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'36'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'41')])
-    np.float32([param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'25'), 
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'29'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'33'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'37'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'42')])
-    np.float32([param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'26'), 
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'30'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'34'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'38'),
-                          param.Pathways2Net0.evaluate('Outputs!'+param.Pathways2Net0ColumnInds[state.step_count]+'43')])
-    np.float32(param.Pathways2Net0.evaluate('CCUS!'+param.Pathways2Net0ColumnInds[state.step_count]+'68'))
+    np.float32([param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'24'), 
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'28'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'32'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'36'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'41')])
+    np.float32([param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'25'), 
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'29'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'33'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'37'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'42')])
+    np.float32([param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'26'), 
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'30'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'34'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'38'),
+                          param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'43')])
+    np.float32(param.pathways2Net0.evaluate('CCUS!'+param.pathways2Net0ColumnInds[state.step_count]+'68'))
     # generate Gaussian N~(1,0.1):
-    # RowInds_CCUS = np.array([23,24,26])
-    RowInds_CCUS = param.Pathways2Net0RandomRowInds_CCUS
-    # RowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 158, 159, 163, 164, 165, 166])
-    # RowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 159, 163, 164, 165, 166])
-    RowInds_Outputs = param.Pathways2Net0RandomRowInds_Outputs
+    # rowInds_CCUS = np.array([23,24,26])
+    rowInds_CCUS = param.pathways2Net0RandomRowInds_CCUS
+    # rowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 158, 159, 163, 164, 165, 166])
+    # rowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 159, 163, 164, 165, 166])
+    rowInds_Outputs = param.pathways2Net0RandomRowInds_Outputs
     # for multiplicative noise, make sure that the prices/costs are not multiplied by a negative number or zero:
-    MultiplicativeNoise_CCUS = np.maximum(param.noise_clipping, 
-                                          np.random.randn(len(RowInds_CCUS))*param.noise_sigma + param.noise_mu)
-    MultiplicativeNoise_Outputs = np.maximum(param.noise_clipping, 
-                                             np.random.randn(len(RowInds_Outputs))*param.noise_sigma + param.noise_mu)
-    # for yearColumnID in param.Pathways2Net0ColumnInds:
+    multiplicativeNoise_CCUS = np.maximum(param.noise_clipping, 
+                                          np.random.randn(len(rowInds_CCUS))*param.noise_sigma + param.noise_mu)
+    multiplicativeNoise_Outputs = np.maximum(param.noise_clipping, 
+                                             np.random.randn(len(rowInds_Outputs))*param.noise_sigma + param.noise_mu)
+    # for yearColumnID in param.pathways2Net0ColumnInds:
     year_counter = 0
-    for yearColumnID in param.Pathways2Net0ColumnInds[state.step_count:]:
-        for costRowID in np.arange(len(RowInds_CCUS)):
-            currentCost = param.Pathways2Net0.evaluate('CCUS!'+yearColumnID+str(RowInds_CCUS[costRowID]))
-            param.Pathways2Net0.set_value('CCUS!'+yearColumnID+str(RowInds_CCUS[costRowID]), MultiplicativeNoise_CCUS[costRowID] * currentCost)
+    for yearColumnID in param.pathways2Net0ColumnInds[state.step_count:]:
+        for costRowID in np.arange(len(rowInds_CCUS)):
+            currentCost = param.pathways2Net0.evaluate('CCUS!'+yearColumnID+str(rowInds_CCUS[costRowID]))
+            param.pathways2Net0.set_value('CCUS!'+yearColumnID+str(rowInds_CCUS[costRowID]), multiplicativeNoise_CCUS[costRowID] * currentCost)
             if year_counter == 0:
-                state.randomized_costs[costRowID] = MultiplicativeNoise_CCUS[costRowID] * currentCost
-        for costRowID in np.arange(len(RowInds_Outputs)):
-            currentCost = param.Pathways2Net0.evaluate('Outputs!'+yearColumnID+str(RowInds_Outputs[costRowID]))
-            param.Pathways2Net0.set_value('Outputs!'+yearColumnID+str(RowInds_Outputs[costRowID]), MultiplicativeNoise_Outputs[costRowID] * currentCost)
+                state.randomized_costs[costRowID] = multiplicativeNoise_CCUS[costRowID] * currentCost
+        for costRowID in np.arange(len(rowInds_Outputs)):
+            currentCost = param.pathways2Net0.evaluate('Outputs!'+yearColumnID+str(rowInds_Outputs[costRowID]))
+            param.pathways2Net0.set_value('Outputs!'+yearColumnID+str(rowInds_Outputs[costRowID]), multiplicativeNoise_Outputs[costRowID] * currentCost)
             if year_counter == 0:
-                state.randomized_costs[len(RowInds_CCUS)+costRowID] = MultiplicativeNoise_Outputs[costRowID] * currentCost
+                state.randomized_costs[len(rowInds_CCUS)+costRowID] = multiplicativeNoise_Outputs[costRowID] * currentCost
         # https://github.com/rangl-labs/netzerotc/issues/36 correlated costs:
         # #3: Hydrogen price = blue hydrogen gas feedstock price + 20, i.e., set row 158 = row 159 + 20 in 'Outputs' spreadsheet:
-        param.Pathways2Net0.set_value('Outputs!'+yearColumnID+'158', 
-                                      param.Pathways2Net0.evaluate('Outputs!'+yearColumnID+'159') + 20.0)
+        param.pathways2Net0.set_value('Outputs!'+yearColumnID+'158', 
+                                      param.pathways2Net0.evaluate('Outputs!'+yearColumnID+'159') + 20.0)
         # more correlated costs in https://github.com/rangl-labs/netzerotc/issues/36:
         
         if year_counter == 0:
-            state.randomized_costs[len(RowInds_CCUS)+6] = param.Pathways2Net0.evaluate('Outputs!'+yearColumnID+'158')
+            state.randomized_costs[len(rowInds_CCUS)+6] = param.pathways2Net0.evaluate('Outputs!'+yearColumnID+'158')
             # storing more correlated randomized costs to state.randomized_costs:
             
         # proceed to future years, such that only assigning the current state.step_count/year's randomized costs to state.randomized_costs:
@@ -355,18 +355,18 @@ def reset_param(param):
     # assuming that the xlsx file contains spreadsheets 'GALE_Backup', 'CCUS_Backup', 'Outputs_Backup' which are duplicated from
     # spreadsheets 'GALE', 'CCUS', 'Outputs' before they are filled with actions in deployments or randomized in the costs/prices,
     # such that 'GALE_Backup', 'CCUS_Backup', 'Outputs_Backup' contain the original blank/empty or pre-randomized values
-    Spreadsheets = np.array(['GALE','CCUS','Outputs'])
-    ColumnInds_BySheets = np.array([np.array(['P','X','Y']), 
-                                    param.Pathways2Net0ColumnInds, 
-                                    param.Pathways2Net0ColumnInds])
-    RowInds_BySheets = np.array([param.Pathways2Net0RowInds, 
-                                 param.Pathways2Net0RandomRowInds_CCUS, 
-                                 param.Pathways2Net0RandomRowInds_Outputs])
-    for iSheet in np.arange(len(Spreadsheets)):
-        for iColumn in ColumnInds_BySheets[iSheet]:
-            for iRow in RowInds_BySheets[iSheet]:
-                param.Pathways2Net0.set_value(Spreadsheets[iSheet] + "!" + iColumn + str(iRow),
-                                              param.Pathways2Net0.evaluate(Spreadsheets[iSheet] + "_Backup!" + iColumn + str(iRow))
+    spreadsheets = np.array(['GALE','CCUS','Outputs'])
+    columnInds_BySheets = np.array([np.array(['P','X','Y']), 
+                                    param.pathways2Net0ColumnInds, 
+                                    param.pathways2Net0ColumnInds])
+    rowInds_BySheets = np.array([param.pathways2Net0RowInds, 
+                                 param.pathways2Net0RandomRowInds_CCUS, 
+                                 param.pathways2Net0RandomRowInds_Outputs])
+    for iSheet in np.arange(len(spreadsheets)):
+        for iColumn in columnInds_BySheets[iSheet]:
+            for iRow in rowInds_BySheets[iSheet]:
+                param.pathways2Net0.set_value(spreadsheets[iSheet] + "!" + iColumn + str(iRow),
+                                              param.pathways2Net0.evaluate(spreadsheets[iSheet] + "_Backup!" + iColumn + str(iRow))
                     )
     return param
 
