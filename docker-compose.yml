@@ -1,0 +1,12 @@
+version: "3"
+services:
+  nztc:
+    build:
+      context: environment
+      dockerfile: Dockerfile
+    ports:
+      - 5000:5000
+
+networks:
+  default:
+    name: evalai_rangl
