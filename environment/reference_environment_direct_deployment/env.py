@@ -44,6 +44,10 @@ class Parameters:
     # Pathways2Net0RandomRowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 159, 163, 164, 165, 166])
     # Rows in spreadsheet 'Outputs' to be randomized:
     Pathways2Net0RandomRowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 158, 159, 163, 164, 165, 166])
+    # multiplicative noise's mu and sigma, and clipping point:
+    noise_mu = 1.0
+    noise_sigma = 0.0 # or try 0.01, 0.1, 0.0, np.sqrt(0.001)
+    noise_clipping = 0.5 # or try 0.001, 0.1, 0.5 (i.e., original costs are reduced by 50% at the most)
 
     # Compile the IEV economic model work book to a Python object (to be implemented after initial testing):
     
@@ -101,12 +105,17 @@ class State:
         self.jobs = np.float32(110484) # initial jobs of year 2030, extracted from the IEV model spreadsheet for Gale scenario
         self.jobs_increment = np.zeros(1, dtype=np.float32) # initialized as 0
         self.EconoImpact = np.float32(49938.9809739566) # initial economic impact of year 2030, extracted from the IEV model spreadsheet for Gale scenario
+        self.deployments = np.array([param.Pathways2Net0.evaluate('GALE!P35'), 
+                                     param.Pathways2Net0.evaluate('GALE!X35'), 
+                                     param.Pathways2Net0.evaluate('GALE!Y35')], 
+                                    dtype=np.float32) # initial deployment numbers of 3 techs in 2030 of Gale scenario
         
         # histories
         self.observations_all = []
         self.actions_all = []
         self.rewards_all = []
         self.weightedRewardComponents_all = []
+        self.deployments_all = []
 
     def to_observation(self):
         observation = (
@@ -129,6 +138,7 @@ def record(state, action, reward, weightedRewardComponents):
     state.actions_all.append(action)
     state.rewards_all.append(reward)
     state.weightedRewardComponents_all.append(weightedRewardComponents)
+    state.deployments_all.append(state.deployments)
     # state.agent_predictions_all.append(state.agent_prediction)
 
 
@@ -170,6 +180,8 @@ def apply_action(action, state):
     BlueHydrogen = np.clip(BlueHydrogen + action[1], BlueHydrogen, 270)
     GreenHydrogen = param.Pathways2Net0.evaluate('GALE!Y'+str(param.Pathways2Net0RowInds[state.step_count]-1))
     GreenHydrogen = np.clip(GreenHydrogen + action[2], GreenHydrogen, 252.797394)
+    # after actions of increments and clipping, assign current state.step_count's deployment numbers to state.deployments:
+    state.deployments = np.array([OffshoreWind, BlueHydrogen, GreenHydrogen], dtype=np.float32)
 
     # set these newly actioned deployment numbers into the corresponding cells in 'Gale' spreadsheet of the compiled object:
     # Note: the compiled object is essentially graphs with vertices/nodes and edges for cells and their relations (formulae)
@@ -304,8 +316,10 @@ def randomise(state, action):
     # RowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 159, 163, 164, 165, 166])
     RowInds_Outputs = param.Pathways2Net0RandomRowInds_Outputs
     # for multiplicative noise, make sure that the prices/costs are not multiplied by a negative number or zero:
-    MultiplicativeNoise_CCUS = np.maximum(0.001, np.random.randn(len(RowInds_CCUS))*0.1 + 1)
-    MultiplicativeNoise_Outputs = np.maximum(0.001, np.random.randn(len(RowInds_Outputs))*0.1 + 1)
+    MultiplicativeNoise_CCUS = np.maximum(param.noise_clipping, 
+                                          np.random.randn(len(RowInds_CCUS))*param.noise_sigma + param.noise_mu)
+    MultiplicativeNoise_Outputs = np.maximum(param.noise_clipping, 
+                                             np.random.randn(len(RowInds_Outputs))*param.noise_sigma + param.noise_mu)
     # for yearColumnID in param.Pathways2Net0ColumnInds:
     year_counter = 0
     for yearColumnID in param.Pathways2Net0ColumnInds[state.step_count:]:
@@ -360,31 +374,57 @@ def plot_episode(state, fname):
     fig, ax = plt.subplots(2, 2)
 
     # cumulative total rewards
-    plt.subplot(221)
+    ax1 = plt.subplot(221)
     plt.plot(np.cumsum(state.rewards_all))
     plt.xlabel("time, avg reward: " + str(np.mean(state.rewards_all)))
     plt.ylabel("cumulative reward")
     plt.tight_layout()
     # could be expanded to include individual components of the reward
+    
+    ax2 = ax1.twinx()
+    ax2.plot(np.array(state.deployments_all))
+    ax2.set_ylabel("deployments")
+    plt.tight_layout()
 
     # generator levels
     plt.subplot(222)
-    plt.plot(np.array(state.observations_all)[:,:4]) # first 4 elements of observations are step counts and 3 IEV years
+    # plt.plot(np.array(state.observations_all)[:,:4]) # first 4 elements of observations are step counts and 3 IEV years
     # plt.plot(np.array(state.observations_all)[:,-2:]) # last 2 elements of observations are jobs and increments in jobs
+    plt.plot(np.array(state.observations_all)[:,:5]) # first 5 elements of observations are step counts and first 4 randomized costs
     plt.xlabel("time")
     plt.ylabel("observations")
     plt.tight_layout()
-
+    
     # actions
     plt.subplot(223)
     plt.plot(np.array(state.actions_all))
     plt.xlabel("time")
     plt.ylabel("actions")
     plt.tight_layout()
+    
+    # # deployment numbers
+    # plt.subplot(223)
+    # plt.plot(np.array(state.deployments_all))
+    # plt.xlabel("time")
+    # plt.ylabel("deployments")
+    # plt.tight_layout()
+
+    # # actions
+    # ax1 = plt.subplot(223)
+    # ax1.plot(np.array(state.actions_all))
+    # ax1.set_xlabel("time")
+    # ax1.set_ylabel("actions")
+    # plt.tight_layout()
+    
+    # ax2 = ax1.twinx()
+    # ax2.plot(np.array(state.deployments_all))
+    # ax2.set_ylabel("deployments")
+    # plt.tight_layout()
 
     # jobs
     plt.subplot(224)
-    plt.plot(np.vstack((np.array(state.weightedRewardComponents_all)[:,4],np.hstack((np.nan,np.diff(np.array(state.weightedRewardComponents_all)[:,4]))))).T)
+    plt.plot(np.vstack((np.array(state.weightedRewardComponents_all)[:,4],
+                        np.hstack((np.nan,np.diff(np.array(state.weightedRewardComponents_all)[:,4]))))).T)
     plt.xlabel("time")
     plt.ylabel("jobs and increments")
     plt.tight_layout()
