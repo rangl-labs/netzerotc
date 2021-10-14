@@ -147,7 +147,7 @@ from IPython.display import FileLink
 randomizedPrice = []
 for yearColumnID in env.param.Pathways2Net0ColumnInds:
     # fmt: off
-    randomizedPrice.append(env.param.Pathways2Net0.evaluate('CCUS!'+yearColumnID+'26'))
+    randomizedPrice.append(env.param.Pathways2Net0.evaluate('CCUS!' + yearColumnID + '26'))
     # fmt: on
 randomizedPrice = np.array(randomizedPrice)
 plt.plot(randomizedPrice)
