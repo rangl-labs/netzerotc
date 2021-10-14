@@ -4,7 +4,7 @@ from pathlib import Path
 # import pandas as pd
 import numpy as np
 import gym
-# from gym import spaces, logger
+from gym import spaces, logger
 # from gym.utils import seeding
 import matplotlib.pyplot as plt
 from pycel import ExcelCompiler
@@ -17,8 +17,10 @@ class Parameters:
     
     techs = 3 # number of technologies
     scenarios = 3 # number of strategies ('scenarios' in the IEV terminology, eg Breeze, Gale, Storm)
+    # fmt: off
     reward_types = 6 # capex first, then opex, revenue, emissions, jobs, total economic impact
     steps_per_episode = 20 # number of years in the planning horizon (eg. 2031 -> 2050 = 20)
+    # fmt: on
     # Compile the 'Pathways to Net Zero' Excel work book to a Python object:
 
     # get the path to the current file
@@ -33,7 +35,9 @@ class Parameters:
     # pathways2Net0 = ExcelCompiler.from_file('./compiled_workbook_objects/Pathways to Net Zero - Simplified - Compiled')
     pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks}/PathwaysToNetZero_Simplified_Compiled")
     # hard code the columns indices corresponding to year 2031 to 2050 in spreadsheets 'Outputs' and 'CCUS' of the above work book:
+    # fmt: off
     pathways2Net0ColumnInds = np.array(['P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI'])
+    # fmt: on
     # hard code the row indices corresponding to year 2031 to 2050 in spreadsheets 'BREEZE', 'GALE', and 'STORM' of the above work book:
     pathways2Net0RowInds = np.arange(36,36+steps_per_episode)
     # such that pathways2Net0ColumnInds[state.step_count] and pathways2Net0RowInds[state.step_count] will give the 
@@ -43,7 +47,9 @@ class Parameters:
     # Rows in spreadsheet 'Outputs' to be (independently) randomized:
     # pathways2Net0RandomRowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 159, 163, 164, 165, 166])
     # Rows in spreadsheet 'Outputs' to be randomized:
+    # fmt: off
     pathways2Net0RandomRowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 158, 159, 163, 164, 165, 166])
+    # fmt: on
     # multiplicative noise's mu and sigma, and clipping point:
     noise_mu = 1.0
     noise_sigma = 0.0 # or try 0.01, 0.1, 0.0, np.sqrt(0.001)
@@ -104,11 +110,13 @@ class State:
         # self.IEV_years = np.zeros(param.scenarios, dtype=int) # for each scenario, records the latest IEV year that has been implemented
         self.jobs = np.float32(110484) # initial jobs of year 2030, extracted from the IEV model spreadsheet for Gale scenario
         self.jobs_increment = np.zeros(1, dtype=np.float32) # initialized as 0
+        # fmt: off
         self.econoImpact = np.float32(49938.9809739566) # initial economic impact of year 2030, extracted from the IEV model spreadsheet for Gale scenario
         self.deployments = np.array([param.pathways2Net0.evaluate('GALE!P35'), 
                                      param.pathways2Net0.evaluate('GALE!X35'), 
                                      param.pathways2Net0.evaluate('GALE!Y35')], 
                                     dtype=np.float32) # initial deployment numbers of 3 techs in 2030 of Gale scenario
+        # fmt: on
         
         # histories
         self.observations_all = []
@@ -195,6 +203,7 @@ def apply_action(action, state):
     param.pathways2Net0.evaluate('GALE!Y'+str(param.pathways2Net0RowInds[state.step_count]))
     # also, before resetting the current year's deployment values, the capex opex revenue and emissions of the current year
     # have to be evaluated to initialize the cell's map/address:
+    # fmt: off
     capex_all = np.float32([param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'24'), 
                           param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'28'),
                           param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'32'),
@@ -210,6 +219,7 @@ def apply_action(action, state):
                           param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'34'),
                           param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'38'),
                           param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'43')])
+    # fmt: on
     emissions = np.float32(param.pathways2Net0.evaluate('CCUS!'+param.pathways2Net0ColumnInds[state.step_count]+'68'))
     # again, before resetting the following 3 values, the above all reward components have to be evaluated first,
     # and after the following resetting, the reward components need to be evaluated again to calculate based on the newly
@@ -218,6 +228,7 @@ def apply_action(action, state):
     param.pathways2Net0.set_value('GALE!X'+str(param.pathways2Net0RowInds[state.step_count]), blueHydrogen)
     param.pathways2Net0.set_value('GALE!Y'+str(param.pathways2Net0RowInds[state.step_count]), greenHydrogen)
     # extract current state.step_count's capex, opex, revenue for all 3 techs, and the emission/carbon tax:
+    # fmt: off
     capex_all = np.float32([param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'24'), 
                           param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'28'),
                           param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'32'),
@@ -233,6 +244,7 @@ def apply_action(action, state):
                           param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'34'),
                           param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'38'),
                           param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'43')])
+    # fmt: on
     # For current testing only, not involving the IEV economic model work book: 
     # one can add new rows in the original 'Outputs' spreadsheets of 'Pathways to Net Zero.xlsx' to calculate the sum,
     # and then directly evaluate the single cell to get the sum, which may be faster or slower than this current approach
@@ -293,6 +305,7 @@ def randomise(state, action):
     # Apply multiplicative noise repeatedly (for each step) to carbon price in 'CCUS' spreadsheet row [23,24,26]
     # and 'Outputs' spreadsheet row [148, 149, 150, 153, 154, 155, 158, 159, 163, 164, 165, 166]:
     # Again, before setting the new values to the carbon price, first evaluate rewards components needed: capex opex revenue and emissions
+    # fmt: off
     np.float32([param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'24'), 
                           param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'28'),
                           param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'32'),
@@ -309,6 +322,7 @@ def randomise(state, action):
                           param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'38'),
                           param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'43')])
     np.float32(param.pathways2Net0.evaluate('CCUS!'+param.pathways2Net0ColumnInds[state.step_count]+'68'))
+    # fmt: on
     # generate Gaussian N~(1,0.1):
     # rowInds_CCUS = np.array([23,24,26])
     rowInds_CCUS = param.pathways2Net0RandomRowInds_CCUS

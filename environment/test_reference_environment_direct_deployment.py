@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 import numpy as np
 import gym
-import reference_environment_direct_deployment
+# import reference_environment_direct_deployment
 
 from pathlib import Path
 
@@ -14,7 +14,9 @@ logger.setLevel(logging.DEBUG)
 # Checks
 
 # Create an environment named env
+# fmt: off
 env = gym.make("reference_environment_direct_deployment:reference-environment-direct-deployment-v0")
+# fmt: on
 # Generate a random action and check it has the right length
 action = env.action_space.sample()
 assert len(action) == 3
@@ -25,7 +27,9 @@ env.reset()
 assert len(env.observation_space.sample()) == len(env.state.to_observation())
 done = False
 
+# fmt: off
 action = [1.0, 1.0, 2.0] # [increment in offshore wind capacity GW, increment in blue hydrogen energy TWh, increment in green hydrogen energy TWh]
+# fmt: on
 while not done:
     # Specify the action. Check the effect of any fixed policy by specifying the action here:
     observation, reward, done, _ = env.step(action)
@@ -35,7 +39,9 @@ while not done:
     logger.debug(f"reward: {reward}")
     logger.debug(f"done: {done}")
     print()
+    # fmt: off
     action = [2.0, 2.0, 5.0] # env.action_space.sample()
+    # fmt: on
 
 # logger.debug(f"env.param.IEV_RewardSensitivities: {env.param.IEV_RewardSensitivities}")
 
@@ -131,6 +137,7 @@ print(differences)
 env.plot("fixed_policy_DirectDeployment.png")
 env.plot("10models_100episodes_DirectDeployment.png")
 env.plot("10models_100episodes_DirectDeployment_MODEL_1.png")
+env.plot("fixed_policy_DirectDeploymentCorrelationRandomized_max(N(1,0),0.5).png")
 assert Path("fixed_policy.png").is_file()
 
 # Plot the noise:
@@ -139,7 +146,9 @@ from pycel import ExcelCompiler
 from IPython.display import FileLink
 randomizedPrice = []
 for yearColumnID in env.param.Pathways2Net0ColumnInds:
+    # fmt: off
     randomizedPrice.append(env.param.Pathways2Net0.evaluate('CCUS!'+yearColumnID+'26'))
+    # fmt: on
 randomizedPrice = np.array(randomizedPrice)
 plt.plot(randomizedPrice)
 plt.xlabel("time")
