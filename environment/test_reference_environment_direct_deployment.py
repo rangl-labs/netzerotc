@@ -15,7 +15,7 @@ logger.setLevel(logging.DEBUG)
 
 # Create an environment named env
 # fmt: off
-env = gym.make("reference_environment_direct_deployment:reference-environment-direct-deployment-v0")
+env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
 # fmt: on
 # Generate a random action and check it has the right length
 action = env.action_space.sample()

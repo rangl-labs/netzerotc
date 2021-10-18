@@ -8,8 +8,7 @@ from stable_baselines3 import PPO
 from util import Evaluate
 
 # fmt: off
-# env = gym.make("reference_environment:reference-environment-v0")
-env = gym.make("reference_environment_direct_deployment:reference-environment-direct-deployment-v0")
+env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
 # fmt: on
 agent = PPO.load("MODEL_9")
 
