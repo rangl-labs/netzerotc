@@ -69,7 +69,7 @@ The image can be submitted as follows:
 2. Set the EvalAI host
 
    ```
-   evalai host -sh http:submissions.rangl.org
+   evalai host -sh http://submissions.rangl.org
    ```
 
 3. Login
