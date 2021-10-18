@@ -19,7 +19,7 @@ seeds = evaluate.read_seeds(fname="seeds.csv")
 mean_reward = evaluate.RL_agent(seeds) # Add your agent to the Evaluate class and call it here e.g. evaluate.my_agent(seeds)
 # fmt: on
 
-print('Mean reward:',mean_reward)
+print("Mean reward:", mean_reward)
 
 assert env.state.weightedRewardComponents_all[-1][3] == 0
 print(env.state.weightedRewardComponents_all[-1][3])
@@ -41,5 +41,7 @@ print(env.state.weightedRewardComponents_all[-1][3])
 rewards_all = np.array(env.state.weightedRewardComponents_all)
 
 os.chdir("../environment/")
-env.plot("MODEL_9_10models_100episodes_DirectDeploymentCorrelationRandomized_max(N(1,0),0.5).png")
+env.plot(
+    "MODEL_9_10models_100episodes_DirectDeploymentCorrelationRandomized_max(N(1,0),0.5).png"
+)
 os.chdir("../local_agent_training_and_evaluation/")

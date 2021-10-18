@@ -11,7 +11,7 @@ from pycel import ExcelCompiler
 
 Pathways2Net0 = ExcelCompiler("Pathways to Net Zero - Simplified.xlsx")
 
-Spreadsheets = np.array(['GALE!','CCUS!','Outputs!'])
+Spreadsheets = np.array(["GALE!", "CCUS!", "Outputs!"])
 # fmt: off
 ColumnInds_BySheets = np.array([np.array(['P','X','Y']), 
                                 np.array(['O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI']), 
@@ -33,17 +33,20 @@ Pathways2Net0.to_file("PathwaysToNetZero_Simplified_FullOutputs_Compiled")
 
 start = time.time()
 # Pathways2Net0_Loaded = ExcelCompiler.from_file("PathwaysToNetZero_Simplified_Compiled")
-Pathways2Net0_Loaded = ExcelCompiler.from_file("PathwaysToNetZero_Simplified_FullOutputs_Compiled")
+Pathways2Net0_Loaded = ExcelCompiler.from_file(
+    "PathwaysToNetZero_Simplified_FullOutputs_Compiled"
+)
 end = time.time()
 print(f"INFO: took {end - start} seconds to load from serialised file")
 
 
-
 ## IEV model:
 # IEVmodel = ExcelCompiler("OGTC-ORE Catapult IEV pathways economic model v01.06 FINAL - Original.xlsx")
-IEVmodel = ExcelCompiler("OGTC-ORE Catapult IEV pathways economic model v01.06 FINAL - Original Master sheet!C2=Gale.xlsx")
+IEVmodel = ExcelCompiler(
+    "OGTC-ORE Catapult IEV pathways economic model v01.06 FINAL - Original Master sheet!C2=Gale.xlsx"
+)
 
-Spreadsheets = np.array(['Master sheet!','Pathways inputs!'])
+Spreadsheets = np.array(["Master sheet!", "Pathways inputs!"])
 # fmt: off
 ColumnInds_BySheets = np.array([np.array(['N','O','P','Q','R','S','T','U','V','W','X','Y', 'Z','AA','AB','AC','AD','AE','AF','AG','AH']), 
                                 np.array(['O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI'])])
@@ -62,6 +65,8 @@ IEVmodel.to_file("IEV_pathways_economic_model_Master_sheet_C2SetToGale_Compiled"
 
 start = time.time()
 # IEVmodel_Loaded = ExcelCompiler.from_file("IEV_pathways_economic_model_Compiled")
-IEVmodel_Loaded = ExcelCompiler.from_file("IEV_pathways_economic_model_Master_sheet_C2SetToGale_Compiled")
+IEVmodel_Loaded = ExcelCompiler.from_file(
+    "IEV_pathways_economic_model_Master_sheet_C2SetToGale_Compiled"
+)
 end = time.time()
 print(f"INFO: took {end - start} seconds to load from serialised file")

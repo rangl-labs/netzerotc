@@ -114,13 +114,7 @@ def evaluate(test_annotation_file, user_submission_file, phase_codename, **kwarg
 
     output = {}
     if phase_codename == "dev":
-        output["result"] = [
-            {
-                "train_split": {
-                    "Average Cost": -mean_score,
-                }
-            }
-        ]
+        output["result"] = [{"train_split": {"Average Cost": -mean_score,}}]
         output["submission_result"] = output["result"][0]["train_split"]
         print("Completed evaluation for dev phase")
     return output
