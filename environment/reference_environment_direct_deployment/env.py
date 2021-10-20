@@ -56,8 +56,9 @@ class Parameters:
     # fmt: on
     # multiplicative noise's mu and sigma, and clipping point:
     noise_mu = 1.0
-    noise_sigma = 0.1  # or try 0.01, 0.1, 0.0, np.sqrt(0.001)
+    noise_sigma = 0.0  # or try 0.01, 0.1, 0.0, np.sqrt(0.001)
     noise_clipping = 0.5  # or try 0.001, 0.1, 0.5 (i.e., original costs are reduced by 50% at the most)
+    noise_sigma_factor = np.sqrt(0.1) # as in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24) should have smaller standard deviations
 
     # Compile the IEV economic model work book to a Python object (to be implemented after initial testing):
 
@@ -388,10 +389,13 @@ def randomise(state, action):
     # rowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 158, 159, 163, 164, 165, 166])
     # rowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 159, 163, 164, 165, 166])
     rowInds_Outputs = param.pathways2Net0RandomRowInds_Outputs
+    # As in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24) 
+    # should have smaller standard deviations by multiplying a factor param.noise_sigma_factor which is < 1:
+    noise_sigma_CCUS = np.full(len(rowInds_CCUS), param.noise_sigma) * np.array([param.noise_sigma_factor, param.noise_sigma_factor, 1.0])
     # for multiplicative noise, make sure that the prices/costs are not multiplied by a negative number or zero:
     multiplicativeNoise_CCUS = np.maximum(
         param.noise_clipping,
-        np.random.randn(len(rowInds_CCUS)) * param.noise_sigma + param.noise_mu,
+        np.random.randn(len(rowInds_CCUS)) * noise_sigma_CCUS + param.noise_mu,
     )
     multiplicativeNoise_Outputs = np.maximum(
         param.noise_clipping,
@@ -425,7 +429,7 @@ def randomise(state, action):
                     multiplicativeNoise_Outputs[costRowID] * currentCost
                 )
         # https://github.com/rangl-labs/netzerotc/issues/36 correlated costs:
-        # #3: Hydrogen price = blue hydrogen gas feedstock price + 20, i.e., set row 158 = row 159 + 20 in 'Outputs' spreadsheet:
+        # Hydrogen price = blue hydrogen gas feedstock price + 20, i.e., set row 158 = row 159 + 20 in 'Outputs' spreadsheet:
         param.pathways2Net0.set_value(
             "Outputs!" + yearColumnID + "158",
             param.pathways2Net0.evaluate("Outputs!" + yearColumnID + "159") + 20.0,
