@@ -36,7 +36,7 @@ class Parameters:
     # read the compiled object from hard drive
     # pathways2Net0 = ExcelCompiler.from_file('./compiled_workbook_objects/Pathways to Net Zero - Simplified - Compiled')
     pathways2Net0 = ExcelCompiler.from_file(
-        filename=f"{workbooks}/PathwaysToNetZero_Simplified_Compiled"
+        filename=f"{workbooks}/PathwaysToNetZero_Simplified_Anonymized_Compiled"
     )
     # hard code the columns indices corresponding to year 2031 to 2050 in spreadsheets 'Outputs' and 'CCUS' of the above work book:
     # fmt: off
