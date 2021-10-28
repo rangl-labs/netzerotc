@@ -1,11 +1,12 @@
 %%
 
 %%
+load('rewards_all.mat')
 f = -rewards;
-A = eye(60);
-b = [repelem(150,20) repelem(270,20) repelem(252.797394,20)].';
+A = [capex_all, -jobs_1Yincrements, -jobs_2Yincrements].';
+b = [repelem(26390,size(capex_all,2)) repelem(25000,size(jobs_1Yincrements,2)) repelem(37500,size(jobs_2Yincrements,2))].';
 lb = zeros(size(f));
-ub = b;
+ub = [repelem(150,20) repelem(270,20) repelem(252.797394,20)].';
 Aeq = [];
 beq = [];
 [x,fval,exitflag,output,lambda] = linprog(f,A,b,Aeq,beq,lb,ub);

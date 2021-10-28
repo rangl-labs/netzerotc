@@ -6,7 +6,7 @@ import numpy as np
 import gym
 from gym import spaces, logger
 
-# from gym.utils import seeding
+from gym.utils import seeding
 import matplotlib.pyplot as plt
 from pycel import ExcelCompiler
 
@@ -56,9 +56,12 @@ class Parameters:
     # fmt: on
     # multiplicative noise's mu and sigma, and clipping point:
     noise_mu = 1.0
-    noise_sigma = 0.0  # or try 0.01, 0.1, 0.0, np.sqrt(0.001)
+    noise_sigma = np.sqrt(0.0003)  # or try 0.1, 0.0, np.sqrt(0.001), 0.02, np.sqrt(0.0003), 0.015, 0.01
     noise_clipping = 0.5  # or try 0.001, 0.1, 0.5 (i.e., original costs are reduced by 50% at the most)
     noise_sigma_factor = np.sqrt(0.1) # as in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24) should have smaller standard deviations
+    
+    # eliminate all constraints to extract rewards coefficients for linear programming:
+    no_constraints_testing = False # set to False for reinforcement learning; set to True for linear programming coefficients extractions
 
     # Compile the IEV economic model work book to a Python object (to be implemented after initial testing):
 
@@ -164,12 +167,8 @@ def observation_space(self):
     # obs_low[-1] = -37500 # last entry of obervation is the increment in jobs; Constraint 2: no decrease in jobs in excess of 37,500 per two years
     obs_high = np.full_like(self.state.to_observation(), 1e5, dtype=np.float32)
     obs_high[0] = param.steps_per_episode  # first entry of obervation is the timestep
-    obs_high[
-        5
-    ] = 1e6  # corresponding to 'Outputs' row 149 Offshore wind capex, whose original maximum is about 2648
-    obs_high[
-        7
-    ] = 1e6  # corresponding to 'Outputs' row 153 Hydrogen green Electrolyser Capex, whose original maximum is about 1028
+    obs_high[5] = 1e6  # corresponding to 'Outputs' row 149 Offshore wind capex, whose original maximum is about 2648
+    obs_high[7] = 1e6  # corresponding to 'Outputs' row 153 Hydrogen green Electrolyser Capex, whose original maximum is about 1028
     # obs_high[-2] = 10 * 139964 # 2nd last entry of obervation is the jobs; 10 times initial jobs in 2020 = 10*139964, large enough
     # obs_high[-1] = 139964 # last entry of obervation is the increment in jobs; jobs should can't be doubled in a year or increased by the number of total jobs in 2020
     result = spaces.Box(obs_low, obs_high, dtype=np.float32)
@@ -184,6 +183,7 @@ def action_space():
     act_high = np.float32(
         [150, 270, 252.797394]
     )  # Storm's 2050 offshore wind, Breeze's 2050 blue hydrogen, Storm's 2050 green hydrogen
+    # act_high = np.float32([150.0, 0.0, 0.0])
     result = spaces.Box(act_low, act_high, dtype=np.float32)
     return result
 
@@ -602,8 +602,9 @@ class GymEnv(gym.Env):
         # )
         randomise(self.state, action)
         self.state, reward, weightedRewardComponents = apply_action(action, self.state)
-        if verify_constraints(self.state) == False:
-            reward = -1000
+        if self.param.no_constraints_testing == False:
+            if verify_constraints(self.state) == False:
+                reward = -1000
         # self.state.set_agent_prediction()
         observation = self.state.to_observation()
         done = self.state.is_done()
