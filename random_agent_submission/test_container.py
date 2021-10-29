@@ -30,7 +30,10 @@ for seed in seeds:
         detach=False,
         auto_remove=True,
         # command="sleep infinity",  # debug
-        environment={"RANGL_SEED": seed, "RANGL_ENVIRONMENT_URL": "http://nztc:5000",},
+        environment={
+            "RANGL_SEED": seed,
+            "RANGL_ENVIRONMENT_URL": "http://nztc:5000",
+        },
     )
     logger.debug(f"Created submission")
     logger.debug(f"Completed submission")

@@ -38,6 +38,8 @@ print(env.state.weightedRewardComponents_all[-1][3])
 # print('Mean rewards:',mean_rewards)
 
 
+# TODO why is os.chdir used below?
+
 rewards_all = np.array(env.state.weightedRewardComponents_all)
 
 os.chdir("../environment/")

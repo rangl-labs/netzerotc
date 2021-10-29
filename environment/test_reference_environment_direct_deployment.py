@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import gym
 
-# import reference_environment_direct_deployment
+import reference_environment_direct_deployment
 
 from pathlib import Path
 
@@ -12,12 +12,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-# Checks
-
 # Create an environment named env
-# fmt: off
 env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
-# fmt: on
+
 # Generate a random action and check it has the right length
 action = env.action_space.sample()
 assert len(action) == 3
@@ -28,9 +25,9 @@ env.reset()
 assert len(env.observation_space.sample()) == len(env.state.to_observation())
 done = False
 
-# fmt: off
-action = [1.0, 1.0, 2.0] # [increment in offshore wind capacity GW, increment in blue hydrogen energy TWh, increment in green hydrogen energy TWh]
-# fmt: on
+# [increment in offshore wind capacity GW, increment in blue hydrogen energy TWh, increment in green hydrogen energy TWh]
+action = [1.0, 1.0, 2.0]
+
 while not done:
     # Specify the action. Check the effect of any fixed policy by specifying the action here:
     observation, reward, done, _ = env.step(action)
@@ -40,11 +37,9 @@ while not done:
     logger.debug(f"reward: {reward}")
     logger.debug(f"done: {done}")
     print()
-    # fmt: off
-    action = [2.0, 2.0, 5.0] # env.action_space.sample()
-    # fmt: on
+    # env.action_space.sample()
+    action = [2.0, 2.0, 5.0]
 
-# logger.debug(f"env.param.IEV_RewardSensitivities: {env.param.IEV_RewardSensitivities}")
 
 rewards_all = np.array(env.state.weightedRewardComponents_all)
 OriginalRewardsFixedPolicyExtract = np.ones(np.shape(rewards_all))
@@ -179,9 +174,7 @@ assert env.state.observations_all[-1][0] == env.param.steps_per_episode - 1
 # check that specifying the same seed gives the same noise
 env.seed(123)
 obs1 = env.reset()
-env = gym.make(
-    "reference_environment_direct_deployment:reference-environment-direct-deployment-v0"
-)
+env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
 env.seed(123)
 obs2 = env.reset()
 assert obs1 == obs2

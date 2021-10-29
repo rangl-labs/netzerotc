@@ -13,6 +13,7 @@ from pycel import ExcelCompiler
 Pathways2Net0 = ExcelCompiler("Pathways to Net Zero - Simplified - Anonymized.xlsx")
 
 Spreadsheets = np.array(["GALE!", "CCUS!", "Outputs!"])
+
 # fmt: off
 ColumnInds_BySheets = np.array([np.array(['P','X','Y']), 
                                 np.array(['O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI']), 
@@ -36,7 +37,9 @@ Pathways2Net0.to_file("PathwaysToNetZero_Simplified_Anonymized_Compiled")
 start = time.time()
 # Pathways2Net0_Loaded = ExcelCompiler.from_file("PathwaysToNetZero_Simplified_Compiled")
 # Pathways2Net0_Loaded = ExcelCompiler.from_file("PathwaysToNetZero_Simplified_FullOutputs_Compiled")
-Pathways2Net0_Loaded = ExcelCompiler.from_file("PathwaysToNetZero_Simplified_Anonymized_Compiled")
+Pathways2Net0_Loaded = ExcelCompiler.from_file(
+    "PathwaysToNetZero_Simplified_Anonymized_Compiled"
+)
 end = time.time()
 print(f"INFO: took {end - start} seconds to load from serialised file")
 

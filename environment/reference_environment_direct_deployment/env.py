@@ -1,12 +1,9 @@
-# import math
 from pathlib import Path
 
-# import pandas as pd
 import numpy as np
 import gym
-from gym import spaces, logger
+from gym import spaces
 
-# from gym.utils import seeding
 import matplotlib.pyplot as plt
 from pycel import ExcelCompiler
 
@@ -58,7 +55,9 @@ class Parameters:
     noise_mu = 1.0
     noise_sigma = 0.0  # or try 0.01, 0.1, 0.0, np.sqrt(0.001)
     noise_clipping = 0.5  # or try 0.001, 0.1, 0.5 (i.e., original costs are reduced by 50% at the most)
-    noise_sigma_factor = np.sqrt(0.1) # as in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24) should have smaller standard deviations
+    noise_sigma_factor = np.sqrt(
+        0.1
+    )  # as in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24) should have smaller standard deviations
 
     # Compile the IEV economic model work book to a Python object (to be implemented after initial testing):
 
@@ -389,9 +388,11 @@ def randomise(state, action):
     # rowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 158, 159, 163, 164, 165, 166])
     # rowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 159, 163, 164, 165, 166])
     rowInds_Outputs = param.pathways2Net0RandomRowInds_Outputs
-    # As in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24) 
+    # As in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24)
     # should have smaller standard deviations by multiplying a factor param.noise_sigma_factor which is < 1:
-    noise_sigma_CCUS = np.full(len(rowInds_CCUS), param.noise_sigma) * np.array([param.noise_sigma_factor, param.noise_sigma_factor, 1.0])
+    noise_sigma_CCUS = np.full(len(rowInds_CCUS), param.noise_sigma) * np.array(
+        [param.noise_sigma_factor, param.noise_sigma_factor, 1.0]
+    )
     # for multiplicative noise, make sure that the prices/costs are not multiplied by a negative number or zero:
     multiplicativeNoise_CCUS = np.maximum(
         param.noise_clipping,
@@ -492,7 +493,6 @@ def plot_episode(state, fname):
     plt.ylabel("cumulative reward")
     plt.tight_layout()
     # could be expanded to include individual components of the reward
-
     ax2 = ax1.twinx()
     ax2.plot(np.array(state.deployments_all))
     ax2.set_ylabel("deployments")
@@ -515,7 +515,6 @@ def plot_episode(state, fname):
     plt.xlabel("time")
     plt.ylabel("actions")
     plt.tight_layout()
-
     # # deployment numbers
     # plt.subplot(223)
     # plt.plot(np.array(state.deployments_all))
@@ -529,7 +528,6 @@ def plot_episode(state, fname):
     # ax1.set_xlabel("time")
     # ax1.set_ylabel("actions")
     # plt.tight_layout()
-
     # ax2 = ax1.twinx()
     # ax2.plot(np.array(state.deployments_all))
     # ax2.set_ylabel("deployments")
