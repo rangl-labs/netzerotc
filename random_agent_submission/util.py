@@ -172,4 +172,3 @@ class ServerError(Exception):
         self.message = message
         if status_code is not None:
             self.status_code = status_code
-

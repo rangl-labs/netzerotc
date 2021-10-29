@@ -8,8 +8,7 @@ remote_base = os.getenv("RANGL_ENVIRONMENT_URL", "http://localhost:5000/")
 
 client = Client(remote_base)
 
-# env_id = "reference-environment-v0"
-env_id = "reference-environment-direct-deployment-v0"
+env_id = "rangl-nztc-v0"
 seed = int(os.getenv("RANGL_SEED", 123456))
 instance_id = client.env_create(env_id, seed)
 
