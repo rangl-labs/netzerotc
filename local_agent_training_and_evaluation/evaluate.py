@@ -7,17 +7,15 @@ from stable_baselines3 import PPO
 
 from util import Evaluate
 
-# fmt: off
 env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
-# fmt: on
 agent = PPO.load("MODEL_9")
 
 
 evaluate = Evaluate(env, agent)
 seeds = evaluate.read_seeds(fname="seeds.csv")
-# fmt: off
-mean_reward = evaluate.RL_agent(seeds) # Add your agent to the Evaluate class and call it here e.g. evaluate.my_agent(seeds)
-# fmt: on
+
+# Add your agent to the Evaluate class and call it here e.g. evaluate.my_agent(seeds)
+mean_reward = evaluate.RL_agent(seeds)
 
 print("Mean reward:", mean_reward)
 

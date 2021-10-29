@@ -1,9 +1,10 @@
 # Agent testing and submission
 
-This folder contains 
-* `agent.py`, a simple agent which performs random actions for testing purposes
-* `test_container.py`, a script which tests locally that `agent.py` works in a container
-* the files necessary to submit an agent to the competition platform
+This folder contains
+
+- `agent.py`, a simple agent which performs random actions for testing purposes
+- `test_container.py`, a script which tests locally that `agent.py` works in a container
+- the files necessary to submit an agent to the competition platform
 
 Install the dependencies:
 
@@ -83,6 +84,3 @@ The image can be submitted as follows:
    ```shell
    evalai push submission:v0.1.0 --phase nztc-dev-5
    ```
-
-
-
