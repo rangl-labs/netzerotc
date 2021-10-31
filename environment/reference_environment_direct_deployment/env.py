@@ -375,15 +375,19 @@ def plot_episode(state, fname):
 
     # cumulative total rewards
     ax1 = plt.subplot(221)
-    plt.plot(np.cumsum(state.rewards_all))
+    plt.plot(np.cumsum(state.rewards_all), label='cumulative reward',color='black')
     plt.xlabel("time, avg reward: " + str(np.mean(state.rewards_all)))
     plt.ylabel("cumulative reward")
+    plt.legend(loc='upper left', fontsize='xx-small')
     plt.tight_layout()
     # could be expanded to include individual components of the reward
     
     ax2 = ax1.twinx()
-    ax2.plot(np.array(state.deployments_all))
+    ax2.plot(np.array(state.deployments_all)[:,0],label="offshore wind")
+    ax2.plot(np.array(state.deployments_all)[:,1],label="blue hydrogen")
+    ax2.plot(np.array(state.deployments_all)[:,2],label="green hydrogen")
     ax2.set_ylabel("deployments")
+    plt.legend(loc='lower right',fontsize='xx-small')
     plt.tight_layout()
 
     # generator levels
@@ -397,9 +401,12 @@ def plot_episode(state, fname):
     
     # actions
     plt.subplot(223)
-    plt.plot(np.array(state.actions_all))
+    plt.plot(np.array(state.actions_all)[:,0],label="offshore wind capacity [GW]")
+    plt.plot(np.array(state.actions_all)[:,1],label="blue hydrogen energy [TWh]")
+    plt.plot(np.array(state.actions_all)[:,2],label="green hydrogen energy [TWh]")
     plt.xlabel("time")
     plt.ylabel("actions")
+    plt.legend(title="increment in",loc='lower right',fontsize='xx-small')
     plt.tight_layout()
     
     # # deployment numbers
@@ -423,10 +430,13 @@ def plot_episode(state, fname):
 
     # jobs
     plt.subplot(224)
-    plt.plot(np.vstack((np.array(state.weightedRewardComponents_all)[:,4],
-                        np.hstack((np.nan,np.diff(np.array(state.weightedRewardComponents_all)[:,4]))))).T)
+    to_plot = np.vstack((np.array(state.weightedRewardComponents_all)[:,4],
+                        np.hstack((np.nan,np.diff(np.array(state.weightedRewardComponents_all)[:,4]))))).T
+    plt.plot(to_plot[:,0],label="jobs")
+    plt.plot(to_plot[:, 1], label="jincrement in jobs")
     plt.xlabel("time")
     plt.ylabel("jobs and increments")
+    plt.legend(loc='lower left', fontsize='xx-small')
     plt.tight_layout()
 
     # # increments in jobs
@@ -504,5 +514,6 @@ class GymEnv(gym.Env):
 
     def close(self):
         pass
+
 
 
