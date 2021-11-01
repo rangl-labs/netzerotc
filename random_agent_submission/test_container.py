@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 
-import os
 import logging
-from pathlib import Path
 import numpy as np
 
 import requests
 import docker
-from docker.types import Mount
 
 from util import read_seeds
 
