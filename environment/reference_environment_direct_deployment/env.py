@@ -56,7 +56,7 @@ class Parameters:
     # fmt: on
     # multiplicative noise's mu and sigma, and clipping point:
     noise_mu = 1.0
-    noise_sigma = np.sqrt(0.0003)  # or try 0.1, 0.0, np.sqrt(0.001), 0.02, np.sqrt(0.0003), 0.015, 0.01
+    noise_sigma = 0.0  # or try 0.1, 0.0, np.sqrt(0.001), 0.02, np.sqrt(0.0003), 0.015, 0.01
     noise_clipping = 0.5  # or try 0.001, 0.1, 0.5 (i.e., original costs are reduced by 50% at the most)
     noise_sigma_factor = np.sqrt(0.1) # as in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24) should have smaller standard deviations
     
@@ -127,6 +127,7 @@ class State:
                                      param.pathways2Net0.evaluate('GALE!X35'), 
                                      param.pathways2Net0.evaluate('GALE!Y35')], 
                                     dtype=np.float32) # initial deployment numbers of 3 techs in 2030 of Gale scenario
+        self.emission_amount = np.float32(param.pathways2Net0.evaluate('CCUS!O63')) # initial CO2 emission amount in 2030 of Gale scenario
         # fmt: on
 
         # histories
@@ -135,6 +136,7 @@ class State:
         self.rewards_all = []
         self.weightedRewardComponents_all = []
         self.deployments_all = []
+        self.emission_amount_all = []
 
     def to_observation(self):
         observation = (self.step_count,) + tuple(
@@ -158,6 +160,7 @@ def record(state, action, reward, weightedRewardComponents):
     state.rewards_all.append(reward)
     state.weightedRewardComponents_all.append(weightedRewardComponents)
     state.deployments_all.append(state.deployments)
+    state.emission_amount_all.append(state.emission_amount)
     # state.agent_predictions_all.append(state.agent_prediction)
 
 
@@ -291,6 +294,11 @@ def apply_action(action, state):
     # (that is, running param.pathways2Net0.evaluate() for 5 times and then np.sum(), compared to compiling a slighly complicated
     # workbook with a new row to compute the sum, and then running param.pathways2Net0.evaluate() for 1 time)
     # If the IEV economic model work book is needed, then these values have to be evaluated one by one & input to the IEV model
+    state.emission_amount = np.float32(
+        param.pathways2Net0.evaluate(
+            "CCUS!" + param.pathways2Net0ColumnInds[state.step_count] + "63"
+        )
+    )
     emissions = np.float32(
         param.pathways2Net0.evaluate(
             "CCUS!" + param.pathways2Net0ColumnInds[state.step_count] + "68"
@@ -487,15 +495,20 @@ def plot_episode(state, fname):
 
     # cumulative total rewards
     ax1 = plt.subplot(221)
-    plt.plot(np.cumsum(state.rewards_all))
+    plt.plot(np.cumsum(state.rewards_all), label='cumulative reward',color='black')
     plt.xlabel("time, avg reward: " + str(np.mean(state.rewards_all)))
     plt.ylabel("cumulative reward")
+    plt.legend(loc='upper left', fontsize='xx-small')
     plt.tight_layout()
     # could be expanded to include individual components of the reward
 
     ax2 = ax1.twinx()
-    ax2.plot(np.array(state.deployments_all))
-    ax2.set_ylabel("deployments")
+    ax2.plot(np.array(state.deployments_all)[:,0],label="offshore wind")
+    ax2.plot(np.array(state.deployments_all)[:,1],label="blue hydrogen")
+    ax2.plot(np.array(state.deployments_all)[:,2],label="green hydrogen")
+    ax2.plot(np.array(state.emission_amount_all),label="CO2 emissions amount") 
+    ax2.set_ylabel("deployments and CO2 emissions")
+    plt.legend(loc='lower right',fontsize='xx-small')
     plt.tight_layout()
 
     # generator levels
@@ -511,9 +524,12 @@ def plot_episode(state, fname):
 
     # actions
     plt.subplot(223)
-    plt.plot(np.array(state.actions_all))
+    plt.plot(np.array(state.actions_all)[:,0],label="offshore wind capacity [GW]")
+    plt.plot(np.array(state.actions_all)[:,1],label="blue hydrogen energy [TWh]")
+    plt.plot(np.array(state.actions_all)[:,2],label="green hydrogen energy [TWh]")    
     plt.xlabel("time")
     plt.ylabel("actions")
+    plt.legend(title="increment in",loc='lower right',fontsize='xx-small')
     plt.tight_layout()
 
     # # deployment numbers
@@ -537,21 +553,13 @@ def plot_episode(state, fname):
 
     # jobs
     plt.subplot(224)
-    plt.plot(
-        np.vstack(
-            (
-                np.array(state.weightedRewardComponents_all)[:, 4],
-                np.hstack(
-                    (
-                        np.nan,
-                        np.diff(np.array(state.weightedRewardComponents_all)[:, 4]),
-                    )
-                ),
-            )
-        ).T
-    )
+    to_plot = np.vstack((np.array(state.weightedRewardComponents_all)[:,4],
+                        np.hstack((np.nan,np.diff(np.array(state.weightedRewardComponents_all)[:,4]))))).T    
+    plt.plot(to_plot[:,0], label="jobs")
+    plt.plot(to_plot[:,1], label="increment in jobs")
     plt.xlabel("time")
     plt.ylabel("jobs and increments")
+    plt.legend(loc='lower left', fontsize='xx-small')
     plt.tight_layout()
 
     # # increments in jobs
