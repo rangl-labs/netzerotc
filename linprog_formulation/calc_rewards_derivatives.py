@@ -45,7 +45,7 @@ rewards_reshape = rewards.reshape(20,3,order='F')
 derivatives = rewards - reward_0deployment
 derivatives_reshape = rewards_reshape - reward_0deployment
 
-scipy.io.savemat('rewards_all.mat',{'rewards':rewards, 'capex_all':capex_all, 'jobs_1Yincrements':jobs_1Yincrements, 'jobs_2Yincrements':jobs_2Yincrements}, appendmat=False, long_field_names=True, oned_as='column')
+scipy.io.savemat('rewards_all_reward_plus_jobs_increment.mat',{'rewards':rewards, 'capex_all':capex_all, 'jobs_1Yincrements':jobs_1Yincrements, 'jobs_2Yincrements':jobs_2Yincrements}, appendmat=False, long_field_names=True, oned_as='column')
 
 
 calc_rewards( np.tile(np.array([150, 270, 252.797394]), (20, 1)) )

@@ -328,7 +328,7 @@ def apply_action(action, state):
     # reward = weightedRewardComponents # for testing/checking all components separately, using test_reference_environment.py
     # reward = weightedRewardComponents[-1] - weightedRewardComponents[-3] # proposed reward formula: Reward = Total economic impact - emissions
     reward = (
-        weightedRewardComponents[2] - np.sum(weightedRewardComponents[[0, 1, 3]]) - 1050
+        weightedRewardComponents[2] - np.sum(weightedRewardComponents[[0, 1, 3]]) - 1050 + state.jobs_increment
     )  # new reward formula: - (capex + opex + decomm - revenue) - emissions, where oil & gas decomm is a fixed constant 1050/year for all scenarios
     return state, reward, weightedRewardComponents
 

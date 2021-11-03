@@ -1,7 +1,8 @@
 %%
 
 %%
-load('rewards_all.mat')
+% load('rewards_all.mat')
+load('rewards_all_reward_plus_jobs_increment.mat')
 f = -rewards;
 A = [capex_all, -jobs_1Yincrements, -jobs_2Yincrements].';
 % A = [capex_all, -jobs_1Yincrements(:,1:end-1), -jobs_2Yincrements(:,1:end-1)].';
