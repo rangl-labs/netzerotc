@@ -7,6 +7,7 @@ import numpy as np
 import gym
 from stable_baselines3 import PPO
 from stable_baselines3.ppo import MlpPolicy
+# from pathlib import Path
 
 
 class Trainer:
@@ -79,6 +80,45 @@ class Evaluate:
                     action = self.env.action_space.high
                 # spaces gym.spaces.MultiDiscrete, gym.spaces.Tuple not yet covered
                 ###
+                self.env.step(action)
+            rewards.append(sum(self.env.state.rewards_all))
+        return np.mean(rewards)
+
+    def breeze_agent(self, seeds):
+        rewards = []
+        deployments = np.array(np.array(pd.read_excel('BREEZE_Deployments.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
+        actions = deployments[1:,:] - deployments[:-1,:]
+        for seed in seeds:
+            self.env.seed(seed)
+            self.env.reset()
+            while not self.env.state.is_done():
+                action = actions[self.env.state.step_count + 1]
+                self.env.step(action)
+            rewards.append(sum(self.env.state.rewards_all))
+        return np.mean(rewards)
+
+    def gale_agent(self, seeds):
+        rewards = []
+        deployments = np.array(np.array(pd.read_excel('GALE_Deployments.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
+        actions = deployments[1:,:] - deployments[:-1,:]
+        for seed in seeds:
+            self.env.seed(seed)
+            self.env.reset()
+            while not self.env.state.is_done():
+                action = actions[self.env.state.step_count + 1]
+                self.env.step(action)
+            rewards.append(sum(self.env.state.rewards_all))
+        return np.mean(rewards)
+
+    def storm_agent(self, seeds):
+        rewards = []
+        deployments = np.array(np.array(pd.read_excel('STORM_Deployments.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
+        actions = deployments[1:,:] - deployments[:-1,:]
+        for seed in seeds:
+            self.env.seed(seed)
+            self.env.reset()
+            while not self.env.state.is_done():
+                action = actions[self.env.state.step_count + 1]
                 self.env.step(action)
             rewards.append(sum(self.env.state.rewards_all))
         return np.mean(rewards)

@@ -1,9 +1,12 @@
+# import math
 from pathlib import Path
 
+# import pandas as pd
 import numpy as np
 import gym
-from gym import spaces
+from gym import spaces, logger
 
+from gym.utils import seeding
 import matplotlib.pyplot as plt
 from pycel import ExcelCompiler
 
@@ -53,11 +56,12 @@ class Parameters:
     # fmt: on
     # multiplicative noise's mu and sigma, and clipping point:
     noise_mu = 1.0
-    noise_sigma = 0.0  # or try 0.01, 0.1, 0.0, np.sqrt(0.001)
+    noise_sigma = 0.0  # or try 0.1, 0.0, np.sqrt(0.001), 0.02, np.sqrt(0.0003), 0.015, 0.01
     noise_clipping = 0.5  # or try 0.001, 0.1, 0.5 (i.e., original costs are reduced by 50% at the most)
-    noise_sigma_factor = np.sqrt(
-        0.1
-    )  # as in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24) should have smaller standard deviations
+    noise_sigma_factor = np.sqrt(0.1) # as in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24) should have smaller standard deviations
+    
+    # eliminate all constraints to extract rewards coefficients for linear programming:
+    no_constraints_testing = False # set to False for reinforcement learning; set to True for linear programming coefficients extractions
 
     # Compile the IEV economic model work book to a Python object (to be implemented after initial testing):
 
@@ -123,6 +127,7 @@ class State:
                                      param.pathways2Net0.evaluate('GALE!X35'), 
                                      param.pathways2Net0.evaluate('GALE!Y35')], 
                                     dtype=np.float32) # initial deployment numbers of 3 techs in 2030 of Gale scenario
+        self.emission_amount = np.float32(param.pathways2Net0.evaluate('CCUS!O63')) # initial CO2 emission amount in 2030 of Gale scenario
         # fmt: on
 
         # histories
@@ -131,6 +136,7 @@ class State:
         self.rewards_all = []
         self.weightedRewardComponents_all = []
         self.deployments_all = []
+        self.emission_amount_all = []
 
     def to_observation(self):
         observation = (self.step_count,) + tuple(
@@ -154,6 +160,7 @@ def record(state, action, reward, weightedRewardComponents):
     state.rewards_all.append(reward)
     state.weightedRewardComponents_all.append(weightedRewardComponents)
     state.deployments_all.append(state.deployments)
+    state.emission_amount_all.append(state.emission_amount)
     # state.agent_predictions_all.append(state.agent_prediction)
 
 
@@ -163,12 +170,8 @@ def observation_space(self):
     # obs_low[-1] = -37500 # last entry of obervation is the increment in jobs; Constraint 2: no decrease in jobs in excess of 37,500 per two years
     obs_high = np.full_like(self.state.to_observation(), 1e5, dtype=np.float32)
     obs_high[0] = param.steps_per_episode  # first entry of obervation is the timestep
-    obs_high[
-        5
-    ] = 1e6  # corresponding to 'Outputs' row 149 Offshore wind capex, whose original maximum is about 2648
-    obs_high[
-        7
-    ] = 1e6  # corresponding to 'Outputs' row 153 Hydrogen green Electrolyser Capex, whose original maximum is about 1028
+    obs_high[5] = 1e6  # corresponding to 'Outputs' row 149 Offshore wind capex, whose original maximum is about 2648
+    obs_high[7] = 1e6  # corresponding to 'Outputs' row 153 Hydrogen green Electrolyser Capex, whose original maximum is about 1028
     # obs_high[-2] = 10 * 139964 # 2nd last entry of obervation is the jobs; 10 times initial jobs in 2020 = 10*139964, large enough
     # obs_high[-1] = 139964 # last entry of obervation is the increment in jobs; jobs should can't be doubled in a year or increased by the number of total jobs in 2020
     result = spaces.Box(obs_low, obs_high, dtype=np.float32)
@@ -183,6 +186,7 @@ def action_space():
     act_high = np.float32(
         [150, 270, 252.797394]
     )  # Storm's 2050 offshore wind, Breeze's 2050 blue hydrogen, Storm's 2050 green hydrogen
+    # act_high = np.float32([150.0, 0.0, 0.0])
     result = spaces.Box(act_low, act_high, dtype=np.float32)
     return result
 
@@ -290,6 +294,11 @@ def apply_action(action, state):
     # (that is, running param.pathways2Net0.evaluate() for 5 times and then np.sum(), compared to compiling a slighly complicated
     # workbook with a new row to compute the sum, and then running param.pathways2Net0.evaluate() for 1 time)
     # If the IEV economic model work book is needed, then these values have to be evaluated one by one & input to the IEV model
+    state.emission_amount = np.float32(
+        param.pathways2Net0.evaluate(
+            "CCUS!" + param.pathways2Net0ColumnInds[state.step_count] + "63"
+        )
+    )
     emissions = np.float32(
         param.pathways2Net0.evaluate(
             "CCUS!" + param.pathways2Net0ColumnInds[state.step_count] + "68"
@@ -319,7 +328,7 @@ def apply_action(action, state):
     # reward = weightedRewardComponents # for testing/checking all components separately, using test_reference_environment.py
     # reward = weightedRewardComponents[-1] - weightedRewardComponents[-3] # proposed reward formula: Reward = Total economic impact - emissions
     reward = (
-        weightedRewardComponents[2] - np.sum(weightedRewardComponents[[0, 1, 3]]) - 1050
+        weightedRewardComponents[2] - np.sum(weightedRewardComponents[[0, 1, 3]]) - 1050 + state.jobs_increment
     )  # new reward formula: - (capex + opex + decomm - revenue) - emissions, where oil & gas decomm is a fixed constant 1050/year for all scenarios
     return state, reward, weightedRewardComponents
 
@@ -388,11 +397,9 @@ def randomise(state, action):
     # rowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 158, 159, 163, 164, 165, 166])
     # rowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 159, 163, 164, 165, 166])
     rowInds_Outputs = param.pathways2Net0RandomRowInds_Outputs
-    # As in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24)
+    # As in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24) 
     # should have smaller standard deviations by multiplying a factor param.noise_sigma_factor which is < 1:
-    noise_sigma_CCUS = np.full(len(rowInds_CCUS), param.noise_sigma) * np.array(
-        [param.noise_sigma_factor, param.noise_sigma_factor, 1.0]
-    )
+    noise_sigma_CCUS = np.full(len(rowInds_CCUS), param.noise_sigma) * np.array([param.noise_sigma_factor, param.noise_sigma_factor, 1.0])
     # for multiplicative noise, make sure that the prices/costs are not multiplied by a negative number or zero:
     multiplicativeNoise_CCUS = np.maximum(
         param.noise_clipping,
@@ -494,11 +501,13 @@ def plot_episode(state, fname):
     plt.legend(loc='upper left', fontsize='xx-small')
     plt.tight_layout()
     # could be expanded to include individual components of the reward
+
     ax2 = ax1.twinx()
     ax2.plot(np.array(state.deployments_all)[:,0],label="offshore wind")
     ax2.plot(np.array(state.deployments_all)[:,1],label="blue hydrogen")
     ax2.plot(np.array(state.deployments_all)[:,2],label="green hydrogen")
-    ax2.set_ylabel("deployments")
+    ax2.plot(np.array(state.emission_amount_all),label="CO2 emissions amount") 
+    ax2.set_ylabel("deployments and CO2 emissions")
     plt.legend(loc='lower right',fontsize='xx-small')
     plt.tight_layout()
 
@@ -506,22 +515,30 @@ def plot_episode(state, fname):
     plt.subplot(222)
     # plt.plot(np.array(state.observations_all)[:,:4]) # first 4 elements of observations are step counts and 3 IEV years
     # plt.plot(np.array(state.observations_all)[:,-2:]) # last 2 elements of observations are jobs and increments in jobs
-    plt.plot(
-        np.array(state.observations_all)[:, :5]
-    )  # first 5 elements of observations are step counts and first 4 randomized costs
+    # plt.plot(
+    #     np.array(state.observations_all)[:, :5]
+    # )  # first 5 elements of observations are step counts and first 4 randomized costs
+    plt.plot(np.array(state.observations_all)[:,0], label="step counts", color='black')
+    plt.plot(np.array(state.observations_all)[:,1], label="CCS Capex £/tonne")
+    plt.plot(np.array(state.observations_all)[:,2], label="CCS Opex £/tonne")
+    plt.plot(np.array(state.observations_all)[:,3], label="Carbon price £/tonne")
+    plt.plot(np.array(state.observations_all)[:,4], label="Offshore wind Devex £/kW")
+    # plt.plot(np.array(state.observations_all)[:,5], label="Offshore wind Capex £/kW")
     plt.xlabel("time")
     plt.ylabel("observations")
+    plt.legend(loc='lower right',fontsize='xx-small')
     plt.tight_layout()
 
     # actions
     plt.subplot(223)
     plt.plot(np.array(state.actions_all)[:,0],label="offshore wind capacity [GW]")
     plt.plot(np.array(state.actions_all)[:,1],label="blue hydrogen energy [TWh]")
-    plt.plot(np.array(state.actions_all)[:,2],label="green hydrogen energy [TWh]")
+    plt.plot(np.array(state.actions_all)[:,2],label="green hydrogen energy [TWh]")    
     plt.xlabel("time")
     plt.ylabel("actions")
     plt.legend(title="increment in",loc='lower right',fontsize='xx-small')
     plt.tight_layout()
+
     # # deployment numbers
     # plt.subplot(223)
     # plt.plot(np.array(state.deployments_all))
@@ -535,6 +552,7 @@ def plot_episode(state, fname):
     # ax1.set_xlabel("time")
     # ax1.set_ylabel("actions")
     # plt.tight_layout()
+
     # ax2 = ax1.twinx()
     # ax2.plot(np.array(state.deployments_all))
     # ax2.set_ylabel("deployments")
@@ -543,9 +561,9 @@ def plot_episode(state, fname):
     # jobs
     plt.subplot(224)
     to_plot = np.vstack((np.array(state.weightedRewardComponents_all)[:,4],
-                        np.hstack((np.nan,np.diff(np.array(state.weightedRewardComponents_all)[:,4]))))).T
-    plt.plot(to_plot[:,0],label="jobs")
-    plt.plot(to_plot[:, 1], label="increment in jobs")
+                        np.hstack((np.nan,np.diff(np.array(state.weightedRewardComponents_all)[:,4]))))).T    
+    plt.plot(to_plot[:,0], label="jobs")
+    plt.plot(to_plot[:,1], label="increment in jobs")
     plt.xlabel("time")
     plt.ylabel("jobs and increments")
     plt.legend(loc='lower left', fontsize='xx-small')
@@ -599,8 +617,9 @@ class GymEnv(gym.Env):
         # )
         randomise(self.state, action)
         self.state, reward, weightedRewardComponents = apply_action(action, self.state)
-        if verify_constraints(self.state) == False:
-            reward = -1000
+        if self.param.no_constraints_testing == False:
+            if verify_constraints(self.state) == False:
+                reward = -1000
         # self.state.set_agent_prediction()
         observation = self.state.to_observation()
         done = self.state.is_done()
@@ -626,4 +645,3 @@ class GymEnv(gym.Env):
 
     def close(self):
         pass
-
