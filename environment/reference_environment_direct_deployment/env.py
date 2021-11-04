@@ -56,7 +56,7 @@ class Parameters:
     # fmt: on
     # multiplicative noise's mu and sigma, and clipping point:
     noise_mu = 1.0
-    noise_sigma = 0.0  # or try 0.1, 0.0, np.sqrt(0.001), 0.02, np.sqrt(0.0003), 0.015, 0.01
+    noise_sigma = 0.1  # or try 0.1, 0.0, np.sqrt(0.001), 0.02, np.sqrt(0.0003), 0.015, 0.01
     noise_clipping = 0.5  # or try 0.001, 0.1, 0.5 (i.e., original costs are reduced by 50% at the most)
     noise_sigma_factor = np.sqrt(0.1) # as in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24) should have smaller standard deviations
     
@@ -183,10 +183,11 @@ def action_space():
     # so the lower bound should be zero because the already deployed cannot be reduced and can only be increased
     act_low = np.zeros(param.techs, dtype=np.float32)
     # the upper bound is set to the highest 2050's target among all 3 scenarios; in other word, the action should not increase the deployment by more than the highest target:
-    act_high = np.float32(
-        [150, 270, 252.797394]
-    )  # Storm's 2050 offshore wind, Breeze's 2050 blue hydrogen, Storm's 2050 green hydrogen
+    # act_high = np.float32(
+    #     [150, 270, 252.797394]
+    # )  # Storm's 2050 offshore wind, Breeze's 2050 blue hydrogen, Storm's 2050 green hydrogen
     # act_high = np.float32([150.0, 0.0, 0.0])
+    act_high = np.float32([11, 25, 24])  # the max increments are those in Storm's 2050 offshore wind, Breeze's 2050 blue hydrogen, Storm's 2050 green hydrogen = [10.338181, 24.85991, 23.276001]
     result = spaces.Box(act_low, act_high, dtype=np.float32)
     return result
 
