@@ -56,9 +56,12 @@ class Parameters:
     # fmt: on
     # multiplicative noise's mu and sigma, and clipping point:
     noise_mu = 1.0
-    noise_sigma = 0.1  # or try 0.1, 0.0, np.sqrt(0.001), 0.02, np.sqrt(0.0003), 0.015, 0.01
+    noise_sigma = 0.0  # or try 0.1, 0.0, np.sqrt(0.001), 0.02, np.sqrt(0.0003), 0.015, 0.01, np.sqrt(0.00001), 0.001
     noise_clipping = 0.5  # or try 0.001, 0.1, 0.5 (i.e., original costs are reduced by 50% at the most)
     noise_sigma_factor = np.sqrt(0.1) # as in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24) should have smaller standard deviations
+    stochastic_sigma = False  # set to False to use one single noise_sigma; set to True to randomly switch between two different std:
+    noise_sigma_low = 0.001
+    noise_sigma_high = np.sqrt(0.00001)
     
     # eliminate all constraints to extract rewards coefficients for linear programming:
     no_constraints_testing = False # set to False for reinforcement learning; set to True for linear programming coefficients extractions
@@ -605,6 +608,12 @@ class GymEnv(gym.Env):
         self.param = Parameters()
         # In case that loading the serialized .pkl is too slow when creating a new param by Parameters() above:
         # self.param = reset_param(self.param)
+        if self.param.stochastic_sigma == True:
+            if np.random.rand() < 0.5:
+                self.param.noise_sigma = self.param.noise_sigma_low
+            else:
+                self.param.noise_sigma = self.param.noise_sigma_high
+
 
     def reset(self):
         self.initialise_state()
