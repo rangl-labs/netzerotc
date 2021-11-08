@@ -59,7 +59,7 @@ class Parameters:
     noise_sigma = np.sqrt(0.00001)  # or try 0.1, 0.0, np.sqrt(0.001), 0.02, np.sqrt(0.0003), 0.015, 0.01, np.sqrt(0.00001), 0.001
     noise_clipping = 0.5  # or try 0.001, 0.1, 0.5 (i.e., original costs are reduced by 50% at the most)
     noise_sigma_factor = np.sqrt(0.1) # as in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24) should have smaller standard deviations
-    stochastic_sigma = True  # set to False to use one single noise_sigma; set to True to randomly switch between two different std:
+    stochastic_sigma = False  # set to False to use one single noise_sigma; set to True to randomly switch between two different std:
     # noise_sigma_low = 0.001
     # noise_sigma_high = np.sqrt(0.00001)
     # OR, sample a sigma from a uniform distribution centered at noise_sigma with total 2-side range of noise_sigma_range:

@@ -15,12 +15,15 @@ class Trainer:
         self.env = env
         self.param = env.param
 
-    def train_rl(self, models_to_train=40, episodes_per_model=100):
+    def train_rl(self, models_to_train=40, episodes_per_model=100, last_model_number=-1):
         # specify the RL algorithm to train (eg ACKTR, TRPO...)
         model = PPO(MlpPolicy, self.env, verbose=1)
+        if last_model_number > -1:
+            # last_model_number = 39
+            model.load("MODEL_" + str(last_model_number))
         start = time.time()
 
-        for i in range(models_to_train):
+        for i in range(last_model_number + 1, last_model_number + 1 + models_to_train):
             steps_per_model = episodes_per_model * self.param.steps_per_episode
             model.learn(total_timesteps=steps_per_model)
             model.save("MODEL_" + str(i))
