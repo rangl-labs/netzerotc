@@ -56,9 +56,14 @@ class Parameters:
     # fmt: on
     # multiplicative noise's mu and sigma, and clipping point:
     noise_mu = 1.0
-    noise_sigma = 0.0  # or try 0.1, 0.0, np.sqrt(0.001), 0.02, np.sqrt(0.0003), 0.015, 0.01
+    noise_sigma = np.sqrt(0.00001)  # or try 0.1, 0.0, np.sqrt(0.001), 0.02, np.sqrt(0.0003), 0.015, 0.01, np.sqrt(0.00001), 0.001
     noise_clipping = 0.5  # or try 0.001, 0.1, 0.5 (i.e., original costs are reduced by 50% at the most)
     noise_sigma_factor = np.sqrt(0.1) # as in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24) should have smaller standard deviations
+    stochastic_sigma = False  # set to False to use one single noise_sigma; set to True to randomly switch between two different std:
+    # noise_sigma_low = 0.001
+    # noise_sigma_high = np.sqrt(0.00001)
+    # OR, sample a sigma from a uniform distribution centered at noise_sigma with total 2-side range of noise_sigma_range:
+    noise_sigma_range = 0.002
     
     # eliminate all constraints to extract rewards coefficients for linear programming:
     no_constraints_testing = False # set to False for reinforcement learning; set to True for linear programming coefficients extractions
@@ -183,10 +188,11 @@ def action_space():
     # so the lower bound should be zero because the already deployed cannot be reduced and can only be increased
     act_low = np.zeros(param.techs, dtype=np.float32)
     # the upper bound is set to the highest 2050's target among all 3 scenarios; in other word, the action should not increase the deployment by more than the highest target:
-    act_high = np.float32(
-        [150, 270, 252.797394]
-    )  # Storm's 2050 offshore wind, Breeze's 2050 blue hydrogen, Storm's 2050 green hydrogen
+    # act_high = np.float32(
+    #     [150, 270, 252.797394]
+    # )  # Storm's 2050 offshore wind, Breeze's 2050 blue hydrogen, Storm's 2050 green hydrogen
     # act_high = np.float32([150.0, 0.0, 0.0])
+    act_high = np.float32([11, 25, 24])  # the max increments are those in Storm's 2050 offshore wind, Breeze's 2050 blue hydrogen, Storm's 2050 green hydrogen = [10.338181, 24.85991, 23.276001]
     result = spaces.Box(act_low, act_high, dtype=np.float32)
     return result
 
@@ -604,6 +610,13 @@ class GymEnv(gym.Env):
         self.param = Parameters()
         # In case that loading the serialized .pkl is too slow when creating a new param by Parameters() above:
         # self.param = reset_param(self.param)
+        if self.param.stochastic_sigma == True:
+            # if np.random.rand() < 0.5:
+            #     self.param.noise_sigma = self.param.noise_sigma_low
+            # else:
+            #     self.param.noise_sigma = self.param.noise_sigma_high
+            self.param.noise_sigma = np.random.rand() * self.param.noise_sigma_range + (self.param.noise_sigma - 0.5 * self.param.noise_sigma_range)
+
 
     def reset(self):
         self.initialise_state()
