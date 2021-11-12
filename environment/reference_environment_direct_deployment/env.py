@@ -56,7 +56,7 @@ class Parameters:
     # fmt: on
     # multiplicative noise's mu and sigma, and clipping point:
     noise_mu = 1.0
-    noise_sigma = np.sqrt(0.00001)  # or try 0.1, 0.0, np.sqrt(0.001), 0.02, np.sqrt(0.0003), 0.015, 0.01, np.sqrt(0.00001), 0.001
+    noise_sigma = 0.01  # or try 0.1, 0.0, np.sqrt(0.001), 0.02, np.sqrt(0.0003), 0.015, 0.01, np.sqrt(0.00001), 0.001
     noise_clipping = 0.5  # or try 0.001, 0.1, 0.5 (i.e., original costs are reduced by 50% at the most)
     noise_sigma_factor = np.sqrt(0.1) # as in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24) should have smaller standard deviations
     stochastic_sigma = False  # set to False to use one single noise_sigma; set to True to randomly switch between two different std:
@@ -334,7 +334,7 @@ def apply_action(action, state):
     # reward = weightedRewardComponents # for testing/checking all components separately, using test_reference_environment.py
     # reward = weightedRewardComponents[-1] - weightedRewardComponents[-3] # proposed reward formula: Reward = Total economic impact - emissions
     reward = (
-        weightedRewardComponents[2] - np.sum(weightedRewardComponents[[0, 1, 3]]) - 1050 + state.jobs_increment
+        weightedRewardComponents[2] - np.sum(weightedRewardComponents[[0, 1, 3]]) - 1050 + (state.step_count * state.jobs_increment)
     )  # new reward formula: - (capex + opex + decomm - revenue) - emissions, where oil & gas decomm is a fixed constant 1050/year for all scenarios
     return state, reward, weightedRewardComponents
 
