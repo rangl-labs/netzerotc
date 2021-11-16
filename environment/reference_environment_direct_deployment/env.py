@@ -80,19 +80,19 @@ class Parameters:
     # IEV_Rewards[:,:,5] = np.array(np.array(pd.read_excel('./sensitivities/IEV - Original - Total Economic Impact.xlsx'))[:,-steps_per_episode:],dtype=np.float64)
 
 
-param = Parameters()  # parameters singleton
+# param = Parameters()  # parameters singleton
 
 
 class State:
-    def __init__(self, seed=None):
+    def __init__(self, seed=None, param=Parameters()):
         np.random.seed(seed=seed)
-        self.initialise_state()
+        self.initialise_state(param)
 
-    def reset(self):
-        self.initialise_state()
-        return self.to_observation()
+    # def reset(self):
+    #     self.initialise_state()
+    #     return self.to_observation()
 
-    def initialise_state(self):
+    def initialise_state(self, param):
         # basic variables
         # self.scenarioWeights = np.full(param.scenarios, 1/3) # a non-negative weight for each scenario which determines its weight in the overall strategy
         # self.scenarioYears = np.ones(param.scenarios) # how many years to advance each scenario during this environment time step (0 for no progress; 1 for normal IEV speed; 2 for double IEV speed; etc)
@@ -150,7 +150,7 @@ class State:
 
         return observation
 
-    def is_done(self):
+    def is_done(self, param):
         done = bool(self.step_count >= param.steps_per_episode - 1)
         return done
 
@@ -174,7 +174,7 @@ def observation_space(self):
     obs_low[0] = -1  # first entry of obervation is the timestep
     # obs_low[-1] = -37500 # last entry of obervation is the increment in jobs; Constraint 2: no decrease in jobs in excess of 37,500 per two years
     obs_high = np.full_like(self.state.to_observation(), 1e5, dtype=np.float32)
-    obs_high[0] = param.steps_per_episode  # first entry of obervation is the timestep
+    obs_high[0] = self.param.steps_per_episode  # first entry of obervation is the timestep
     obs_high[5] = 1e6  # corresponding to 'Outputs' row 149 Offshore wind capex, whose original maximum is about 2648
     obs_high[7] = 1e6  # corresponding to 'Outputs' row 153 Hydrogen green Electrolyser Capex, whose original maximum is about 1028
     # obs_high[-2] = 10 * 139964 # 2nd last entry of obervation is the jobs; 10 times initial jobs in 2020 = 10*139964, large enough
@@ -183,10 +183,10 @@ def observation_space(self):
     return result
 
 
-def action_space():
+def action_space(self):
     # the actions are [increment in offshore wind capacity GW, increment in blue hydrogen energy TWh, increment in green hydrogen energy TWh]
     # so the lower bound should be zero because the already deployed cannot be reduced and can only be increased
-    act_low = np.zeros(param.techs, dtype=np.float32)
+    act_low = np.zeros(self.param.techs, dtype=np.float32)
     # the upper bound is set to the highest 2050's target among all 3 scenarios; in other word, the action should not increase the deployment by more than the highest target:
     # act_high = np.float32(
     #     [150, 270, 252.797394]
@@ -197,7 +197,7 @@ def action_space():
     return result
 
 
-def apply_action(action, state):
+def apply_action(action, state, param):
 
     # capex = 0 # this variable will aggregate all (rebased) capital expenditure for this time step
     weightedRewardComponents = np.zeros(
@@ -336,7 +336,7 @@ def apply_action(action, state):
     reward = (
         weightedRewardComponents[2] - np.sum(weightedRewardComponents[[0, 1, 3]]) - 1050 + state.jobs_increment
     )  # new reward formula: - (capex + opex + decomm - revenue) - emissions, where oil & gas decomm is a fixed constant 1050/year for all scenarios
-    return state, reward, weightedRewardComponents
+    return state, param, reward, weightedRewardComponents
 
 
 def verify_constraints(state):
@@ -369,7 +369,7 @@ def verify_constraints(state):
     return verify
 
 
-def randomise(state, action):
+def randomise(state, action, param):
     # pass
     # uncomment to apply multiplicative noise to reward sensitivities
     # param.IEV_RewardSensitivities *= 1
@@ -458,6 +458,8 @@ def randomise(state, action):
 
         # proceed to future years, such that only assigning the current state.step_count/year's randomized costs to state.randomized_costs:
         year_counter = year_counter + 1
+    
+    return param
 
 
 # def update_prediction_array(prediction_array):
@@ -603,13 +605,13 @@ class GymEnv(gym.Env):
         self.initialise_state()
 
     def initialise_state(self):
-        self.state = State(seed=self.current_seed)
-        self.action_space = action_space()
-        self.observation_space = observation_space(self)
         # self.param = param
         self.param = Parameters()
         # In case that loading the serialized .pkl is too slow when creating a new param by Parameters() above:
         # self.param = reset_param(self.param)
+        self.state = State(seed=self.current_seed, param=self.param)
+        self.action_space = action_space(self)
+        self.observation_space = observation_space(self)
         if self.param.stochastic_sigma == True:
             # if np.random.rand() < 0.5:
             #     self.param.noise_sigma = self.param.noise_sigma_low
@@ -628,14 +630,14 @@ class GymEnv(gym.Env):
         # self.state.prediction_array = update_prediction_array(
         #    self.state.prediction_array
         # )
-        randomise(self.state, action)
-        self.state, reward, weightedRewardComponents = apply_action(action, self.state)
+        self.param = randomise(self.state, action, self.param)
+        self.state, self.param, reward, weightedRewardComponents = apply_action(action, self.state, self.param)
         if self.param.no_constraints_testing == False:
             if verify_constraints(self.state) == False:
                 reward = -1000
         # self.state.set_agent_prediction()
         observation = self.state.to_observation()
-        done = self.state.is_done()
+        done = self.state.is_done(self.param)
         record(self.state, action, reward, weightedRewardComponents)
         return observation, reward, done, {}
 
@@ -643,7 +645,7 @@ class GymEnv(gym.Env):
         self.current_seed = seed
 
     def score(self):
-        if self.state.is_done():
+        if self.state.is_done(self.param):
             return score(self.state)
         else:
             return None
