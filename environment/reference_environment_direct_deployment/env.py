@@ -25,19 +25,19 @@ class Parameters:
     # fmt: on
     # Compile the 'Pathways to Net Zero' Excel work book to a Python object:
 
-    # get the path to the current file
-    p = Path(__file__)
-    # determine the relative path to the workbooks directory
-    workbooks = p.resolve().parent.parent / "compiled_workbook_objects"
-    # sensitivities = p.resolve().parent.parent / "sensitivities"
+    # # get the path to the current file
+    # p = Path(__file__)
+    # # determine the relative path to the workbooks directory
+    # workbooks = p.resolve().parent.parent / "compiled_workbook_objects"
+    # # sensitivities = p.resolve().parent.parent / "sensitivities"
 
-    # pathways2Net0 = ExcelCompiler(filename=f"{workbooks}/Pathways to Net Zero - Simplified.xlsx")
-    # pathways2Net0.to_file('./compiled_workbook_objects/Pathways to Net Zero - Simplified - Compiled')
-    # read the compiled object from hard drive
-    # pathways2Net0 = ExcelCompiler.from_file('./compiled_workbook_objects/Pathways to Net Zero - Simplified - Compiled')
-    pathways2Net0 = ExcelCompiler.from_file(
-        filename=f"{workbooks}/PathwaysToNetZero_Simplified_Anonymized_Compiled"
-    )
+    # # pathways2Net0 = ExcelCompiler(filename=f"{workbooks}/Pathways to Net Zero - Simplified.xlsx")
+    # # pathways2Net0.to_file('./compiled_workbook_objects/Pathways to Net Zero - Simplified - Compiled')
+    # # read the compiled object from hard drive
+    # # pathways2Net0 = ExcelCompiler.from_file('./compiled_workbook_objects/Pathways to Net Zero - Simplified - Compiled')
+    # pathways2Net0 = ExcelCompiler.from_file(
+    #     filename=f"{workbooks}/PathwaysToNetZero_Simplified_Anonymized_Compiled"
+    # )
     # hard code the columns indices corresponding to year 2031 to 2050 in spreadsheets 'Outputs' and 'CCUS' of the above work book:
     # fmt: off
     pathways2Net0ColumnInds = np.array(['P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI'])
@@ -93,6 +93,11 @@ class State:
     #     return self.to_observation()
 
     def initialise_state(self, param):
+        # workbook variables
+        p = Path(__file__)
+        workbooks = p.resolve().parent.parent / "compiled_workbook_objects"
+        self.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
+        param.pathways2Net0 = self.pathways2Net0
         # basic variables
         # self.scenarioWeights = np.full(param.scenarios, 1/3) # a non-negative weight for each scenario which determines its weight in the overall strategy
         # self.scenarioYears = np.ones(param.scenarios) # how many years to advance each scenario during this environment time step (0 for no progress; 1 for normal IEV speed; 2 for double IEV speed; etc)
@@ -121,6 +126,7 @@ class State:
         # time variables
         # NOTE: our convention is to update step_count at the beginning of the gym step() function
         self.step_count = -1
+        self.steps_per_episode = param.steps_per_episode
         # self.IEV_years = np.zeros(param.scenarios, dtype=int) # for each scenario, records the latest IEV year that has been implemented
         self.jobs = np.float32(
             110484
@@ -150,8 +156,8 @@ class State:
 
         return observation
 
-    def is_done(self, param):
-        done = bool(self.step_count >= param.steps_per_episode - 1)
+    def is_done(self):
+        done = bool(self.step_count >= self.steps_per_episode - 1)
         return done
 
     # def set_agent_prediction(self):
@@ -198,6 +204,7 @@ def action_space(self):
 
 
 def apply_action(action, state, param):
+    param.pathways2Net0 = state.pathways2Net0
 
     # capex = 0 # this variable will aggregate all (rebased) capital expenditure for this time step
     weightedRewardComponents = np.zeros(
@@ -336,7 +343,8 @@ def apply_action(action, state, param):
     reward = (
         weightedRewardComponents[2] - np.sum(weightedRewardComponents[[0, 1, 3]]) - 1050 + state.jobs_increment
     )  # new reward formula: - (capex + opex + decomm - revenue) - emissions, where oil & gas decomm is a fixed constant 1050/year for all scenarios
-    return state, param, reward, weightedRewardComponents
+    state.pathways2Net0 = param.pathways2Net0
+    return state, reward, weightedRewardComponents
 
 
 def verify_constraints(state):
@@ -370,6 +378,7 @@ def verify_constraints(state):
 
 
 def randomise(state, action, param):
+    param.pathways2Net0 = state.pathways2Net0
     # pass
     # uncomment to apply multiplicative noise to reward sensitivities
     # param.IEV_RewardSensitivities *= 1
@@ -458,8 +467,9 @@ def randomise(state, action, param):
 
         # proceed to future years, such that only assigning the current state.step_count/year's randomized costs to state.randomized_costs:
         year_counter = year_counter + 1
-    
-    return param
+
+    state.pathways2Net0 = param.pathways2Net0
+    return state
 
 
 # def update_prediction_array(prediction_array):
@@ -605,8 +615,13 @@ class GymEnv(gym.Env):
         self.initialise_state()
 
     def initialise_state(self):
+        # if hasattr(self, 'param'):
+        #     del self.param
         # self.param = param
         self.param = Parameters()
+        # p = Path(__file__)
+        # workbooks = p.resolve().parent.parent / "compiled_workbook_objects"
+        # self.param.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
         # In case that loading the serialized .pkl is too slow when creating a new param by Parameters() above:
         # self.param = reset_param(self.param)
         self.state = State(seed=self.current_seed, param=self.param)
@@ -630,14 +645,14 @@ class GymEnv(gym.Env):
         # self.state.prediction_array = update_prediction_array(
         #    self.state.prediction_array
         # )
-        self.param = randomise(self.state, action, self.param)
-        self.state, self.param, reward, weightedRewardComponents = apply_action(action, self.state, self.param)
+        self.state = randomise(self.state, action, self.param)
+        self.state, reward, weightedRewardComponents = apply_action(action, self.state, self.param)
         if self.param.no_constraints_testing == False:
             if verify_constraints(self.state) == False:
                 reward = -1000
         # self.state.set_agent_prediction()
         observation = self.state.to_observation()
-        done = self.state.is_done(self.param)
+        done = self.state.is_done()
         record(self.state, action, reward, weightedRewardComponents)
         return observation, reward, done, {}
 
@@ -645,7 +660,7 @@ class GymEnv(gym.Env):
         self.current_seed = seed
 
     def score(self):
-        if self.state.is_done(self.param):
+        if self.state.is_done():
             return score(self.state)
         else:
             return None
