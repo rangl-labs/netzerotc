@@ -84,19 +84,20 @@ class Parameters:
 
 
 class State:
-    def __init__(self, seed=None, param=Parameters()):
+    def __init__(self, seed=None, param=Parameters(), pathways2Net0=None):
         np.random.seed(seed=seed)
-        self.initialise_state(param)
+        self.initialise_state(param, pathways2Net0)
 
     # def reset(self):
     #     self.initialise_state()
     #     return self.to_observation()
 
-    def initialise_state(self, param):
+    def initialise_state(self, param, pathways2Net0):
         # workbook variables
-        p = Path(__file__)
-        workbooks = p.resolve().parent.parent / "compiled_workbook_objects"
-        self.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
+        # p = Path(__file__)
+        # workbooks = p.resolve().parent.parent / "compiled_workbook_objects"
+        # self.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
+        self.pathways2Net0 = pathways2Net0
         param.pathways2Net0 = self.pathways2Net0
         # basic variables
         # self.scenarioWeights = np.full(param.scenarios, 1/3) # a non-negative weight for each scenario which determines its weight in the overall strategy
@@ -612,7 +613,12 @@ def score(state):
 class GymEnv(gym.Env):
     def __init__(self):
         self.seed()
+        self.load_workbooks()
         self.initialise_state()
+    
+    def load_workbooks(self):
+        workbooks_dir = Path(__file__).resolve().parent.parent / "compiled_workbook_objects"
+        self.loaded_pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
 
     def initialise_state(self):
         # if hasattr(self, 'param'):
@@ -624,7 +630,7 @@ class GymEnv(gym.Env):
         # self.param.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
         # In case that loading the serialized .pkl is too slow when creating a new param by Parameters() above:
         # self.param = reset_param(self.param)
-        self.state = State(seed=self.current_seed, param=self.param)
+        self.state = State(seed=self.current_seed, param=self.param, pathways2Net0=self.loaded_pathways2Net0)
         self.action_space = action_space(self)
         self.observation_space = observation_space(self)
         if self.param.stochastic_sigma == True:
