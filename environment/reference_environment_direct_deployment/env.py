@@ -1,5 +1,6 @@
 # import math
 from pathlib import Path
+# from copy import deepcopy
 
 # import pandas as pd
 import numpy as np
@@ -56,7 +57,7 @@ class Parameters:
     # fmt: on
     # multiplicative noise's mu and sigma, and clipping point:
     noise_mu = 1.0
-    noise_sigma = 0.01  # or try 0.1, 0.0, np.sqrt(0.001), 0.02, np.sqrt(0.0003), 0.015, 0.01, np.sqrt(0.00001), 0.001
+    noise_sigma = 0.1  # or try 0.1, 0.0, np.sqrt(0.001), 0.02, np.sqrt(0.0003), 0.015, 0.01, np.sqrt(0.00001), 0.001
     noise_clipping = 0.5  # or try 0.001, 0.1, 0.5 (i.e., original costs are reduced by 50% at the most)
     noise_sigma_factor = np.sqrt(0.1) # as in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24) should have smaller standard deviations
     stochastic_sigma = False  # set to False to use one single noise_sigma; set to True to randomly switch between two different std:
@@ -84,21 +85,23 @@ class Parameters:
 
 
 class State:
-    def __init__(self, seed=None, param=Parameters(), pathways2Net0=None):
+    def __init__(self, seed=None, param=Parameters()):
         np.random.seed(seed=seed)
-        self.initialise_state(param, pathways2Net0)
+        self.initialise_state(param)
 
     # def reset(self):
     #     self.initialise_state()
     #     return self.to_observation()
 
-    def initialise_state(self, param, pathways2Net0):
+    def initialise_state(self, param):
         # workbook variables
         # p = Path(__file__)
         # workbooks = p.resolve().parent.parent / "compiled_workbook_objects"
         # self.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
-        self.pathways2Net0 = pathways2Net0
-        param.pathways2Net0 = self.pathways2Net0
+        # self.pathways2Net0 = pathways2Net0
+        self.pathways2Net0 = param.pathways2Net0
+        # self.pathways2Net0 = deepcopy(pathways2Net0)
+        # param.pathways2Net0 = self.pathways2Net0
         # basic variables
         # self.scenarioWeights = np.full(param.scenarios, 1/3) # a non-negative weight for each scenario which determines its weight in the overall strategy
         # self.scenarioYears = np.ones(param.scenarios) # how many years to advance each scenario during this environment time step (0 for no progress; 1 for normal IEV speed; 2 for double IEV speed; etc)
@@ -432,6 +435,8 @@ def randomise(state, action, param):
             currentCost = param.pathways2Net0.evaluate(
                 "CCUS!" + yearColumnID + str(rowInds_CCUS[costRowID])
             )
+            # if state.step_count == 0:
+            #     currentCost = param.pathways2Net0_reset.evaluate("CCUS!" + yearColumnID + str(rowInds_CCUS[costRowID]))
             param.pathways2Net0.set_value(
                 "CCUS!" + yearColumnID + str(rowInds_CCUS[costRowID]),
                 multiplicativeNoise_CCUS[costRowID] * currentCost,
@@ -444,6 +449,8 @@ def randomise(state, action, param):
             currentCost = param.pathways2Net0.evaluate(
                 "Outputs!" + yearColumnID + str(rowInds_Outputs[costRowID])
             )
+            # if state.step_count == 0:
+            #     currentCost = param.pathways2Net0_reset.evaluate("Outputs!" + yearColumnID + str(rowInds_Outputs[costRowID]))
             param.pathways2Net0.set_value(
                 "Outputs!" + yearColumnID + str(rowInds_Outputs[costRowID]),
                 multiplicativeNoise_Outputs[costRowID] * currentCost,
@@ -502,8 +509,9 @@ def reset_param(param):
             for iRow in rowInds_BySheets[iSheet]:
                 param.pathways2Net0.set_value(
                     spreadsheets[iSheet] + "!" + iColumn + str(iRow),
-                    param.pathways2Net0.evaluate(
-                        spreadsheets[iSheet] + "_Backup!" + iColumn + str(iRow)
+                    param.pathways2Net0_reset.evaluate(
+                        # spreadsheets[iSheet] + "_Backup!" + iColumn + str(iRow)
+                        spreadsheets[iSheet] + "!" + iColumn + str(iRow)
                     ),
                 )
     return param
@@ -617,20 +625,22 @@ class GymEnv(gym.Env):
         self.initialise_state()
     
     def load_workbooks(self):
+        self.param = Parameters()
         workbooks_dir = Path(__file__).resolve().parent.parent / "compiled_workbook_objects"
-        self.loaded_pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
+        self.param.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
+        self.param.pathways2Net0_reset = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
 
     def initialise_state(self):
         # if hasattr(self, 'param'):
         #     del self.param
         # self.param = param
-        self.param = Parameters()
+        # self.param = Parameters()
         # p = Path(__file__)
         # workbooks = p.resolve().parent.parent / "compiled_workbook_objects"
         # self.param.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
         # In case that loading the serialized .pkl is too slow when creating a new param by Parameters() above:
-        # self.param = reset_param(self.param)
-        self.state = State(seed=self.current_seed, param=self.param, pathways2Net0=self.loaded_pathways2Net0)
+        self.param = reset_param(self.param)
+        self.state = State(seed=self.current_seed, param=self.param)
         self.action_space = action_space(self)
         self.observation_space = observation_space(self)
         if self.param.stochastic_sigma == True:
@@ -642,6 +652,7 @@ class GymEnv(gym.Env):
 
 
     def reset(self):
+        # self.load_workbooks()
         self.initialise_state()
         observation = self.state.to_observation()
         return observation

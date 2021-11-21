@@ -60,9 +60,9 @@ mean_reward1 = np.mean(rewards)
 
 print('######################################')
 
-del env
+# del env
 del model
-env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
+# env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
 model = PPO.load("MODEL_39")
 list2 = []
 rewards = []
