@@ -1,5 +1,6 @@
 # import math
 from pathlib import Path
+# from copy import deepcopy
 
 # import pandas as pd
 import numpy as np
@@ -56,7 +57,7 @@ class Parameters:
     # fmt: on
     # multiplicative noise's mu and sigma, and clipping point:
     noise_mu = 1.0
-    noise_sigma = np.sqrt(0.00001)  # or try 0.1, 0.0, np.sqrt(0.001), 0.02, np.sqrt(0.0003), 0.015, 0.01, np.sqrt(0.00001), 0.001
+    noise_sigma = 0.1  # or try 0.1, 0.0, np.sqrt(0.001), 0.02, np.sqrt(0.0003), 0.015, 0.01, np.sqrt(0.00001), 0.001
     noise_clipping = 0.5  # or try 0.001, 0.1, 0.5 (i.e., original costs are reduced by 50% at the most)
     noise_sigma_factor = np.sqrt(0.1) # as in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24) should have smaller standard deviations
     stochastic_sigma = False  # set to False to use one single noise_sigma; set to True to randomly switch between two different std:
@@ -94,10 +95,13 @@ class State:
 
     def initialise_state(self, param):
         # workbook variables
-        p = Path(__file__)
-        workbooks = p.resolve().parent.parent / "compiled_workbook_objects"
-        self.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
-        param.pathways2Net0 = self.pathways2Net0
+        # p = Path(__file__)
+        # workbooks = p.resolve().parent.parent / "compiled_workbook_objects"
+        # self.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
+        # self.pathways2Net0 = pathways2Net0
+        self.pathways2Net0 = param.pathways2Net0
+        # self.pathways2Net0 = deepcopy(pathways2Net0)
+        # param.pathways2Net0 = self.pathways2Net0
         # basic variables
         # self.scenarioWeights = np.full(param.scenarios, 1/3) # a non-negative weight for each scenario which determines its weight in the overall strategy
         # self.scenarioYears = np.ones(param.scenarios) # how many years to advance each scenario during this environment time step (0 for no progress; 1 for normal IEV speed; 2 for double IEV speed; etc)
@@ -341,7 +345,7 @@ def apply_action(action, state, param):
     # reward = weightedRewardComponents # for testing/checking all components separately, using test_reference_environment.py
     # reward = weightedRewardComponents[-1] - weightedRewardComponents[-3] # proposed reward formula: Reward = Total economic impact - emissions
     reward = (
-        weightedRewardComponents[2] - np.sum(weightedRewardComponents[[0, 1, 3]]) - 1050 + state.jobs_increment
+        weightedRewardComponents[2] - np.sum(weightedRewardComponents[[0, 1, 3]]) - 1050 + (state.step_count * state.jobs_increment)
     )  # new reward formula: - (capex + opex + decomm - revenue) - emissions, where oil & gas decomm is a fixed constant 1050/year for all scenarios
     state.pathways2Net0 = param.pathways2Net0
     return state, reward, weightedRewardComponents
@@ -431,6 +435,8 @@ def randomise(state, action, param):
             currentCost = param.pathways2Net0.evaluate(
                 "CCUS!" + yearColumnID + str(rowInds_CCUS[costRowID])
             )
+            # if state.step_count == 0:
+            #     currentCost = param.pathways2Net0_reset.evaluate("CCUS!" + yearColumnID + str(rowInds_CCUS[costRowID]))
             param.pathways2Net0.set_value(
                 "CCUS!" + yearColumnID + str(rowInds_CCUS[costRowID]),
                 multiplicativeNoise_CCUS[costRowID] * currentCost,
@@ -443,6 +449,8 @@ def randomise(state, action, param):
             currentCost = param.pathways2Net0.evaluate(
                 "Outputs!" + yearColumnID + str(rowInds_Outputs[costRowID])
             )
+            # if state.step_count == 0:
+            #     currentCost = param.pathways2Net0_reset.evaluate("Outputs!" + yearColumnID + str(rowInds_Outputs[costRowID]))
             param.pathways2Net0.set_value(
                 "Outputs!" + yearColumnID + str(rowInds_Outputs[costRowID]),
                 multiplicativeNoise_Outputs[costRowID] * currentCost,
@@ -501,11 +509,46 @@ def reset_param(param):
             for iRow in rowInds_BySheets[iSheet]:
                 param.pathways2Net0.set_value(
                     spreadsheets[iSheet] + "!" + iColumn + str(iRow),
-                    param.pathways2Net0.evaluate(
-                        spreadsheets[iSheet] + "_Backup!" + iColumn + str(iRow)
+                    param.pathways2Net0_reset.evaluate(
+                        # spreadsheets[iSheet] + "_Backup!" + iColumn + str(iRow)
+                        spreadsheets[iSheet] + "!" + iColumn + str(iRow)
                     ),
                 )
     return param
+
+def cal_reset_diff(param):
+    abs_diff = 0.0
+    workbooks_dir = Path(__file__).resolve().parent.parent / "compiled_workbook_objects"
+    pathways2Net0_loaded = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
+    spreadsheets = np.array(["GALE", "CCUS", "Outputs"])
+    columnInds_BySheets = np.array(
+        [
+            np.array(["P", "X", "Y"]),
+            param.pathways2Net0ColumnInds,
+            param.pathways2Net0ColumnInds,
+        ]
+    )
+    rowInds_BySheets = np.array(
+        [
+            param.pathways2Net0RowInds,
+            param.pathways2Net0RandomRowInds_CCUS,
+            param.pathways2Net0RandomRowInds_Outputs,
+        ]
+    )
+    for iSheet in np.arange(len(spreadsheets)):
+        for iColumn in columnInds_BySheets[iSheet]:
+            for iRow in rowInds_BySheets[iSheet]:
+                if param.pathways2Net0.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)) != None and pathways2Net0_loaded.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)) != None:
+                    abs_diff = abs_diff + np.abs(
+                        param.pathways2Net0.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)) - pathways2Net0_loaded.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow))
+                    )
+                else:
+                    if param.pathways2Net0.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)) != None:
+                        abs_diff = abs_diff + np.abs(param.pathways2Net0.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)))
+                    if pathways2Net0_loaded.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)) != None:
+                        abs_diff = abs_diff + np.abs(pathways2Net0_loaded.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)))
+
+    return abs_diff
 
 
 def plot_episode(state, fname):
@@ -612,18 +655,25 @@ def score(state):
 class GymEnv(gym.Env):
     def __init__(self):
         self.seed()
+        self.load_workbooks()
         self.initialise_state()
+    
+    def load_workbooks(self):
+        self.param = Parameters()
+        workbooks_dir = Path(__file__).resolve().parent.parent / "compiled_workbook_objects"
+        self.param.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
+        self.param.pathways2Net0_reset = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
 
     def initialise_state(self):
         # if hasattr(self, 'param'):
         #     del self.param
         # self.param = param
-        self.param = Parameters()
+        # self.param = Parameters()
         # p = Path(__file__)
         # workbooks = p.resolve().parent.parent / "compiled_workbook_objects"
         # self.param.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
         # In case that loading the serialized .pkl is too slow when creating a new param by Parameters() above:
-        # self.param = reset_param(self.param)
+        self.param = reset_param(self.param)
         self.state = State(seed=self.current_seed, param=self.param)
         self.action_space = action_space(self)
         self.observation_space = observation_space(self)
@@ -636,9 +686,14 @@ class GymEnv(gym.Env):
 
 
     def reset(self):
+        # self.load_workbooks()
         self.initialise_state()
         observation = self.state.to_observation()
         return observation
+    
+    def check_reset(self):
+        reset_diff = cal_reset_diff(self.param)
+        return reset_diff
 
     def step(self, action):
         self.state.step_count += 1

@@ -7,6 +7,90 @@ from stable_baselines3 import PPO
 
 from util import Evaluate
 
+env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
+
+trained_models_dir = "noise_sigma0.1_reward_plus_step_count_jobs_increment_80models1000episodes"
+model_number_str = "79"
+agent = PPO.load("./" + trained_models_dir + "/" + "MODEL_" + model_number_str)
+evaluate = Evaluate(env, agent)
+seeds = evaluate.read_seeds(fname="seeds.csv")
+# fmt: off
+mean_reward = evaluate.RL_agent(seeds) # Add your agent to the Evaluate class and call it here e.g. evaluate.my_agent(seeds)
+# fmt: on
+print("Mean reward of model " + model_number_str + ":", mean_reward)
+
+os.chdir("./" + trained_models_dir + "/")
+env.plot("MODEL_" + model_number_str + "_eval_on_noisy.png")
+# env.plot("MODEL_" + model_number_str + "_eval_on_deterministic.png")
+os.chdir("../")
+
+
+# Reset the environment
+env.reset()
+del evaluate
+evaluate = Evaluate(env)
+seeds = evaluate.read_seeds(fname="seeds.csv")
+# fmt: off
+mean_reward = evaluate.random_agent(seeds) # Add your agent to the Evaluate class and call it here e.g. evaluate.my_agent(seeds)
+# fmt: on
+print("Mean reward of random agent:", mean_reward)
+
+os.chdir("./" + trained_models_dir + "/")
+env.plot("random_agent_eval_on_noisy.png")
+# env.plot("random_agent_eval_on_deterministic.png")
+os.chdir("../")
+
+
+# Reset the environment
+env.reset()
+del evaluate
+evaluate = Evaluate(env)
+seeds = evaluate.read_seeds(fname="seeds.csv")
+# fmt: off
+mean_reward = evaluate.breeze_agent(seeds) # Add your agent to the Evaluate class and call it here e.g. evaluate.my_agent(seeds)
+# fmt: on
+print("Mean reward of BREEZE:", mean_reward)
+
+os.chdir("./" + trained_models_dir + "/")
+env.plot("BREEZE_eval_on_noisy.png")
+# env.plot("BREEZE_eval_on_deterministic.png")
+os.chdir("../")
+
+
+# Reset the environment
+env.reset()
+del evaluate
+evaluate = Evaluate(env)
+seeds = evaluate.read_seeds(fname="seeds.csv")
+# fmt: off
+mean_reward = evaluate.gale_agent(seeds) # Add your agent to the Evaluate class and call it here e.g. evaluate.my_agent(seeds)
+# fmt: on
+print("Mean reward of GALE:", mean_reward)
+
+os.chdir("./" + trained_models_dir + "/")
+env.plot("GALE_eval_on_noisy.png")
+# env.plot("GALE_eval_on_deterministic.png")
+os.chdir("../")
+
+
+# Reset the environment
+env.reset()
+del evaluate
+evaluate = Evaluate(env)
+seeds = evaluate.read_seeds(fname="seeds.csv")
+# fmt: off
+mean_reward = evaluate.storm_agent(seeds) # Add your agent to the Evaluate class and call it here e.g. evaluate.my_agent(seeds)
+# fmt: on
+print("Mean reward of STORM:", mean_reward)
+
+os.chdir("./" + trained_models_dir + "/")
+env.plot("STORM_eval_on_noisy.png")
+# env.plot("STORM_eval_on_deterministic.png")
+os.chdir("../")
+
+
+
+#%% old script:
 # fmt: off
 env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
 # fmt: on
@@ -27,7 +111,22 @@ env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
 # agent = PPO.load("./deterministic_100xEmissions_10models1000episodes/MODEL_9")
 # agent = PPO.load("./deterministic_10xEmissions_10models1000episodes/MODEL_9")
 # agent = PPO.load("./deterministic_reward_plus_jobs_increment_10models1000episodes/MODEL_9")
-agent = PPO.load("./deterministic_reward_plus_jobs_increment_40models1000episodes/MODEL_39")
+# agent = PPO.load("./deterministic_reward_plus_jobs_increment_40models1000episodes/MODEL_39")
+# agent = PPO.load("./noise_sigma0.1_reward_plus_jobs_increment_10models1000episodes/MODEL_9")
+# agent = PPO.load("./noise_sigma0.01_reward_plus_jobs_increment_10models1000episodes/MODEL_9")
+# agent = PPO.load("./noise_sigma0.5_reward_plus_jobs_increment_10models1000episodes/MODEL_9")
+# agent = PPO.load("./noise_sigma_sqrt0.00001_reward_plus_jobs_increment_10models1000episodes/MODEL_9")
+# agent = PPO.load("./noise_sigma0.001_reward_plus_jobs_increment_10models1000episodes/MODEL_9")
+# agent = PPO.load("./noise_sigma_sqrt0.00001_reward_plus_jobs_increment_40models1000episodes/MODEL_76")
+# agent = PPO.load("./stochastic_sigma_centered_sqrt0.00001_reward_plus_jobs_increment_40models1000episodes/MODEL_39")
+# agent = PPO.load("./noise_sigma0.01_reward_plus_step_count_jobs_increment_40models1000episodes/MODEL_7")
+# agent = PPO.load("./noise_sigma0.02_reward_plus_0.1step_count_jobs_increment_40models1000episodes/MODEL_9")
+# agent = PPO.load("./deterministic_reward_plus_0.1step_count_jobs_increment_10models1000episodes/MODEL_9")
+# agent = PPO.load("./deterministic_reward_plus_step_count_jobs_increment_40models1000episodes/MODEL_39")
+# agent = PPO.load("./noise_sigma0.02_reward_plus_jobs_increment_10models1000episodes/MODEL_9")
+# agent = PPO.load("./noise_sigma0.02_reward_plus_step_count_jobs_increment_10models1000episodes/MODEL_39")
+# agent = PPO.load("./noise_sigma0.02_reward_plus_0.1step_count_jobs_increment_10models1000episodes/MODEL_9")
+agent = PPO.load("./noise_sigma0.1_reward_plus_step_count_jobs_increment_80models1000episodes/MODEL_79")
 
 
 evaluate = Evaluate(env, agent)
@@ -85,11 +184,52 @@ print(env.state.weightedRewardComponents_all[-1][3])
 # os.chdir("./deterministic_100xEmissions_10models1000episodes/")
 # os.chdir("./deterministic_10xEmissions_10models1000episodes/")
 # os.chdir("./deterministic_reward_plus_jobs_increment_10models1000episodes/")
-os.chdir("./deterministic_reward_plus_jobs_increment_40models1000episodes/")
-# env.plot("MODEL_9_eval_on_noisy.png")
-env.plot("MODEL_39_eval_on_deterministic.png")
+# os.chdir("./deterministic_reward_plus_jobs_increment_40models1000episodes/")
+# os.chdir("./noise_sigma0.1_reward_plus_jobs_increment_10models1000episodes/")
+# os.chdir("./noise_sigma0.01_reward_plus_jobs_increment_10models1000episodes/")
+# os.chdir("./noise_sigma0.5_reward_plus_jobs_increment_10models1000episodes/")
+# os.chdir("./noise_sigma_sqrt0.00001_reward_plus_jobs_increment_10models1000episodes/")
+# os.chdir("./noise_sigma0.001_reward_plus_jobs_increment_10models1000episodes/")
+# os.chdir("./noise_sigma_sqrt0.00001_reward_plus_jobs_increment_40models1000episodes/")
+# os.chdir("./stochastic_sigma_centered_sqrt0.00001_reward_plus_jobs_increment_40models1000episodes/")
+# os.chdir("./noise_sigma0.01_reward_plus_step_count_jobs_increment_40models1000episodes/")
+# os.chdir("./noise_sigma0.02_reward_plus_0.1step_count_jobs_increment_40models1000episodes/")
+# os.chdir("./deterministic_reward_plus_0.1step_count_jobs_increment_10models1000episodes/")
+# os.chdir("./deterministic_reward_plus_step_count_jobs_increment_40models1000episodes/")
+# os.chdir("./noise_sigma0.02_reward_plus_jobs_increment_10models1000episodes/")
+# os.chdir("./noise_sigma0.02_reward_plus_step_count_jobs_increment_10models1000episodes/")
+# os.chdir("./noise_sigma0.02_reward_plus_0.1step_count_jobs_increment_10models1000episodes/")
+os.chdir("./noise_sigma0.1_reward_plus_step_count_jobs_increment_80models1000episodes/")
+env.plot("MODEL_79_eval_on_noisy_force_reload.png")
+# env.plot("MODEL_79_eval_on_deterministic.png")
 os.chdir("../")
 
+
+
+
+
+evaluate = Evaluate(env)
+seeds = evaluate.read_seeds(fname="seeds.csv")
+# fmt: off
+mean_reward = evaluate.random_agent(seeds) # Add your agent to the Evaluate class and call it here e.g. evaluate.my_agent(seeds)
+# fmt: on
+
+print("Mean reward:", mean_reward)
+
+assert env.state.weightedRewardComponents_all[-1][3] == 0
+print(env.state.weightedRewardComponents_all[-1][3])
+
+# env.plot("random_agent_eval_on_noise_sigma_sqrt0.00001_reward_plus_jobs_increment.png")
+# env.plot("random_agent_eval_on_stochastic_sigma_centered_sqrt0.00001_reward_plus_jobs_increment.png")
+# env.plot("random_agent_eval_on_noise_sigma0.01_reward_plus_step_count_jobs_increment.png")
+# env.plot("random_agent_eval_on_noise_sigma0.02_reward_plus_0.1step_count_jobs_increment.png")
+# env.plot("random_agent_eval_on_deterministic_reward_plus_jobs_increment.png")
+# env.plot("random_agent_eval_on_noise_sigma0.02_reward_plus_jobs_increment.png")
+# env.plot("random_agent_eval_on_deterministic_reward_plus_step_count_jobs_increment.png")
+# env.plot("random_agent_eval_on_noise_sigma0.02_reward_plus_step_count_jobs_increment.png")
+# env.plot("random_agent_eval_on_deterministic_reward_plus_0.1step_count_jobs_increment.png")
+# env.plot("random_agent_eval_on_noise_sigma0.02_reward_plus_0.1step_count_jobs_increment.png")
+env.plot("random_agent_eval_on_noise_sigma0.1_reward_plus_step_count_jobs_increment.png")
 
 
 
@@ -105,7 +245,17 @@ print("Mean reward:", mean_reward)
 assert env.state.weightedRewardComponents_all[-1][3] == 0
 print(env.state.weightedRewardComponents_all[-1][3])
 
-env.plot("GALE_eval_on_deterministic_reward_plus_jobs_increment.png")
+# env.plot("GALE_eval_on_noise_sigma_sqrt0.00001_reward_plus_jobs_increment.png")
+# env.plot("GALE_eval_on_stochastic_sigma_centered_sqrt0.00001_reward_plus_jobs_increment.png")
+# env.plot("GALE_eval_on_noise_sigma0.01_reward_plus_step_count_jobs_increment.png")
+# env.plot("GALE_eval_on_noise_sigma0.02_reward_plus_0.1step_count_jobs_increment.png")
+# env.plot("GALE_eval_on_deterministic_reward_plus_jobs_increment.png")
+# env.plot("GALE_eval_on_noise_sigma0.02_reward_plus_jobs_increment.png")
+# env.plot("GALE_eval_on_deterministic_reward_plus_step_count_jobs_increment.png")
+# env.plot("GALE_eval_on_noise_sigma0.02_reward_plus_step_count_jobs_increment.png")
+# env.plot("GALE_eval_on_deterministic_reward_plus_0.1step_count_jobs_increment.png")
+# env.plot("GALE_eval_on_noise_sigma0.02_reward_plus_0.1step_count_jobs_increment.png")
+env.plot("GALE_eval_on_noise_sigma0.1_reward_plus_step_count_jobs_increment.png")
 
 
 
@@ -120,7 +270,17 @@ print("Mean reward:", mean_reward)
 assert env.state.weightedRewardComponents_all[-1][3] == 0
 print(env.state.weightedRewardComponents_all[-1][3])
 
-env.plot("STORM_eval_on_deterministic_reward_plus_jobs_increment.png")
+# env.plot("STORM_eval_on_noise_sigma_sqrt0.00001_reward_plus_jobs_increment.png")
+# env.plot("STORM_eval_on_stochastic_sigma_centered_sqrt0.00001_reward_plus_jobs_increment.png")
+# env.plot("STORM_eval_on_noise_sigma0.01_reward_plus_step_count_jobs_increment.png")
+# env.plot("STORM_eval_on_noise_sigma0.02_reward_plus_0.1step_count_jobs_increment.png")
+# env.plot("STORM_eval_on_deterministic_reward_plus_jobs_increment.png")
+# env.plot("STORM_eval_on_noise_sigma0.02_reward_plus_jobs_increment.png")
+# env.plot("STORM_eval_on_deterministic_reward_plus_step_count_jobs_increment.png")
+# env.plot("STORM_eval_on_noise_sigma0.02_reward_plus_step_count_jobs_increment.png")
+# env.plot("STORM_eval_on_deterministic_reward_plus_0.1step_count_jobs_increment.png")
+# env.plot("STORM_eval_on_noise_sigma0.02_reward_plus_0.1step_count_jobs_increment.png")
+env.plot("STORM_eval_on_noise_sigma0.1_reward_plus_step_count_jobs_increment.png")
 
 
 
@@ -135,5 +295,15 @@ print("Mean reward:", mean_reward)
 assert env.state.weightedRewardComponents_all[-1][3] == 0
 print(env.state.weightedRewardComponents_all[-1][3])
 
-env.plot("BREEZE_eval_on_deterministic_reward_plus_jobs_increment.png")
+# env.plot("BREEZE_eval_on_noise_sigma_sqrt0.00001_reward_plus_jobs_increment.png")
+# env.plot("BREEZE_eval_on_stochastic_sigma_centered_sqrt0.00001_reward_plus_jobs_increment.png")
+# env.plot("BREEZE_eval_on_noise_sigma0.01_reward_plus_step_count_jobs_increment.png")
+# env.plot("BREEZE_eval_on_noise_sigma0.02_reward_plus_0.1step_count_jobs_increment.png")
+# env.plot("BREEZE_eval_on_deterministic_reward_plus_jobs_increment.png")
+# env.plot("BREEZE_eval_on_noise_sigma0.02_reward_plus_jobs_increment.png")
+# env.plot("BREEZE_eval_on_deterministic_reward_plus_step_count_jobs_increment.png")
+# env.plot("BREEZE_eval_on_noise_sigma0.02_reward_plus_step_count_jobs_increment.png")
+# env.plot("BREEZE_eval_on_deterministic_reward_plus_0.1step_count_jobs_increment.png")
+# env.plot("BREEZE_eval_on_noise_sigma0.02_reward_plus_0.1step_count_jobs_increment.png")
+env.plot("BREEZE_eval_on_noise_sigma0.1_reward_plus_step_count_jobs_increment.png")
 
