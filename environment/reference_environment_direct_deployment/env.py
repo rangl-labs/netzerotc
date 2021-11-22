@@ -516,6 +516,40 @@ def reset_param(param):
                 )
     return param
 
+def cal_reset_diff(param):
+    abs_diff = 0.0
+    workbooks_dir = Path(__file__).resolve().parent.parent / "compiled_workbook_objects"
+    pathways2Net0_loaded = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
+    spreadsheets = np.array(["GALE", "CCUS", "Outputs"])
+    columnInds_BySheets = np.array(
+        [
+            np.array(["P", "X", "Y"]),
+            param.pathways2Net0ColumnInds,
+            param.pathways2Net0ColumnInds,
+        ]
+    )
+    rowInds_BySheets = np.array(
+        [
+            param.pathways2Net0RowInds,
+            param.pathways2Net0RandomRowInds_CCUS,
+            param.pathways2Net0RandomRowInds_Outputs,
+        ]
+    )
+    for iSheet in np.arange(len(spreadsheets)):
+        for iColumn in columnInds_BySheets[iSheet]:
+            for iRow in rowInds_BySheets[iSheet]:
+                if param.pathways2Net0.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)) != None and pathways2Net0_loaded.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)) != None:
+                    abs_diff = abs_diff + np.abs(
+                        param.pathways2Net0.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)) - pathways2Net0_loaded.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow))
+                    )
+                else:
+                    if param.pathways2Net0.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)) != None:
+                        abs_diff = abs_diff + np.abs(param.pathways2Net0.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)))
+                    if pathways2Net0_loaded.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)) != None:
+                        abs_diff = abs_diff + np.abs(pathways2Net0_loaded.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)))
+
+    return abs_diff
+
 
 def plot_episode(state, fname):
     fig, ax = plt.subplots(2, 2)
@@ -656,6 +690,10 @@ class GymEnv(gym.Env):
         self.initialise_state()
         observation = self.state.to_observation()
         return observation
+    
+    def check_reset(self):
+        reset_diff = cal_reset_diff(self.param)
+        return reset_diff
 
     def step(self, action):
         self.state.step_count += 1
