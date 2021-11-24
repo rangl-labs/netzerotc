@@ -451,10 +451,16 @@ def randomise(state, action, param):
             )
             # if state.step_count == 0:
             #     currentCost = param.pathways2Net0_reset.evaluate("Outputs!" + yearColumnID + str(rowInds_Outputs[costRowID]))
-            param.pathways2Net0.set_value(
-                "Outputs!" + yearColumnID + str(rowInds_Outputs[costRowID]),
-                multiplicativeNoise_Outputs[costRowID] * currentCost,
-            )
+            if state.step_count == 10 and rowInds_Outputs[costRowID] == 166 and year_counter == 0:
+                param.pathways2Net0.set_value(
+                    "Outputs!" + yearColumnID + str(rowInds_Outputs[costRowID]),
+                    multiplicativeNoise_Outputs[costRowID] * currentCost * 1.75,
+                )
+            else:
+                param.pathways2Net0.set_value(
+                    "Outputs!" + yearColumnID + str(rowInds_Outputs[costRowID]),
+                    multiplicativeNoise_Outputs[costRowID] * currentCost,
+                )
             if year_counter == 0:
                 state.randomized_costs[len(rowInds_CCUS) + costRowID] = (
                     multiplicativeNoise_Outputs[costRowID] * currentCost
@@ -579,12 +585,13 @@ def plot_episode(state, fname):
     # plt.plot(
     #     np.array(state.observations_all)[:, :5]
     # )  # first 5 elements of observations are step counts and first 4 randomized costs
-    plt.plot(np.array(state.observations_all)[:,0], label="step counts", color='black')
-    plt.plot(np.array(state.observations_all)[:,1], label="CCS Capex £/tonne")
-    plt.plot(np.array(state.observations_all)[:,2], label="CCS Opex £/tonne")
-    plt.plot(np.array(state.observations_all)[:,3], label="Carbon price £/tonne")
-    plt.plot(np.array(state.observations_all)[:,4], label="Offshore wind Devex £/kW")
-    # plt.plot(np.array(state.observations_all)[:,5], label="Offshore wind Capex £/kW")
+    #plt.plot(np.array(state.observations_all)[:,0], label="step counts", color='black')
+    #plt.plot(np.array(state.observations_all)[:,1], label="CCS Capex £/tonne")
+    #plt.plot(np.array(state.observations_all)[:,2], label="CCS Opex £/tonne")
+    #plt.plot(np.array(state.observations_all)[:,3], label="Carbon price £/tonne")
+    #plt.plot(np.array(state.observations_all)[:,4], label="Offshore wind Devex £/kW")
+    ## plt.plot(np.array(state.observations_all)[:,5], label="Offshore wind Capex £/kW")
+    plt.plot(np.array(state.observations_all)[:, -1], label="Gas price (?)")
     plt.xlabel("time")
     plt.ylabel("observations")
     plt.legend(loc='lower right',fontsize='xx-small')
