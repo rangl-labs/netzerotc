@@ -23,7 +23,12 @@ for seed in seeds:
     env.seed(seed)
     obs = env.reset()
     list1.append(obs)
+
+    print(f"INFO: 1st run")
+    step = -1
     while not env.state.is_done():
+        step += 1
+        print(f"INFO: {step=}")
         action, _states = model.predict(obs, deterministic=True)
         obs, _, _, _ = env.step(action)
         list1.append(obs)
@@ -41,7 +46,12 @@ for seed in seeds:
     env.seed(seed)
     obs = env.reset()
     list2.append(obs)
+
+    print(f"INFO: 2nd run")
+    step = -1
     while not env.state.is_done():
+        step += 1
+        print(f"INFO: {step=}")
         action, _states = model.predict(obs, deterministic=True)
         obs, _, _, _ = env.step(action)
         list2.append(obs)
@@ -50,4 +60,6 @@ rewards.append(sum(env.state.rewards_all))
 mean_reward2 = np.mean(rewards)
 
 print("Final results from 1st run: ", mean_reward1)
-print("Final results from 2st run: ", mean_reward2)
+print("Final results from 2nd run: ", mean_reward2)
+
+assert np.isclose(a=[mean_reward1], b=[mean_reward2])
