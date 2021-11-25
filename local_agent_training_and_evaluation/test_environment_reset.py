@@ -17,8 +17,8 @@ for row in csv.reader(open("seeds.csv")):
     seeds.append(int(row[0]))
 seeds = seeds[:1]  # try with a single seed to make it fast
 
-
 for seed in seeds:
+    print(f"{seed=}")
     list1.append(seed)
     env.seed(seed)
     obs = env.reset()
@@ -42,6 +42,7 @@ model = PPO.load("./saved_models/MODEL_0")
 list2 = []
 rewards = []
 for seed in seeds:
+    print(f"{seed=}")
     list2.append(seed)
     env.seed(seed)
     obs = env.reset()
