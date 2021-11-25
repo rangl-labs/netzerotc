@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 
-import os
 import csv
 import numpy as np
 import gym
-import matplotlib.pyplot as plt
 from stable_baselines3 import PPO
 
-from util import Evaluate
 import reference_environment_direct_deployment
 
 env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
