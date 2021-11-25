@@ -11,7 +11,7 @@ env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
 trainer = Trainer(env)
 os.chdir("./saved_models/")
 # To resume a previously trained model:
-# trainer.train_rl(models_to_train=30, episodes_per_model=1000, last_model_number=9)
+trainer.train_rl(models_to_train=50, episodes_per_model=1000, last_model_number=79)
 # To train from scratch:
-trainer.train_rl(models_to_train=80, episodes_per_model=1000)
+# trainer.train_rl(models_to_train=80, episodes_per_model=1000)
 os.chdir("../")
