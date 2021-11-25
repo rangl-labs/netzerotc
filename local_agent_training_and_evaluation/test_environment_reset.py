@@ -11,7 +11,7 @@ env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
 
 list1 = []
 rewards = []
-model = PPO.load("MODEL_0")
+model = PPO.load("./saved_models/MODEL_0")
 seeds = []
 for row in csv.reader(open("seeds.csv")):
     seeds.append(int(row[0]))
@@ -33,7 +33,7 @@ mean_reward1 = np.mean(rewards)
 
 del model
 
-model = PPO.load("MODEL_0")
+model = PPO.load("./saved_models/MODEL_0")
 list2 = []
 rewards = []
 for seed in seeds:
