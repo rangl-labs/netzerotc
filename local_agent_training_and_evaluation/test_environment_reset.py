@@ -72,3 +72,6 @@ mean_reward2 = np.mean(rewards)
 print("Final results from 1st run: ", mean_reward1)
 print("Final results from 2nd run: ", mean_reward2)
 assert np.isclose(a=[mean_reward1], b=[mean_reward2])
+
+reset_diff = env.check_reset()
+print(f"{reset_diff=}")
