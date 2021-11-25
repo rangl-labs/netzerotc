@@ -36,13 +36,13 @@ for i in [39]:
 print("Mean rewards for RL agent 39 again:", mean_rewards)
 """
 
-list1=[]
+list1 = []
 rewards = []
-model = PPO.load("MODEL_39")
+model = PPO.load("MODEL_0")
 seeds = []
 for row in csv.reader(open("seeds.csv")):
     seeds.append(int(row[0]))
-seeds = seeds[:1] #try with a single seed to make it fast
+seeds = seeds[:1]  # try with a single seed to make it fast
 
 
 for seed in seeds:
@@ -58,12 +58,12 @@ for seed in seeds:
 rewards.append(sum(env.state.rewards_all))
 mean_reward1 = np.mean(rewards)
 
-print('######################################')
+print("######################################")
 
 # del env
 del model
 # env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
-model = PPO.load("MODEL_39")
+model = PPO.load("MODEL_0")
 list2 = []
 rewards = []
 for seed in seeds:
@@ -79,8 +79,8 @@ for seed in seeds:
 rewards.append(sum(env.state.rewards_all))
 mean_reward2 = np.mean(rewards)
 
-print('Final results from 1st run: ',mean_reward1)
-print('Final results from 2st run: ',mean_reward2)
+print("Final results from 1st run: ", mean_reward1)
+print("Final results from 2st run: ", mean_reward2)
 
 # for i in range(len(list1)):
 #     #if list1[i] != list2[i]:
