@@ -98,6 +98,7 @@ class State:
         # p = Path(__file__)
         # workbooks = p.resolve().parent.parent / "compiled_workbook_objects"
         # self.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
+        # self.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks}/PathwaysToNetZero_Simplified_Anonymized_Modified_Compiled")
         # self.pathways2Net0 = pathways2Net0
         self.pathways2Net0 = param.pathways2Net0
         # self.pathways2Net0 = deepcopy(pathways2Net0)
@@ -138,10 +139,12 @@ class State:
         self.jobs_increment = np.zeros(1, dtype=np.float32)  # initialized as 0
         # fmt: off
         self.econoImpact = np.float32(49938.9809739566) # initial economic impact of year 2030, extracted from the IEV model spreadsheet for Gale scenario
-        self.deployments = np.array([param.pathways2Net0.evaluate('GALE!P35'), 
-                                     param.pathways2Net0.evaluate('GALE!X35'), 
-                                     param.pathways2Net0.evaluate('GALE!Y35')], 
-                                    dtype=np.float32) # initial deployment numbers of 3 techs in 2030 of Gale scenario
+        self.deployments = np.array([
+            # param.pathways2Net0.evaluate('GALE!P35'), 
+            param.pathways2Net0.evaluate('GALE!S35'), 
+            param.pathways2Net0.evaluate('GALE!X35'), 
+            param.pathways2Net0.evaluate('GALE!Y35')
+            ], dtype=np.float32) # initial deployment numbers of 3 techs in 2030 of Gale scenario
         self.emission_amount = np.float32(param.pathways2Net0.evaluate('CCUS!O63')) # initial CO2 emission amount in 2030 of Gale scenario
         # fmt: on
 
@@ -196,13 +199,16 @@ def observation_space(self):
 def action_space(self):
     # the actions are [increment in offshore wind capacity GW, increment in blue hydrogen energy TWh, increment in green hydrogen energy TWh]
     # so the lower bound should be zero because the already deployed cannot be reduced and can only be increased
+    # For modified workbook: the actions are [increment in Offshore wind to power TWh, 
+    # increment in blue hydrogen energy TWh, increment in green hydrogen energy TWh]
     act_low = np.zeros(self.param.techs, dtype=np.float32)
     # the upper bound is set to the highest 2050's target among all 3 scenarios; in other word, the action should not increase the deployment by more than the highest target:
     # act_high = np.float32(
     #     [150, 270, 252.797394]
     # )  # Storm's 2050 offshore wind, Breeze's 2050 blue hydrogen, Storm's 2050 green hydrogen
     # act_high = np.float32([150.0, 0.0, 0.0])
-    act_high = np.float32([11, 25, 24])  # the max increments are those in Storm's 2050 offshore wind, Breeze's 2050 blue hydrogen, Storm's 2050 green hydrogen = [10.338181, 24.85991, 23.276001]
+    # act_high = np.float32([11, 25, 24])  # the max increments are those in Storm's 2050 offshore wind, Breeze's 2050 blue hydrogen, Storm's 2050 green hydrogen = [10.338181, 24.85991, 23.276001]
+    act_high = np.float32([27, 25, 24])  # the max increments are those in Storm's 2050 offshore wind *to power*, Breeze's 2050 blue hydrogen, Storm's 2050 green hydrogen = [26.256592, 24.85991, 23.276001]
     result = spaces.Box(act_low, act_high, dtype=np.float32)
     return result
 
@@ -219,9 +225,11 @@ def apply_action(action, state, param):
     # calculate the current state.step_count's deployment after action/increments from previous step (corresponding to row param.pathways2Net0RowInds[state.step_count] - 1),
     # but clip it to the highest 2050 target among 3 scenarios in the spreadsheet:
     offshoreWind = param.pathways2Net0.evaluate(
-        "GALE!P" + str(param.pathways2Net0RowInds[state.step_count] - 1)
+        # "GALE!P" + str(param.pathways2Net0RowInds[state.step_count] - 1)
+        "GALE!S" + str(param.pathways2Net0RowInds[state.step_count] - 1)
     )
-    offshoreWind = np.clip(offshoreWind + action[0], offshoreWind, 150)
+    # offshoreWind = np.clip(offshoreWind + action[0], offshoreWind, 150)
+    offshoreWind = np.clip(offshoreWind + action[0], offshoreWind, 380.262)
     blueHydrogen = param.pathways2Net0.evaluate(
         "GALE!X" + str(param.pathways2Net0RowInds[state.step_count] - 1)
     )
@@ -243,7 +251,8 @@ def apply_action(action, state, param):
     # pycel's error message if not evaluate to "initialize" the cell map/address:
     # AssertionError: Address "GALE!P36" not found in the cell map. Evaluate the address, or an address that references it, to place it in the cell map.
     param.pathways2Net0.evaluate(
-        "GALE!P" + str(param.pathways2Net0RowInds[state.step_count])
+        # "GALE!P" + str(param.pathways2Net0RowInds[state.step_count])
+        "GALE!S" + str(param.pathways2Net0RowInds[state.step_count])
     )
     param.pathways2Net0.evaluate(
         "GALE!X" + str(param.pathways2Net0RowInds[state.step_count])
@@ -279,7 +288,8 @@ def apply_action(action, state, param):
     # and after the following resetting, the reward components need to be evaluated again to calculate based on the newly
     # reset values:
     param.pathways2Net0.set_value(
-        "GALE!P" + str(param.pathways2Net0RowInds[state.step_count]), offshoreWind
+        # "GALE!P" + str(param.pathways2Net0RowInds[state.step_count]), offshoreWind
+        "GALE!S" + str(param.pathways2Net0RowInds[state.step_count]), offshoreWind
     )
     param.pathways2Net0.set_value(
         "GALE!X" + str(param.pathways2Net0RowInds[state.step_count]), blueHydrogen
@@ -492,7 +502,8 @@ def reset_param(param):
     spreadsheets = np.array(["GALE", "CCUS", "Outputs"])
     columnInds_BySheets = np.array(
         [
-            np.array(["P", "X", "Y"]),
+            # np.array(["P", "X", "Y"]),
+            np.array(["S", "X", "Y"]),
             param.pathways2Net0ColumnInds,
             param.pathways2Net0ColumnInds,
         ]
@@ -519,11 +530,13 @@ def reset_param(param):
 def cal_reset_diff(param):
     abs_diff = 0.0
     workbooks_dir = Path(__file__).resolve().parent.parent / "compiled_workbook_objects"
-    pathways2Net0_loaded = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
+    # pathways2Net0_loaded = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
+    pathways2Net0_loaded = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Modified_Compiled")
     spreadsheets = np.array(["GALE", "CCUS", "Outputs"])
     columnInds_BySheets = np.array(
         [
-            np.array(["P", "X", "Y"]),
+            # np.array(["P", "X", "Y"]),
+            np.array(["S", "X", "Y"]),
             param.pathways2Net0ColumnInds,
             param.pathways2Net0ColumnInds,
         ]
@@ -592,7 +605,8 @@ def plot_episode(state, fname):
 
     # actions
     plt.subplot(223)
-    plt.plot(np.array(state.actions_all)[:,0],label="offshore wind capacity [GW]")
+    # plt.plot(np.array(state.actions_all)[:,0],label="offshore wind capacity [GW]")
+    plt.plot(np.array(state.actions_all)[:,0],label="offshore wind to power [TWh]")
     plt.plot(np.array(state.actions_all)[:,1],label="blue hydrogen energy [TWh]")
     plt.plot(np.array(state.actions_all)[:,2],label="green hydrogen energy [TWh]")    
     plt.xlabel("time")
@@ -661,8 +675,10 @@ class GymEnv(gym.Env):
     def load_workbooks(self):
         self.param = Parameters()
         workbooks_dir = Path(__file__).resolve().parent.parent / "compiled_workbook_objects"
-        self.param.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
-        self.param.pathways2Net0_reset = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
+        # self.param.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
+        self.param.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Modified_Compiled")
+        # self.param.pathways2Net0_reset = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
+        self.param.pathways2Net0_reset = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Modified_Compiled")
 
     def initialise_state(self):
         # if hasattr(self, 'param'):
@@ -672,6 +688,7 @@ class GymEnv(gym.Env):
         # p = Path(__file__)
         # workbooks = p.resolve().parent.parent / "compiled_workbook_objects"
         # self.param.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
+        # self.param.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks}/PathwaysToNetZero_Simplified_Anonymized_Modified_Compiled")
         # In case that loading the serialized .pkl is too slow when creating a new param by Parameters() above:
         self.param = reset_param(self.param)
         self.state = State(seed=self.current_seed, param=self.param)
