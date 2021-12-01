@@ -586,12 +586,12 @@ def plot_episode(state, fname):
     #     np.array(state.observations_all)[:, :5]
     # )  # first 5 elements of observations are step counts and first 4 randomized costs
     #plt.plot(np.array(state.observations_all)[:,0], label="step counts", color='black')
-    #plt.plot(np.array(state.observations_all)[:,1], label="CCS Capex £/tonne")
-    #plt.plot(np.array(state.observations_all)[:,2], label="CCS Opex £/tonne")
-    #plt.plot(np.array(state.observations_all)[:,3], label="Carbon price £/tonne")
+    plt.plot(np.array(state.observations_all)[:,1], label="CCS Capex £/tonne")
+    plt.plot(np.array(state.observations_all)[:,2], label="CCS Opex £/tonne")
+    plt.plot(np.array(state.observations_all)[:,3], label="Carbon price £/tonne")
     #plt.plot(np.array(state.observations_all)[:,4], label="Offshore wind Devex £/kW")
     ## plt.plot(np.array(state.observations_all)[:,5], label="Offshore wind Capex £/kW")
-    plt.plot(np.array(state.observations_all)[:, -1], label="Gas price (?)")
+    plt.plot(np.array(state.observations_all)[:, -1], label="Gas price")
     plt.xlabel("time")
     plt.ylabel("observations")
     plt.legend(loc='lower right',fontsize='xx-small')
