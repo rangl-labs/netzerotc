@@ -9,8 +9,8 @@ from util import Evaluate
 
 env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
 
-trained_models_dir = "noise_sigma0.1_reward_plus_step_count_jobs_increment_80models1000episodes"
-model_number_str = "79"
+trained_models_dir = "noise_sigma0.1_reward_plus_step_count_jobs_increment_modified_workbook_noNoiseObs"
+model_number_str = "39"
 agent = PPO.load("./" + trained_models_dir + "/" + "MODEL_" + model_number_str)
 evaluate = Evaluate(env, agent)
 seeds = evaluate.read_seeds(fname="seeds.csv")

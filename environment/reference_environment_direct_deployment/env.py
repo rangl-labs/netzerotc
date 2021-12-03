@@ -65,6 +65,7 @@ class Parameters:
     # noise_sigma_high = np.sqrt(0.00001)
     # OR, sample a sigma from a uniform distribution centered at noise_sigma with total 2-side range of noise_sigma_range:
     noise_sigma_range = 0.002
+    noise_observability = False  # set to True to make the observation_space contain randomized costs/prices; set to False to restrict the observation_space to contain only the state.step_count
     
     # eliminate all constraints to extract rewards coefficients for linear programming:
     no_constraints_testing = False # set to False for reinforcement learning; set to True for linear programming coefficients extractions
@@ -127,6 +128,7 @@ class State:
             ] = param.pathways2Net0.evaluate(
                 "Outputs!O" + str(param.pathways2Net0RandomRowInds_Outputs[costRowID])
             )
+        self.noise_observability = param.noise_observability
 
         # time variables
         # NOTE: our convention is to update step_count at the beginning of the gym step() function
@@ -160,6 +162,8 @@ class State:
         observation = (self.step_count,) + tuple(
             self.randomized_costs
         )  # + (self.jobs,) + (self.jobs_increment,)# + (self.econoImpact,)
+        if self.noise_observability == False:
+            observation = (self.step_count,)
 
         return observation
 
@@ -188,8 +192,9 @@ def observation_space(self):
     # obs_low[-1] = -37500 # last entry of obervation is the increment in jobs; Constraint 2: no decrease in jobs in excess of 37,500 per two years
     obs_high = np.full_like(self.state.to_observation(), 1e5, dtype=np.float32)
     obs_high[0] = self.param.steps_per_episode  # first entry of obervation is the timestep
-    obs_high[5] = 1e6  # corresponding to 'Outputs' row 149 Offshore wind capex, whose original maximum is about 2648
-    obs_high[7] = 1e6  # corresponding to 'Outputs' row 153 Hydrogen green Electrolyser Capex, whose original maximum is about 1028
+    if self.state.noise_observability == True:
+        obs_high[5] = 1e6  # corresponding to 'Outputs' row 149 Offshore wind capex, whose original maximum is about 2648
+        obs_high[7] = 1e6  # corresponding to 'Outputs' row 153 Hydrogen green Electrolyser Capex, whose original maximum is about 1028
     # obs_high[-2] = 10 * 139964 # 2nd last entry of obervation is the jobs; 10 times initial jobs in 2020 = 10*139964, large enough
     # obs_high[-1] = 139964 # last entry of obervation is the increment in jobs; jobs should can't be doubled in a year or increased by the number of total jobs in 2020
     result = spaces.Box(obs_low, obs_high, dtype=np.float32)
@@ -593,11 +598,12 @@ def plot_episode(state, fname):
     #     np.array(state.observations_all)[:, :5]
     # )  # first 5 elements of observations are step counts and first 4 randomized costs
     plt.plot(np.array(state.observations_all)[:,0], label="step counts", color='black')
-    plt.plot(np.array(state.observations_all)[:,1], label="CCS Capex £/tonne")
-    plt.plot(np.array(state.observations_all)[:,2], label="CCS Opex £/tonne")
-    plt.plot(np.array(state.observations_all)[:,3], label="Carbon price £/tonne")
-    plt.plot(np.array(state.observations_all)[:,4], label="Offshore wind Devex £/kW")
-    # plt.plot(np.array(state.observations_all)[:,5], label="Offshore wind Capex £/kW")
+    if state.noise_observability == True:        
+        plt.plot(np.array(state.observations_all)[:,1], label="CCS Capex £/tonne")
+        plt.plot(np.array(state.observations_all)[:,2], label="CCS Opex £/tonne")
+        plt.plot(np.array(state.observations_all)[:,3], label="Carbon price £/tonne")
+        plt.plot(np.array(state.observations_all)[:,4], label="Offshore wind Devex £/kW")
+        plt.plot(np.array(state.observations_all)[:,5], label="Offshore wind Capex £/kW")
     plt.xlabel("time")
     plt.ylabel("observations")
     plt.legend(loc='lower right',fontsize='xx-small')
