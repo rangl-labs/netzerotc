@@ -1,8 +1,4 @@
-# import math
 from pathlib import Path
-# from copy import deepcopy
-
-# import pandas as pd
 import numpy as np
 import gym
 from gym import spaces, logger
@@ -11,57 +7,36 @@ from gym.utils import seeding
 import matplotlib.pyplot as plt
 from pycel import ExcelCompiler
 
-# from IPython.display import FileLink
-
 
 class Parameters:
     # (Avoid sampling random variables here: they would not be resampled upon reset())
     # problem-specific parameters
 
-    techs = 3  # number of technologies
-    scenarios = 3  # number of strategies ('scenarios' in the IEV terminology, eg Breeze, Gale, Storm)
+    techs = 3  # number of technologies (Offshore wind power, blue hydrogen, green hydrogen)
     # fmt: off
-    reward_types = 6 # capex first, then opex, revenue, emissions, jobs, total economic impact
-    steps_per_episode = 20 # number of years in the planning horizon (eg. 2031 -> 2050 = 20)
+    reward_types = 6 # capital expenditure (capex), operating expenditure (opex), revenue, carbon emissions, total jobs supported, total economic impact
+    steps_per_episode = 20 # number of years in the planning horizon (2031 -> 2050 = 20)
     # fmt: on
-    # hard code the columns indices corresponding to year 2031 to 2050 in spreadsheets 'Outputs' and 'CCUS' of the 'Pathways to Net Zero' model's Excel workbook:
+    # This 'Pathways to Net Zero' environment manipulates a spreadsheet loaded in memory. The following 20 columns correspond to years 2031 to 2050 in tabs named 'Outputs' and 'CCUS':
     # fmt: off
     pathways2Net0ColumnInds = np.array(['P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI'])
     # fmt: on
-    # hard code the row indices corresponding to year 2031 to 2050 in spreadsheets 'BREEZE', 'GALE', and 'STORM' of the 'Pathways to Net Zero' model's Excel workbook:
+    # The following 20 rows correspond to years 2031 to 2050 in tabs named 'BREEZE', 'GALE', and 'STORM':
     pathways2Net0RowInds = np.arange(36, 36 + steps_per_episode)
-    # such that pathways2Net0ColumnInds[state.step_count] and pathways2Net0RowInds[state.step_count] will give the corresponding row and column in the spreadsheets
-    # In the 'CCUS' spreadsheet, the following prices/costs will be randomized: [CCUS Capex (£/tonne), CCUS Opex (£/tonne), Carbon price (£/tonne)]
-    # and their corresponding row numbers in the 'CCUS' spreadsheet are:
+    # pathways2Net0ColumnInds[state.step_count] and pathways2Net0RowInds[state.step_count] will locate the current year's column / row respectively
+    
+    # Multiplicative noise is applied to all costs and revenues. The parameters of this randomisation are:
+    noise_mu = 1.0
+    noise_sigma = 0.1  
+    noise_clipping = 0.5  # (i.e., costs are reduced by 50% at the most)
+    noise_sigma_factor = np.sqrt(0.1) # this factor is applied to make CCUS capex & opex less volatile than other costs  
+    # The costs in the Carbon capture utilisation and storage (CCUS) tab to be randomised are capex, opex, and carbon price, with these row numbers:
     pathways2Net0RandomRowInds_CCUS = np.array([23, 24, 26])
-    # In the 'Outputs' spreadsheet, the following prices/costs will be randomized: 
-    # [Offshore wind Devex (£/kW), Offshore wind Capex (£/kW), Offshore wind Opex (£/kW), 
-    # Hydrogen green Electrolyser Capex (£/kW H2), Hydrogen green Electrolyser Fixed Opex (£/kW H2), Hydrogen green Electrolyser Variable Opex (£/MWh H2), 
-    # Blue Hydrogen price (£/MWh), Gas feedstock (£/MWh), 
-    # Hydrogen blue Capex (£million/MW), Hydrogen blue Fixed opex (£million/MW/year), Hydrogen blue Variable opex (£million/TWh), Natural gas cost (£million/TWh)]
-    # and their corresponding row numbers in the 'Outputs' spreadsheet are:
+    # The costs in the 'Outputs' tab to be randomised are Offshore wind - Devex, Capex, and Opex, Green Hydrogen - Capex, Fixed Opex, and Variable Opex, Blue Hydrogen - price, Gas feedstock price, Capex, Fixed opex, Variable opex, and Natural gas cost, with these row numbers:
     # fmt: off
     pathways2Net0RandomRowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 158, 159, 163, 164, 165, 166])
     # fmt: on
-    # For randomization of the costs/prices: the multiplicative noise's mu and sigma, and clipping point:
-    noise_mu = 1.0
-    noise_sigma = 0.1  # or try 0.1, 0.0, np.sqrt(0.001), 0.02, np.sqrt(0.0003), 0.015, 0.01, np.sqrt(0.00001), 0.001
-    noise_clipping = 0.5  # or try 0.001, 0.1, 0.5 (i.e., original costs are reduced by 50% at the most)
-    noise_sigma_factor = np.sqrt(0.1) # as in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS spreadsheet row 23 and 24) should have smaller standard deviations
-    stochastic_sigma = False  # set to False to use one single noise_sigma; set to True to randomly switch between two different std:
-    # noise_sigma_low = 0.001
-    # noise_sigma_high = np.sqrt(0.00001)
-    # OR, sample a sigma from a uniform distribution centered at noise_sigma with total 2-side range of noise_sigma_range:
-    noise_sigma_range = 0.002
     
-    # eliminate all constraints to extract rewards coefficients for linear programming formulation:
-    no_constraints_testing = False # set to False for reinforcement learning; set to True for linear programming coefficients extractions
-
-    # Compile the IEV economic model work book to a Python object (to be implemented after initial testing, and only if the IEV economic model work book is feasible to be compiled and used here):
-
-
-
-
 
 class State:
     def __init__(self, seed=None, param=Parameters()):
@@ -578,13 +553,6 @@ class GymEnv(gym.Env):
         self.state = State(seed=self.current_seed, param=self.param)
         self.action_space = action_space(self)
         self.observation_space = observation_space(self)
-        if self.param.stochastic_sigma == True:
-            # if np.random.rand() < 0.5:
-            #     self.param.noise_sigma = self.param.noise_sigma_low
-            # else:
-            #     self.param.noise_sigma = self.param.noise_sigma_high
-            self.param.noise_sigma = np.random.rand() * self.param.noise_sigma_range + (self.param.noise_sigma - 0.5 * self.param.noise_sigma_range)
-
 
     def reset(self):
         # self.load_workbooks()
@@ -600,9 +568,6 @@ class GymEnv(gym.Env):
         self.state.step_count += 1
         self.state = randomise(self.state, action, self.param)
         self.state, reward, weightedRewardComponents = apply_action(action, self.state, self.param)
-        if self.param.no_constraints_testing == False:
-            if verify_constraints(self.state) == False:
-                reward = -1000
         observation = self.state.to_observation()
         done = self.state.is_done()
         record(self.state, action, reward, weightedRewardComponents)
