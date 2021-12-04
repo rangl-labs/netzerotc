@@ -25,7 +25,7 @@ class Parameters:
     pathways2Net0RowInds = np.arange(36, 36 + steps_per_episode)
     # pathways2Net0ColumnInds[state.step_count] and pathways2Net0RowInds[state.step_count] will locate the current year's column / row respectively
     
-    # Multiplicative noise is applied to all costs and revenues. The parameters of this randomisation are:
+    # Multiplicative noise is applied to all costs. The parameters of this randomisation are:
     noise_mu = 1.0
     noise_sigma = 0.1  
     noise_clipping = 0.5  # (i.e., costs are reduced by 50% at the most)
@@ -43,20 +43,15 @@ class State:
         np.random.seed(seed=seed)
         self.initialise_state(param)
 
-    # def reset(self):
-    #     self.initialise_state()
-    #     return self.to_observation()
-
     def initialise_state(self, param):
-        # workbook variables attached to state:
+        # create local copy of spreadsheet model to be manipulated
         self.pathways2Net0 = param.pathways2Net0
 
-        # randomized variables (randomized costs or prices)
+        # create an array of costs for the current year and read in 2030 costs (column 'O' in 'CCUS' and 'Outputs' tabs):
         self.randomized_costs = np.ones(
             len(param.pathways2Net0RandomRowInds_CCUS)
             + len(param.pathways2Net0RandomRowInds_Outputs)
         )
-        # initialize randomized costs by setting them to fixed (non-randomized) 2030's values (column 'O' in 'CCUS' and 'Outputs' spreadsheets):
         for costRowID in np.arange(len(param.pathways2Net0RandomRowInds_CCUS)):
             self.randomized_costs[costRowID] = param.pathways2Net0.evaluate(
                 "CCUS!O" + str(param.pathways2Net0RandomRowInds_CCUS[costRowID])
@@ -72,17 +67,23 @@ class State:
         # NOTE: our convention is to update step_count at the beginning of the gym step() function
         self.step_count = -1
         self.steps_per_episode = param.steps_per_episode
+        
+        # initial jobs supported in 2030
         self.jobs = np.float32(
             110484
-        )  # initial jobs of year 2030, extracted from the IEV model workbook for Gale scenario
+        )  
+        # variable to record jobs created each year
         self.jobs_increment = np.zeros(1, dtype=np.float32)  # initialized as 0
         # fmt: off
-        self.econoImpact = np.float32(49938.9809739566) # initial economic impact of year 2030, extracted from the IEV model workbook for Gale scenario
+        # initial economic impact in 2030
+        self.econoImpact = np.float32(49938.9809739566)
+        # initial technology deployments in 2030
         self.deployments = np.array([param.pathways2Net0.evaluate('GALE!P35'), 
                                      param.pathways2Net0.evaluate('GALE!X35'), 
                                      param.pathways2Net0.evaluate('GALE!Y35')], 
-                                    dtype=np.float32) # initial deployment numbers of 3 techs in 2030 of Gale scenario
-        self.emission_amount = np.float32(param.pathways2Net0.evaluate('CCUS!O63')) # initial CO2 emission amount in 2030 of Gale scenario
+                                    dtype=np.float32) 
+        # initial CO2 emissions in 2030
+        self.emission_amount = np.float32(param.pathways2Net0.evaluate('CCUS!O63')) 
         # fmt: on
 
         # histories
@@ -96,7 +97,7 @@ class State:
     def to_observation(self):
         observation = (self.step_count,) + tuple(
             self.randomized_costs
-        )  # + (self.jobs,) + (self.jobs_increment,)# + (self.econoImpact,) # the observation is a concatenated tuple (state.step_count, state.randomized_costs)
+        )  
 
         return observation
 
