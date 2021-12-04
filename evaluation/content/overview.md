@@ -1,10 +1,10 @@
 The challenge is to find the optimal pathway to net zero UK carbon emissions in 2050, through controlling the rate of deployment of three zero-carbon technologies: offshore wind, blue hydrogen (that is, hydrogen produced from natural gas combined with carbon capture), and green hydrogen (produced from water and renewable electricity by electrolysis). Each run ('episode') of the challenge has 20 time steps representing the years 2031 to 2050. At step `t = 0,1,…,19` you choose the deployment (additional amount of each technology to be built) during the year `2031 + t`, and receive this reward for the year: 
 
 ```
-Revenue – (emissions cost + capital cost + operating cost)
+ Revenue – (emissions cost + capital cost + operating cost) + t * (jobs created)
 ```
 
-Clearly, accelerating the deployment of technologies towards net zero reduces total carbon emissions. However it also tends to increase costs, since technology costs tend to reduce over time. Your goal is to is to find the best balance by maximising the sum of all rewards between year 2031 and 2050, while ensuring that the total number of jobs in the associated industries is maintained at an acceptable level. 
+Clearly, accelerating the deployment of technologies towards net zero reduces total carbon emissions and creates jobs. However it also tends to increase costs, since technology costs tend to reduce over time. Your goal is to find the best balance by maximising the sum of all rewards between year 2031 and 2050.
 
 #### Economic model
 
@@ -16,27 +16,25 @@ The economic model is adapted from the Gale scenario in the [Integrated Energy V
 
 #### Present and future costs
 
-Capital costs, operating costs, emissions costs and revenues in future years are uncertain. Nevertheless, present costs carry information about future costs: lower costs in year `t` typically imply lower costs in future years `t+1, t+2, …` ; likewise, higher present costs typically imply higher future costs. You observe all present costs at each time step. The costs are randomly generated, so will be different for each episode (unless you deliberately fix the random seed).
+Capital costs, operating costs, emissions costs and revenues in future years are uncertain. Nevertheless, present costs carry information about future costs: lower costs in year `t` typically imply lower costs in future years `t+1, t+2, …` ; likewise, higher present costs typically imply higher future costs. The costs are randomly generated, so will be different for each episode (unless you deliberately fix the random seed).
+
+The challenge has two modes: `open-loop` and `closed-loop`:
+
+* In `open-loop` you observe only the value of the time step `t`
+
+* In `closed-loop` you observe the value of the time step `t` and all present costs/revenues.
 
 #### Actions
 
- At each time `t`, your agent must choose the additional amount of each of these three technologies to deploy in that year: 
+Each episode begins in 2030, with all technologies deployed according to the central IEV scenario (Gale) for that year.
 
-* Offshore wind
+At step `t` your agent must choose the additional amount of each technology to deploy in the year `2031 + t`:
+
+* Offshore wind power
 * Blue hydrogen
 * Green hydrogen
 
-#### Constraints
-
-There are the following constraints: 
-
-* There are upper limits on how much of each technology can be deployed per year
-
-* The total number of jobs must not decrease too quickly, and must not fall below a given level
-
-If the action violates these constraints, a large penalty is subtracted from that year’s reward.
-
-At the beginning of each episode, the amount of each technology is that given by the IEV Gale scenario.
+These deployments have upper limits.
 
 #### Scoring
 
@@ -54,6 +52,8 @@ To start developing your agent you will need to install the following (in case o
 
 * pip 
 
+* Python 3
+
 To submit your agent you will also need to install [Docker](https://www.docker.com/).
 
 #### Code
@@ -68,7 +68,9 @@ git clone https://github.com/rangl-labs/netzerotc.git
 
 and head to the README files.
 
-RangL uses the [Openai Gym](https://gym.openai.com/) framework. So for example, the following call at time `t`:
+RangL uses the [Openai Gym](https://gym.openai.com/) framework and the challenge is an Openai Gym environment called `env`.
+
+For example, the following call at time `t`:
 
 ```python
 env.step([3, 0.5, 1]) 
@@ -76,13 +78,13 @@ env.step([3, 0.5, 1])
 
 corresponds to these additional deployments in that year:
 
-* 3 GW of offshore wind capacity
+* 3 TWh of offshore wind capacity
 * 0.5 TWh of blue hydrogen capacity
 * 1 TWh of green hydrogen capacity
 
 This call implements these deployments and returns these objects (see the gym documentation [here](https://gym.openai.com/docs/)): 
 
-* `observation` (the current time step `t`, and all present costs/revenues)
+* `observation` (the current time step `t`, and (in `closed-loop` mode only:) all present costs/revenues)
 
 * `reward`
 
@@ -104,7 +106,7 @@ which trains a reinforcement learning agent on this challenge.
 
 #### Hint
 
-Modify the generation scheduling environment to train your agent in a smarter way. However, your agent will be evaluated using the original generation scheduling environment.
+Modify the environment to train your agent in a smarter way. However, your agent will be evaluated using the original environment.
 
 #### Submission
 
