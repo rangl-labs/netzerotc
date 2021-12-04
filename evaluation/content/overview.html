@@ -1,66 +1,79 @@
-<p>The challenge is to find the optimal pathway to net zero UK carbon emissions in 2050, through controlling the rate of deployment of three zero-carbon technologies: offshore wind, blue hydrogen (that is, hydrogen produced from natural gas combined with carbon capture), and green hydrogen (produced from water and renewable electricity by electrolysis). Each run (‘episode’) of the challenge has 20 time steps representing the years 2031 to 2050. At step <code>t = 0,1,…,19</code> you choose the deployment (additional amount of each technology to be built) during the year <code>2031 + t</code>, and receive this reward for the year:</p>
-<pre><code>Revenue – (emissions cost + capital cost + operating cost)</code></pre>
-<p>Clearly, accelerating the deployment of technologies towards net zero reduces total carbon emissions. However it also tends to increase costs, since technology costs tend to reduce over time. Your goal is to is to find the best balance by maximising the sum of all rewards between year 2031 and 2050, while ensuring that the total number of jobs in the associated industries is maintained at an acceptable level.</p>
+<p>The challenge is to find the optimal pathway to net zero UK carbon emissions in 2050, through controlling the rate of deployment of three zero-carbon technologies: offshore wind, blue hydrogen (that is, hydrogen produced from natural gas combined with carbon capture), and green hydrogen (produced from water and renewable electricity by electrolysis). Each run (&#39;episode&#39;) of the challenge has 20 time steps representing the years 2031 to 2050. At step <code>t = 0,1,…,19</code> you choose the deployment (additional amount of each technology to be built) during the year <code>2031 + t</code>, and receive this reward for the year: </p>
+<pre><code> <span class="hljs-selector-tag">Revenue</span> – (emissions cost + capital cost + operating cost) + <span class="hljs-selector-tag">t</span> * (jobs created)
+</code></pre><p>Clearly, accelerating the deployment of technologies towards net zero reduces total carbon emissions and creates jobs. However it also tends to increase costs, since technology costs tend to reduce over time. Your goal is to find the best balance by maximising the sum of all rewards between year 2031 and 2050.</p>
 <h4 id="economic-model">Economic model</h4>
 <p>The economic model is adapted from the Gale scenario in the <a href="https://ore.catapult.org.uk/press-releases/reimagining-a-net-zero-north-sea-an-integrated-energy-vision-for-2050/">Integrated Energy Vision</a> study, a collaboration between the Net Zero Technology Centre and Offshore Renewable Energy Catapult. It has these implicit features:</p>
 <ul>
-<li><p>Sufficient natural gas is imported each year to ensure that demand for both electricity and energy is met;</p></li>
-<li><p>Sufficient carbon capture, utilisation and storage (CCUS) technology is deployed each year to ensure that a predetermined, increasing proportion of carbon emissions is captured each year. This proportion is 100% in 2050.</p></li>
+<li><p>Sufficient natural gas is imported each year to ensure that demand for both electricity and energy is met;</p>
+</li>
+<li><p>Sufficient carbon capture, utilisation and storage (CCUS) technology is deployed each year to ensure that a predetermined, increasing proportion of carbon emissions is captured each year. This proportion is 100% in 2050.</p>
+</li>
 </ul>
 <h4 id="present-and-future-costs">Present and future costs</h4>
-<p>Capital costs, operating costs, emissions costs and revenues in future years are uncertain. Nevertheless, present costs carry information about future costs: lower costs in year <code>t</code> typically imply lower costs in future years <code>t+1, t+2, …</code> ; likewise, higher present costs typically imply higher future costs. You observe all present costs at each time step. The costs are randomly generated, so will be different for each episode (unless you deliberately fix the random seed).</p>
-<h4 id="actions">Actions</h4>
-<p>At each time <code>t</code>, your agent must choose the additional amount of each of these three technologies to deploy in that year:</p>
+<p>Capital costs, operating costs, emissions costs and revenues in future years are uncertain. Nevertheless, present costs carry information about future costs: lower costs in year <code>t</code> typically imply lower costs in future years <code>t+1, t+2, …</code> ; likewise, higher present costs typically imply higher future costs. The costs are randomly generated, so will be different for each episode (unless you deliberately fix the random seed).</p>
+<p>The challenge has two modes: <code>open-loop</code> and <code>closed-loop</code>:</p>
 <ul>
-<li>Offshore wind</li>
+<li><p>In <code>open-loop</code> you observe only the value of the time step <code>t</code></p>
+</li>
+<li><p>In <code>closed-loop</code> you observe the value of the time step <code>t</code> and all present costs/revenues.</p>
+</li>
+</ul>
+<h4 id="actions">Actions</h4>
+<p>Each episode begins in 2030, with all technologies deployed according to the central IEV scenario (Gale) for that year.</p>
+<p>At step <code>t</code> your agent must choose the additional amount of each technology to deploy in the year <code>2031 + t</code>:</p>
+<ul>
+<li>Offshore wind power</li>
 <li>Blue hydrogen</li>
 <li>Green hydrogen</li>
 </ul>
-<h4 id="constraints">Constraints</h4>
-<p>There are the following constraints:</p>
-<ul>
-<li><p>There are upper limits on how much of each technology can be deployed per year</p></li>
-<li><p>The total number of jobs must not decrease too quickly, and must not fall below a given level</p></li>
-</ul>
-<p>If the action violates these constraints, a large penalty is subtracted from that year’s reward.</p>
-<p>At the beginning of each episode, the amount of each technology is that given by the IEV Gale scenario.</p>
+<p>These deployments have upper limits.</p>
 <h4 id="scoring">Scoring</h4>
 <p>Your score in the competition will be equal to the total reward received by your agent across 1000 episodes. Each entry will be evaluated using the same set of 1000 random seeds.</p>
 <h4 id="support">Support</h4>
-<p>All registered competitors should receive an invitation to an ‘Ask away!’ (<code>#askaway</code>) channel on Slack, where you can get support.</p>
+<p>All registered competitors should receive an invitation to an &#39;Ask away!&#39; (<code>#askaway</code>) channel on Slack, where you can get support.</p>
 <h4 id="computing-requirements">Computing requirements</h4>
-<p>To start developing your agent you will need to install the following (in case of difficulty please <code>#askaway</code>):</p>
+<p>To start developing your agent you will need to install the following (in case of difficulty please <code>#askaway</code>): </p>
 <ul>
-<li><p>git</p></li>
-<li><p>pip</p></li>
+<li><p>git</p>
+</li>
+<li><p>pip </p>
+</li>
+<li><p>Python 3</p>
+</li>
 </ul>
 <p>To submit your agent you will also need to install <a href="https://www.docker.com/">Docker</a>.</p>
 <h4 id="code">Code</h4>
-<p>The code needed for this challenge is available as a Git repository at https://github.com/rangl-labs/netzerotc.</p>
+<p>The code needed for this challenge is available as a Git repository at <a href="https://github.com/rangl-labs/netzerotc">https://github.com/rangl-labs/netzerotc</a>.</p>
 <p>To obtain it, install Git and run</p>
-<pre><code>git clone https://github.com/rangl-labs/netzerotc.git</code></pre>
-<p>and head to the README files.</p>
-<p>RangL uses the <a href="https://gym.openai.com/">Openai Gym</a> framework. So for example, the following call at time <code>t</code>:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>env.step([<span class="dv">3</span>, <span class="fl">0.5</span>, <span class="dv">1</span>]) </span></code></pre></div>
+<pre><code>git <span class="hljs-keyword">clone</span> <span class="hljs-title">https</span>://github.com/rangl-labs/netzerotc.git
+</code></pre><p>and head to the README files.</p>
+<p>RangL uses the <a href="https://gym.openai.com/">Openai Gym</a> framework and the challenge is an Openai Gym environment called <code>env</code>.</p>
+<p>For example, the following call at time <code>t</code>:</p>
+<pre><code class="lang-python">env.step([<span class="hljs-number">3</span>, <span class="hljs-number">0.5</span>, <span class="hljs-number">1</span>])
+</code></pre>
 <p>corresponds to these additional deployments in that year:</p>
 <ul>
-<li>3 GW of offshore wind capacity</li>
+<li>3 TWh of offshore wind capacity</li>
 <li>0.5 TWh of blue hydrogen capacity</li>
 <li>1 TWh of green hydrogen capacity</li>
 </ul>
-<p>This call implements these deployments and returns these objects (see the gym documentation <a href="https://gym.openai.com/docs/">here</a>):</p>
+<p>This call implements these deployments and returns these objects (see the gym documentation <a href="https://gym.openai.com/docs/">here</a>): </p>
 <ul>
-<li><p><code>observation</code> (the current time step <code>t</code>, and all present costs/revenues)</p></li>
-<li><p><code>reward</code></p></li>
-<li><p><code>done</code> (boolean variable indicating if the time horizon <code>t=19</code> has been reached)</p></li>
+<li><p><code>observation</code> (the current time step <code>t</code>, and (in <code>closed-loop</code> mode only:) all present costs/revenues)</p>
+</li>
+<li><p><code>reward</code></p>
+</li>
+<li><p><code>done</code> (boolean variable indicating if the time horizon <code>t=19</code> has been reached)</p>
+</li>
 </ul>
-<p>You are also provided with helper methods such as</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>env.plot()</span></code></pre></div>
+<p>You are also provided with helper methods such as </p>
+<pre><code class="lang-python"><span class="hljs-selector-tag">env</span><span class="hljs-selector-class">.plot</span>()
+</code></pre>
 <p>which visualises what has happened in the current episode, and</p>
-<pre><code>train_rl()</code></pre>
-<p>which trains a reinforcement learning agent on this challenge.</p>
+<pre><code><span class="hljs-function"><span class="hljs-title">train_rl</span><span class="hljs-params">()</span></span>
+</code></pre><p>which trains a reinforcement learning agent on this challenge.</p>
 <h4 id="hint">Hint</h4>
-<p>Modify the generation scheduling environment to train your agent in a smarter way. However, your agent will be evaluated using the original generation scheduling environment.</p>
+<p>Modify the environment to train your agent in a smarter way. However, your agent will be evaluated using the original environment.</p>
 <h4 id="submission">Submission</h4>
 <p>Submit your entries on or before 31st January 2022 (UK time).</p>
 <p>The longer-term goal of the <a href="https://www.turing.ac.uk/research/research-projects/ai-control-problems">RangL project</a> is to accelerate the use of RL in real-world energy (and other infrastructure) problems by bringing industry, academia and interested users closer together, to understand what kinds of solution work best for different kinds of problem. If you would like to help shape the future development of the platform and its challenges, while gaining experience of agile software development, you are welcome to join our open-source project by contacting <a href="mailto:rangl@turing.ac.uk">rangl@turing.ac.uk</a>.</p>
