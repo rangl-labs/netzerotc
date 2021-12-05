@@ -47,7 +47,7 @@ class State:
         # create local copy of spreadsheet model to be manipulated
         self.pathways2Net0 = param.pathways2Net0
 
-        # create an array of costs for the current year and read in 2030 costs (column 'O' in 'CCUS' and 'Outputs' tabs):
+        # create an array of costs for the current year and populate with 2030 costs (column 'O' in 'CCUS' and 'Outputs' tabs):
         self.randomized_costs = np.ones(
             len(param.pathways2Net0RandomRowInds_CCUS)
             + len(param.pathways2Net0RandomRowInds_Outputs)
@@ -121,38 +121,41 @@ def observation_space(self):
     obs_low[0] = -1  # first entry of obervation is the timestep
     obs_high = np.full_like(self.state.to_observation(), 1e5, dtype=np.float32)
     obs_high[0] = self.param.steps_per_episode  # first entry of obervation is the timestep
-    obs_high[5] = 1e6  # corresponding to Offshore wind capex in 'Outputs' spreadsheet's row 149, whose original maximum is about 2648
-    obs_high[7] = 1e6  # corresponding to Hydrogen green Electrolyser Capex in 'Outputs' spreadsheet's row 153 , whose original maximum is about 1028
+    obs_high[5] = 1e6  
+    obs_high[7] = 1e6  
     result = spaces.Box(obs_low, obs_high, dtype=np.float32)
     return result
 
 
 def action_space(self):
-    # the action is a vector of [increment in offshore wind capacity GW, increment in blue hydrogen energy TWh, increment in green hydrogen energy TWh]
-    # so the lower bound should be zero because the already deployed cannot be reduced and can only be increased
+    # action specifies yearly increments in offshore wind power, blue hydrogen, and green hydrogen respectively
+    # lower limit on increments is zero
     act_low = np.zeros(self.param.techs, dtype=np.float32)
-    # the upper bounds are set to max increments among all 3 scenarios and all years from 2031 to 2050, which are increments in 
-    # Storm's 2050 offshore wind, Breeze's 2050 blue hydrogen, Storm's 2050 green hydrogen = [10.338181, 24.85991, 23.276001]:
+    # upper limits on increments depend on the technology
     act_high = np.float32([11, 25, 24])
     result = spaces.Box(act_low, act_high, dtype=np.float32)
     return result
 
 
 def apply_action(action, state, param):
+    # copy model from state to param
     param.pathways2Net0 = state.pathways2Net0
 
+    # each technology gives rewards of various types (ie costs and revenues)
+    # create an array to hold the reward components (aggregated over all technologies):
     weightedRewardComponents = np.zeros(
         param.reward_types
-    )  # this array will hold all components of reward for this time step
+    )  
 
-    # calculate the current state.step_count's deployment after action/increments from previous step (corresponding to row param.pathways2Net0RowInds[state.step_count] - 1),
-    # but clip it to the highest 2050's target among all 3 scenarios in the 'Pathways to Net Zero' model's Excel workbook; in other words, the action should not increase 
-    # the deployment numbers to exceed the highest target: [Storm's 2050 offshore wind, Breeze's 2050 blue hydrogen, Storm's 2050 green hydrogen] = [150, 270, 252.797394]:
-    # (Note: the action is a vector of [increment in offshore wind capacity GW, increment in blue hydrogen energy TWh, increment in green hydrogen energy TWh])
+
+    # read in the current deployment for offshore wind power
     offshoreWind = param.pathways2Net0.evaluate(
         "GALE!P" + str(param.pathways2Net0RowInds[state.step_count] - 1)
     )
+    # add the increment of offshore wind for this timestep (specified by the action), imposing a maximum deployment
     offshoreWind = np.clip(offshoreWind + action[0], offshoreWind, 150)
+    
+    # similarly for blue and green hydrogen
     blueHydrogen = param.pathways2Net0.evaluate(
         "GALE!X" + str(param.pathways2Net0RowInds[state.step_count] - 1)
     )
@@ -160,17 +163,15 @@ def apply_action(action, state, param):
     greenHydrogen = param.pathways2Net0.evaluate(
         "GALE!Y" + str(param.pathways2Net0RowInds[state.step_count] - 1)
     )
-    greenHydrogen = np.clip(greenHydrogen + action[2], greenHydrogen, 252.797394)
-    # after actions of increments and clipping, assign current state.step_count's deployment numbers to state.deployments:
+    greenHydrogen = np.clip(greenHydrogen + action[2], greenHydrogen, 253)
+    
+    # record the new deployments in an array
     state.deployments = np.array(
         [offshoreWind, blueHydrogen, greenHydrogen], dtype=np.float32
     )
-
-    # set these newly actioned deployment numbers into the corresponding cells in 'Gale' spreadsheet of the 'Pathways to Net Zero' model's Excel workbook:
-    # Note: the model's Excel workbook is essentially graphs with vertices/nodes and edges for cells and their relations (formulae);
-    # if a cell contains raw values/numbers, its cell map/address will already exist; but if a cell originally contains
-    # formula (referencing to other cells) but not value, its cell map/address does not readily exist,
-    # so it has to be evaluated first such that the cell map/address corresponding to the node/vertex can be generated:
+    
+    # evaluate the model cells containing the deployment values for the current timestep (for offshore wind power, blue hydrogen and green hydrogen respectively)
+    # this enables the current timestep's deployment values to be entered into the model 
     param.pathways2Net0.evaluate(
         "GALE!P" + str(param.pathways2Net0RowInds[state.step_count])
     )
@@ -180,8 +181,7 @@ def apply_action(action, state, param):
     param.pathways2Net0.evaluate(
         "GALE!Y" + str(param.pathways2Net0RowInds[state.step_count])
     )
-    # also, before resetting the current year's deployment values, the capex, opex, revenue, and emissions of the current year
-    # have to be evaluated to initialize the cell's map/address:
+    # similarly, evaluate the current timestep's capex, opex, revenue, and emissions values for all technologies
     # fmt: off
     capex_all = np.float32([param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'24'), 
                           param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'28'),
@@ -204,9 +204,8 @@ def apply_action(action, state, param):
             "CCUS!" + param.pathways2Net0ColumnInds[state.step_count] + "68"
         )
     )
-    # again, before resetting the following 3 values, the above all reward components have to be evaluated first,
-    # and after the following resetting, the reward components need to be evaluated again to calculate based on the newly
-    # reset values:
+    
+    # enter the deployment values for this timestep into the model
     param.pathways2Net0.set_value(
         "GALE!P" + str(param.pathways2Net0RowInds[state.step_count]), offshoreWind
     )
@@ -216,7 +215,7 @@ def apply_action(action, state, param):
     param.pathways2Net0.set_value(
         "GALE!Y" + str(param.pathways2Net0RowInds[state.step_count]), greenHydrogen
     )
-    # extract current state.step_count's capex, opex, revenue for all 3 techs, and the emission/carbon tax:
+    # re-evaluate the current timestep's capex, opex, revenue, and emissions values for all technologies
     # fmt: off
     capex_all = np.float32([param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'24'), 
                           param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'28'),
@@ -234,45 +233,35 @@ def apply_action(action, state, param):
                           param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'38'),
                           param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'43')])
     # fmt: on
-    # For current testing only, not involving the IEV economic model's Excel workbook:
-    # one can add new rows in the original 'Outputs' spreadsheets of 'Pathways to Net Zero' model's Excel workbook to calculate the sum,
-    # and then directly evaluate the single cell to get the sum, which may be faster or slower than this current approach
-    # (that is, running param.pathways2Net0.evaluate() for 5 times and then np.sum(), compared to compiling a slighly complicated
-    # workbook with a new row to compute the sum, and then running param.pathways2Net0.evaluate() for 1 time)
-    # If the IEV economic model's Excel workbook is needed, then these values have to be evaluated one by one & input to the IEV economic model
+    # read gross carbon emissions (before CCUS) from model
     state.emission_amount = np.float32(
         param.pathways2Net0.evaluate(
             "CCUS!" + param.pathways2Net0ColumnInds[state.step_count] + "63"
         )
     )
+    # read net carbon emissions (after CCUS) from model
     emissions = np.float32(
         param.pathways2Net0.evaluate(
             "CCUS!" + param.pathways2Net0ColumnInds[state.step_count] + "68"
         )
     )
-    # calculate the total capxe, opex, revenue
+    # calculate the total capex, opex, revenue and emissions
     weightedRewardComponents[0] = np.sum(capex_all)
     weightedRewardComponents[1] = np.sum(opex_all)
     weightedRewardComponents[2] = np.sum(revenue_all)
     weightedRewardComponents[3] = emissions
-    # jobs and total economic impact should be extracted from the IEV economic model's Excel workbook; left for later implementation if feasible
-    # weightedRewardComponents[4] = param.IEV_EconomicModel.evaluate()
-    # weightedRewardComponents[5] = param.IEV_EconomicModel.evaluate()
-    # currently set the jobs and economic impact to be the previous values (the above should be implemented after testing):
-    # weightedRewardComponents[4] = state.jobs
     weightedRewardComponents[5] = state.econoImpact
-    # Update: based on the workshop on 20 Sep, the jobs number calculation we discussed was a simple one:
-    # 25% of total costs are spent on salaries and the average salary is GBP 50,000.
-    # Since the monetary unit of capex, opex, revenue, decom, etc. is millions of GBP in the 'Pathways to Net Zero' model's Excel workbook,
-    # the jobs number in each year should be: 0.25 * (capex + opex + decomm) / 0.05, where the decomm is a fixed constant 1050:
+    # calculate numer of jobs supported as 0.25 * (capex + opex + 1050) / 0.05:
     weightedRewardComponents[4] = (
         0.25 * (weightedRewardComponents[0] + weightedRewardComponents[1] + 1050) / 0.05
     )
     state.jobs_increment = weightedRewardComponents[-2] - state.jobs
     state.jobs = weightedRewardComponents[-2]
+    # calculate reward for this timestep: revenue - (capex + opex + emissions) + timestep * (increment in jobs) 
     reward = (
-        weightedRewardComponents[2] - np.sum(weightedRewardComponents[[0, 1, 3]]) - 1050 + (state.step_count * state.jobs_increment)
-    )  # new reward formula: - (capex + opex + decomm - revenue) - emissions, where oil & gas decomm is a fixed constant 1050/year for all scenarios
+        weightedRewardComponents[2] - np.sum(weightedRewardComponents[[0, 1, 3]]) + (state.step_count * state.jobs_increment)
+    )  
+    # copy model from param to state
     state.pathways2Net0 = param.pathways2Net0
     return state, reward, weightedRewardComponents
 
