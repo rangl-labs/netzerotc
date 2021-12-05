@@ -361,10 +361,10 @@ def randomise(state, action, param):
 
 
 def reset_param(param):
-    # There are two objects of the 'Pathways to Net Zero' model's Excel workbook: param.pathways2Net0 and param.pathways2Net0_reset;
-    # in param.pathways2Net0, the prices/costs are randomized, whereas param.pathways2Net0_reset is untouched and is used here to 
-    # reset the randomized param.pathways2Net0 to its original state with pre-randomized original prices/costs
+    # use param.pathways2Net0_reset (the reference model) to reset the randomised costs and revenues in param.pathways2Net0 (the working model) 
+    # tabs to reset:
     spreadsheets = np.array(["GALE", "CCUS", "Outputs"])
+    # columns to reset in each tab:
     columnInds_BySheets = np.array(
         [
             np.array(["P", "X", "Y"]),
@@ -372,6 +372,7 @@ def reset_param(param):
             param.pathways2Net0ColumnInds,
         ]
     )
+    # rows to reset in each tab:    
     rowInds_BySheets = np.array(
         [
             param.pathways2Net0RowInds,
@@ -379,9 +380,13 @@ def reset_param(param):
             param.pathways2Net0RandomRowInds_Outputs,
         ]
     )
+    # for each tab to reset:
     for iSheet in np.arange(len(spreadsheets)):
+        # for each column to reset:
         for iColumn in columnInds_BySheets[iSheet]:
+            # for each row to reset:
             for iRow in rowInds_BySheets[iSheet]:
+                # reset cell to reference value
                 param.pathways2Net0.set_value(
                     spreadsheets[iSheet] + "!" + iColumn + str(iRow),
                     param.pathways2Net0_reset.evaluate(
@@ -390,9 +395,11 @@ def reset_param(param):
                 )
     return param
 
+
 def cal_reset_diff(param):
+    # a helper function to check that reset_param works correctly
     abs_diff = 0.0
-    # Reload the 'Pathways to Net Zero' model's Excel workbook to pathways2Net0_loaded:
+    # reload the model:
     workbooks_dir = Path(__file__).resolve().parent.parent / "compiled_workbook_objects"
     pathways2Net0_loaded = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
     spreadsheets = np.array(["GALE", "CCUS", "Outputs"])
@@ -422,7 +429,7 @@ def cal_reset_diff(param):
                         abs_diff = abs_diff + np.abs(param.pathways2Net0.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)))
                     if pathways2Net0_loaded.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)) != None:
                         abs_diff = abs_diff + np.abs(pathways2Net0_loaded.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)))
-    # If env.reset() works properly, the abs_diff should be 0, which means that the differences between cell values of pathways2Net0_loaded and param.pathways2Net0 should all be 0
+    # abs_diff should be 0 if reset_param works correctly:
     return abs_diff
 
 
