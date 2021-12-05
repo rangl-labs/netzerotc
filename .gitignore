@@ -33,3 +33,4 @@ environment/10models_100episodes_DirectDeployment_MODEL_1.png
 environment/fixed_policy_DirectDeployment.png
 environment/fixed_policy_DirectDeploymentCorrelationRandomized_max(N(1,0),0.5).png
 .DS_Store
+.DS_Store
