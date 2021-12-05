@@ -141,7 +141,7 @@ env.plot("fixed_policy_DirectDeployment.png")
 env.plot("10models_100episodes_DirectDeployment.png")
 env.plot("10models_100episodes_DirectDeployment_MODEL_1.png")
 env.plot("fixed_policy_DirectDeploymentCorrelationRandomized_max(N(1,0),0.5).png")
-assert Path("fixed_policy.png").is_file()
+assert Path("fixed_policy_DirectDeployment.png").is_file()
 
 # Plot the noise:
 import matplotlib.pyplot as plt
