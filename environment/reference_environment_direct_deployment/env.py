@@ -434,16 +434,16 @@ def cal_reset_diff(param):
 
 
 def plot_episode(state, fname):
+    # a helper function to plot each timestep in the most recent episode
     fig, ax = plt.subplots(2, 2)
 
-    # cumulative total rewards and deployment numbers of the 3 techs
+    # plot cumulative total rewards and deployments for the 3 technologies:
     ax1 = plt.subplot(221)
     plt.plot(np.cumsum(state.rewards_all), label='cumulative reward',color='black')
     plt.xlabel("time, avg reward: " + str(np.mean(state.rewards_all)))
     plt.ylabel("cumulative reward")
     plt.legend(loc='upper left', fontsize='xx-small')
     plt.tight_layout()
-    # could be expanded to include individual components of the reward
 
     ax2 = ax1.twinx()
     ax2.plot(np.array(state.deployments_all)[:,0],label="offshore wind")
@@ -454,7 +454,7 @@ def plot_episode(state, fname):
     plt.legend(loc='lower right',fontsize='xx-small')
     plt.tight_layout()
 
-    # observations
+    # plot a subset of the observations:
     plt.subplot(222)
     # first 5 elements of observations are step counts and first 4 randomized costs
     plt.plot(np.array(state.observations_all)[:,0], label="step counts", color='black')
@@ -468,7 +468,7 @@ def plot_episode(state, fname):
     plt.legend(loc='lower right',fontsize='xx-small')
     plt.tight_layout()
 
-    # actions
+    # plot the agent's actions:
     plt.subplot(223)
     plt.plot(np.array(state.actions_all)[:,0],label="offshore wind capacity [GW]")
     plt.plot(np.array(state.actions_all)[:,1],label="blue hydrogen energy [TWh]")
@@ -478,7 +478,7 @@ def plot_episode(state, fname):
     plt.legend(title="increment in",loc='lower right',fontsize='xx-small')
     plt.tight_layout()
 
-    # jobs and increments in jobs
+    # plot jobs and increments in jobs:
     plt.subplot(224)
     to_plot = np.vstack((np.array(state.weightedRewardComponents_all)[:,4],
                         np.hstack((np.nan,np.diff(np.array(state.weightedRewardComponents_all)[:,4]))))).T    
@@ -506,9 +506,7 @@ class GymEnv(gym.Env):
     def load_workbooks(self):
         self.param = Parameters()
         workbooks_dir = Path(__file__).resolve().parent.parent / "compiled_workbook_objects"
-        # There are two objects of the 'Pathways to Net Zero' model's Excel workbook: param.pathways2Net0 and param.pathways2Net0_reset;
-        # in param.pathways2Net0, the prices/costs are randomized, whereas param.pathways2Net0_reset is untouched and is used in 
-        # reset_param(param) to reset the randomized param.pathways2Net0 to its original state with pre-randomized original prices/costs
+        # load a working model and a reference model:
         self.param.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
         self.param.pathways2Net0_reset = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
 
@@ -519,7 +517,6 @@ class GymEnv(gym.Env):
         self.observation_space = observation_space(self)
 
     def reset(self):
-        # self.load_workbooks()
         self.initialise_state()
         observation = self.state.to_observation()
         return observation
