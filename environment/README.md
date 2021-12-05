@@ -1,9 +1,5 @@
 # RangL reference environment
 
-## Installation
-
-To install the environment, first copy a python object serialised from a suitable economic model spreadsheet with the filename `PathwaysToNetZero_Simplified_Compiled.pkl` into the `compiled_workbook_objects` folder.
-
 ## Overview
 
 The `reference_environment` folder contains the environment used in the competition. To modify it for development purposes, check out its `README`.
