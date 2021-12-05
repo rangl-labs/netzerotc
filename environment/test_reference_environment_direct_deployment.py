@@ -141,25 +141,25 @@ env.plot("fixed_policy_DirectDeployment.png")
 env.plot("10models_100episodes_DirectDeployment.png")
 env.plot("10models_100episodes_DirectDeployment_MODEL_1.png")
 env.plot("fixed_policy_DirectDeploymentCorrelationRandomized_max(N(1,0),0.5).png")
-assert Path("fixed_policy.png").is_file()
+assert Path("fixed_policy_DirectDeployment.png").is_file()
 
-# Plot the noise:
-import matplotlib.pyplot as plt
-from pycel import ExcelCompiler
-from IPython.display import FileLink
+## Plot the noise:
+# import matplotlib.pyplot as plt
+# from pycel import ExcelCompiler
+# from IPython.display import FileLink
 
-randomizedPrice = []
-for yearColumnID in env.param.Pathways2Net0ColumnInds:
+# randomizedPrice = []
+# for yearColumnID in env.param.Pathways2Net0ColumnInds:
     # fmt: off
-    randomizedPrice.append(env.param.Pathways2Net0.evaluate('CCUS!' + yearColumnID + '26'))
+#     randomizedPrice.append(env.param.Pathways2Net0.evaluate('CCUS!' + yearColumnID + '26'))
     # fmt: on
-randomizedPrice = np.array(randomizedPrice)
-plt.plot(randomizedPrice)
-plt.xlabel("time")
-plt.ylabel("price or cost (carbon, capex, opex, or other)")
-plt.tight_layout()
-# plt.savefig('NoiseVisualization_ApplyingToAllYears.png')
-plt.savefig("NoiseVisualization_ApplyingToCurrentStepTo2050.png")
+# randomizedPrice = np.array(randomizedPrice)
+# plt.plot(randomizedPrice)
+# plt.xlabel("time")
+# plt.ylabel("price or cost (carbon, capex, opex, or other)")
+# plt.tight_layout()
+## plt.savefig('NoiseVisualization_ApplyingToAllYears.png')
+# plt.savefig("NoiseVisualization_ApplyingToCurrentStepTo2050.png")
 
 # logger.info(f"observations_all: {env.state.observations_all}")
 # logger.info(f"actions_all: {env.state.actions_all}")
