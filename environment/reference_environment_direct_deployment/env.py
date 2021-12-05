@@ -268,45 +268,16 @@ def apply_action(action, state, param):
 
 def verify_constraints(state):
     verify = True
-    # Constraint 1: no decrease in jobs in excess of 25,000 per year
-    if (
-        state.step_count > 1
-    ):  # Note: the index of jobs in reward_types is changed from 3 to 4: capex first, then opex, revenue, emissions, jobs, total economic impact
-        if (
-            state.weightedRewardComponents_all[-1][4]
-            - state.weightedRewardComponents_all[-2][4]
-            < -25000
-        ):
-            verify = False
-    # Constraint 2: no decrease in jobs in excess of 37,500 per two years
-    if (
-        state.step_count > 2
-    ):  # Previously in the original env.py, the ordering of reward_types is capex first, then opex, revenue, jobs, emissions
-        if (
-            state.weightedRewardComponents_all[-1][4]
-            - state.weightedRewardComponents_all[-3][4]
-            < -37500
-        ):
-            verify = False
-    # Constraint 3: amount of deployment possible in a single year should be less than the maximum single-year capex in any scenario
-    # which is the total capex from Storm in 2050 = 26390
-    if state.step_count > 0:
-        if state.weightedRewardComponents_all[-1][0] > 26390:
-            verify = False
     return verify
 
 
 def randomise(state, action, param):
+    # copy model from state to param
     param.pathways2Net0 = state.pathways2Net0
-    # pass
 
-    # Apply multiplicative noise repeatedly (for each step) to [CCUS Capex (£/tonne), CCUS Opex (£/tonne), Carbon price (£/tonne)] in 'CCUS' spreadsheet's row [23,24,26]
-    # and [Offshore wind Devex (£/kW), Offshore wind Capex (£/kW), Offshore wind Opex (£/kW), 
-    # Hydrogen green Electrolyser Capex (£/kW H2), Hydrogen green Electrolyser Fixed Opex (£/kW H2), Hydrogen green Electrolyser Variable Opex (£/MWh H2), 
-    # Blue Hydrogen price (£/MWh), Gas feedstock (£/MWh), 
-    # Hydrogen blue Capex (£million/MW), Hydrogen blue Fixed opex (£million/MW/year), Hydrogen blue Variable opex (£million/TWh), Natural gas cost (£million/TWh)] in
-    # 'Outputs' spreadsheet's row [148, 149, 150, 153, 154, 155, 158, 159, 163, 164, 165, 166]:
-    # Again, before setting the new randomized values to the costs/prices, first evaluate rewards components needed: capex, opex, revenue, and emissions
+    # noise will be applied by multiplication 
+    
+    # evaluate capex, opex, revenue, and emissions for each technology:
     # fmt: off
     np.float32([param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'24'), 
                           param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'28'),
@@ -325,13 +296,11 @@ def randomise(state, action, param):
                           param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'43')])
     np.float32(param.pathways2Net0.evaluate('CCUS!'+param.pathways2Net0ColumnInds[state.step_count]+'68'))
     # fmt: on
-    # generate Gaussian noise N~(1,0.1):
     rowInds_CCUS = param.pathways2Net0RandomRowInds_CCUS
     rowInds_Outputs = param.pathways2Net0RandomRowInds_Outputs
-    # As in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex ('CCUS' spreadsheet row 23 and 24) 
-    # should have smaller standard deviations by multiplying a factor param.noise_sigma_factor which is < 1:
+    # specify smaller standard deviation for CCUS capex & opex 
     noise_sigma_CCUS = np.full(len(rowInds_CCUS), param.noise_sigma) * np.array([param.noise_sigma_factor, param.noise_sigma_factor, 1.0])
-    # for multiplicative noise, make sure that the prices/costs are not multiplied by a negative number or zero by clipping to param.noise_clipping from the left:
+    # generate Gaussian noise N~(1,0.1), clipped at a (positive) minimum value:
     multiplicativeNoise_CCUS = np.maximum(
         param.noise_clipping,
         np.random.randn(len(rowInds_CCUS)) * noise_sigma_CCUS + param.noise_mu,
@@ -340,28 +309,33 @@ def randomise(state, action, param):
         param.noise_clipping,
         np.random.randn(len(rowInds_Outputs)) * param.noise_sigma + param.noise_mu,
     )
+    # for each technology:
+    # for each of its costs and revenues:
+    # multiply the values at the current and all future timesteps by the same (independent) random number
     year_counter = 0
+    # for each year in the model:
     for yearColumnID in param.pathways2Net0ColumnInds[state.step_count :]:
+        # for each of the CCUS and emissions costs and revenues:
         for costRowID in np.arange(len(rowInds_CCUS)):
+            # read the current cost / revenue
             currentCost = param.pathways2Net0.evaluate(
                 "CCUS!" + yearColumnID + str(rowInds_CCUS[costRowID])
             )
-            # if state.step_count == 0:
-            #     currentCost = param.pathways2Net0_reset.evaluate("CCUS!" + yearColumnID + str(rowInds_CCUS[costRowID]))
+            # apply noise 
             param.pathways2Net0.set_value(
                 "CCUS!" + yearColumnID + str(rowInds_CCUS[costRowID]),
                 multiplicativeNoise_CCUS[costRowID] * currentCost,
             )
+            # for closed-loop mode, record the current timestep's random costs:
             if year_counter == 0:
                 state.randomized_costs[costRowID] = (
                     multiplicativeNoise_CCUS[costRowID] * currentCost
                 )
+        # similarly for all other costs and revenues:
         for costRowID in np.arange(len(rowInds_Outputs)):
             currentCost = param.pathways2Net0.evaluate(
                 "Outputs!" + yearColumnID + str(rowInds_Outputs[costRowID])
             )
-            # if state.step_count == 0:
-            #     currentCost = param.pathways2Net0_reset.evaluate("Outputs!" + yearColumnID + str(rowInds_Outputs[costRowID]))
             param.pathways2Net0.set_value(
                 "Outputs!" + yearColumnID + str(rowInds_Outputs[costRowID]),
                 multiplicativeNoise_Outputs[costRowID] * currentCost,
@@ -370,27 +344,20 @@ def randomise(state, action, param):
                 state.randomized_costs[len(rowInds_CCUS) + costRowID] = (
                     multiplicativeNoise_Outputs[costRowID] * currentCost
                 )
-        # As in https://github.com/rangl-labs/netzerotc/issues/36, correlated costs are:
-        # Hydrogen price = blue hydrogen gas feedstock price + 20, i.e., set row 158 = row 159 + 20 in 'Outputs' spreadsheet:
+        # set blue hydrogen price = blue hydrogen gas feedstock price + 20:
         param.pathways2Net0.set_value(
             "Outputs!" + yearColumnID + "158",
             param.pathways2Net0.evaluate("Outputs!" + yearColumnID + "159") + 20.0,
         )
-        # (more correlated costs in https://github.com/rangl-labs/netzerotc/issues/36, if needed:)
-
         if year_counter == 0:
             state.randomized_costs[
                 len(rowInds_CCUS) + 6
             ] = param.pathways2Net0.evaluate("Outputs!" + yearColumnID + "158")
-            # (storing more correlated randomized costs to state.randomized_costs, if needed:)
 
-        # proceed to future years, such that only assigning the current state.step_count/year's randomized costs to state.randomized_costs:
         year_counter = year_counter + 1
-
+    # copy model from param to state
     state.pathways2Net0 = param.pathways2Net0
     return state
-
-
 
 
 def reset_param(param):
