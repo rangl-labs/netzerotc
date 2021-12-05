@@ -89,7 +89,8 @@ class Evaluate:
 
     def breeze_agent(self, seeds):
         rewards = []
-        deployments = np.array(np.array(pd.read_excel('BREEZE_Deployments.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
+        # deployments = np.array(np.array(pd.read_excel('BREEZE_Deployments.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
+        deployments = np.array(np.array(pd.read_excel('BREEZE_Deployments_Modified.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
         actions = deployments[1:,:] - deployments[:-1,:]
         for seed in seeds:
             self.env.seed(seed)
@@ -102,7 +103,8 @@ class Evaluate:
 
     def gale_agent(self, seeds):
         rewards = []
-        deployments = np.array(np.array(pd.read_excel('GALE_Deployments.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
+        # deployments = np.array(np.array(pd.read_excel('GALE_Deployments.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
+        deployments = np.array(np.array(pd.read_excel('GALE_Deployments_Modified.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
         actions = deployments[1:,:] - deployments[:-1,:]
         for seed in seeds:
             self.env.seed(seed)
@@ -115,7 +117,8 @@ class Evaluate:
 
     def storm_agent(self, seeds):
         rewards = []
-        deployments = np.array(np.array(pd.read_excel('STORM_Deployments.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
+        # deployments = np.array(np.array(pd.read_excel('STORM_Deployments.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
+        deployments = np.array(np.array(pd.read_excel('STORM_Deployments_Modified.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
         actions = deployments[1:,:] - deployments[:-1,:]
         for seed in seeds:
             self.env.seed(seed)

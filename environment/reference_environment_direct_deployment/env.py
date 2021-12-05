@@ -36,6 +36,18 @@ class Parameters:
     # fmt: off
     pathways2Net0RandomRowInds_Outputs = np.array([148, 149, 150, 153, 154, 155, 158, 159, 163, 164, 165, 166])
     # fmt: on
+    # multiplicative noise's mu and sigma, and clipping point:
+    noise_mu = 1.0
+    noise_sigma = 0.1  # or try 0.1, 0.0, np.sqrt(0.001), 0.02, np.sqrt(0.0003), 0.015, 0.01, np.sqrt(0.00001), 0.001
+    noise_clipping = 0.5  # or try 0.001, 0.1, 0.5 (i.e., original costs are reduced by 50% at the most)
+    noise_sigma_factor = np.sqrt(0.1) # as in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24) should have smaller standard deviations
+    stochastic_sigma = False  # set to False to use one single noise_sigma; set to True to randomly switch between two different std:
+    # noise_sigma_low = 0.001
+    # noise_sigma_high = np.sqrt(0.00001)
+    # OR, sample a sigma from a uniform distribution centered at noise_sigma with total 2-side range of noise_sigma_range:
+    noise_sigma_range = 0.002
+    noise_observability = False  # set to True to make the observation_space contain randomized costs/prices; set to False to restrict the observation_space to contain only the state.step_count
+
     
 
 class State:
@@ -62,6 +74,7 @@ class State:
             ] = param.pathways2Net0.evaluate(
                 "Outputs!O" + str(param.pathways2Net0RandomRowInds_Outputs[costRowID])
             )
+        self.noise_observability = param.noise_observability
 
         # time variables
         # NOTE: our convention is to update step_count at the beginning of the gym step() function
@@ -98,6 +111,9 @@ class State:
         observation = (self.step_count,) + tuple(
             self.randomized_costs
         )  
+        if self.noise_observability == False:
+            observation = (self.step_count,)
+
 
         return observation
 
@@ -121,8 +137,9 @@ def observation_space(self):
     obs_low[0] = -1  # first entry of obervation is the timestep
     obs_high = np.full_like(self.state.to_observation(), 1e5, dtype=np.float32)
     obs_high[0] = self.param.steps_per_episode  # first entry of obervation is the timestep
-    obs_high[5] = 1e6  
-    obs_high[7] = 1e6  
+    if self.state.noise_observability == True:
+        obs_high[5] = 1e6  
+        obs_high[7] = 1e6  
     result = spaces.Box(obs_low, obs_high, dtype=np.float32)
     return result
 
@@ -132,7 +149,7 @@ def action_space(self):
     # lower limit on increments is zero
     act_low = np.zeros(self.param.techs, dtype=np.float32)
     # upper limits on increments depend on the technology
-    act_high = np.float32([11, 25, 24])
+    act_high = np.float32([27, 25, 24]) 
     result = spaces.Box(act_low, act_high, dtype=np.float32)
     return result
 
@@ -147,13 +164,14 @@ def apply_action(action, state, param):
         param.reward_types
     )  
 
-
     # read in the current deployment for offshore wind power
     offshoreWind = param.pathways2Net0.evaluate(
-        "GALE!P" + str(param.pathways2Net0RowInds[state.step_count] - 1)
+        # "GALE!P" + str(param.pathways2Net0RowInds[state.step_count] - 1)
+        "GALE!S" + str(param.pathways2Net0RowInds[state.step_count] - 1)
     )
+
     # add the increment of offshore wind for this timestep (specified by the action), imposing a maximum deployment
-    offshoreWind = np.clip(offshoreWind + action[0], offshoreWind, 150)
+    offshoreWind = np.clip(offshoreWind + action[0], offshoreWind, 380)
     
     # similarly for blue and green hydrogen
     blueHydrogen = param.pathways2Net0.evaluate(
@@ -173,7 +191,8 @@ def apply_action(action, state, param):
     # evaluate the model cells containing the deployment values for the current timestep (for offshore wind power, blue hydrogen and green hydrogen respectively)
     # this enables the current timestep's deployment values to be entered into the model 
     param.pathways2Net0.evaluate(
-        "GALE!P" + str(param.pathways2Net0RowInds[state.step_count])
+        # "GALE!P" + str(param.pathways2Net0RowInds[state.step_count])
+        "GALE!S" + str(param.pathways2Net0RowInds[state.step_count])
     )
     param.pathways2Net0.evaluate(
         "GALE!X" + str(param.pathways2Net0RowInds[state.step_count])
@@ -207,7 +226,8 @@ def apply_action(action, state, param):
     
     # enter the deployment values for this timestep into the model
     param.pathways2Net0.set_value(
-        "GALE!P" + str(param.pathways2Net0RowInds[state.step_count]), offshoreWind
+        # "GALE!P" + str(param.pathways2Net0RowInds[state.step_count]), offshoreWind
+        "GALE!S" + str(param.pathways2Net0RowInds[state.step_count]), offshoreWind
     )
     param.pathways2Net0.set_value(
         "GALE!X" + str(param.pathways2Net0RowInds[state.step_count]), blueHydrogen
@@ -367,7 +387,8 @@ def reset_param(param):
     # columns to reset in each tab:
     columnInds_BySheets = np.array(
         [
-            np.array(["P", "X", "Y"]),
+            # np.array(["P", "X", "Y"]),
+            np.array(["S", "X", "Y"]),
             param.pathways2Net0ColumnInds,
             param.pathways2Net0ColumnInds,
         ]
@@ -401,11 +422,13 @@ def cal_reset_diff(param):
     abs_diff = 0.0
     # reload the model:
     workbooks_dir = Path(__file__).resolve().parent.parent / "compiled_workbook_objects"
-    pathways2Net0_loaded = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
+    # pathways2Net0_loaded = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
+    pathways2Net0_loaded = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Modified_Compiled")
     spreadsheets = np.array(["GALE", "CCUS", "Outputs"])
     columnInds_BySheets = np.array(
         [
-            np.array(["P", "X", "Y"]),
+            # np.array(["P", "X", "Y"]),
+            np.array(["S", "X", "Y"]),
             param.pathways2Net0ColumnInds,
             param.pathways2Net0ColumnInds,
         ]
@@ -458,11 +481,12 @@ def plot_episode(state, fname):
     plt.subplot(222)
     # first 5 elements of observations are step counts and first 4 randomized costs
     plt.plot(np.array(state.observations_all)[:,0], label="step counts", color='black')
-    plt.plot(np.array(state.observations_all)[:,1], label="CCS Capex £/tonne")
-    plt.plot(np.array(state.observations_all)[:,2], label="CCS Opex £/tonne")
-    plt.plot(np.array(state.observations_all)[:,3], label="Carbon price £/tonne")
-    plt.plot(np.array(state.observations_all)[:,4], label="Offshore wind Devex £/kW")
-    # plt.plot(np.array(state.observations_all)[:,5], label="Offshore wind Capex £/kW")
+    if state.noise_observability == True:        
+        plt.plot(np.array(state.observations_all)[:,1], label="CCS Capex £/tonne")
+        plt.plot(np.array(state.observations_all)[:,2], label="CCS Opex £/tonne")
+        plt.plot(np.array(state.observations_all)[:,3], label="Carbon price £/tonne")
+        plt.plot(np.array(state.observations_all)[:,4], label="Offshore wind Devex £/kW")
+        plt.plot(np.array(state.observations_all)[:,5], label="Offshore wind Capex £/kW")
     plt.xlabel("time")
     plt.ylabel("observations")
     plt.legend(loc='lower right',fontsize='xx-small')
@@ -470,7 +494,8 @@ def plot_episode(state, fname):
 
     # plot the agent's actions:
     plt.subplot(223)
-    plt.plot(np.array(state.actions_all)[:,0],label="offshore wind capacity [GW]")
+    # plt.plot(np.array(state.actions_all)[:,0],label="offshore wind capacity [GW]")
+    plt.plot(np.array(state.actions_all)[:,0],label="offshore wind to power [TWh]")
     plt.plot(np.array(state.actions_all)[:,1],label="blue hydrogen energy [TWh]")
     plt.plot(np.array(state.actions_all)[:,2],label="green hydrogen energy [TWh]")    
     plt.xlabel("time")
@@ -506,11 +531,12 @@ class GymEnv(gym.Env):
     def load_workbooks(self):
         self.param = Parameters()
         workbooks_dir = Path(__file__).resolve().parent.parent / "compiled_workbook_objects"
-        # load a working model and a reference model:
-        self.param.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
-        self.param.pathways2Net0_reset = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
+        # load a working model and a reference model:      
+        self.param.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Modified_Compiled")
+        self.param.pathways2Net0_reset = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Modified_Compiled")
 
     def initialise_state(self):
+
         self.param = reset_param(self.param)
         self.state = State(seed=self.current_seed, param=self.param)
         self.action_space = action_space(self)
