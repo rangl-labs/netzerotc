@@ -542,8 +542,6 @@ class GymEnv(gym.Env):
             return score(self.state)
         else:
             return None
-        # print('the score to be returned is: ',score(self.state))
-        # return score(self.state)
 
     def plot(self, fname="episode.png"):
         plot_episode(self.state, fname)
