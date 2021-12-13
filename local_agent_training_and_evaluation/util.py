@@ -5,8 +5,10 @@ import csv
 import pandas as pd
 import numpy as np
 import gym
-from stable_baselines3 import PPO
-from stable_baselines3.ppo import MlpPolicy
+from stable_baselines3 import PPO, A2C, DDPG
+# from stable_baselines3.ppo import MlpPolicy
+# from stable_baselines3.a2c import MlpPolicy
+# from stable_baselines3.ddpg import MlpPolicy
 # from pathlib import Path
 
 
@@ -17,7 +19,9 @@ class Trainer:
 
     def train_rl(self, models_to_train=40, episodes_per_model=100, last_model_number=-1):
         # specify the RL algorithm to train (eg ACKTR, TRPO...)
-        model = PPO(MlpPolicy, self.env, verbose=1)
+        # model = PPO(MlpPolicy, self.env, verbose=1)
+        # model = A2C("MlpPolicy", self.env, verbose=1)
+        model = DDPG("MlpPolicy", self.env, verbose=1)
         if last_model_number > -1:
             # last_model_number = 39
             model.load("MODEL_" + str(last_model_number))

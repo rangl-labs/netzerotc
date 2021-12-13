@@ -3,15 +3,17 @@
 import os
 import numpy as np
 import gym
-from stable_baselines3 import PPO
+from stable_baselines3 import PPO, A2C, DDPG
 
 from util import Evaluate
 
 env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
 
-trained_models_dir = "noise_sigma0.1_reward_plus_step_count_jobs_increment_modified_workbook_noNoiseObs"
+trained_models_dir = "noise_sigma0.1_modified_workbook_finalized_env.py_DDPG"
 model_number_str = "39"
-agent = PPO.load("./" + trained_models_dir + "/" + "MODEL_" + model_number_str)
+# agent = PPO.load("./" + trained_models_dir + "/" + "MODEL_" + model_number_str)
+# agent = A2C.load("./" + trained_models_dir + "/" + "MODEL_" + model_number_str)
+agent = DDPG.load("./" + trained_models_dir + "/" + "MODEL_" + model_number_str)
 evaluate = Evaluate(env, agent)
 seeds = evaluate.read_seeds(fname="seeds.csv")
 # fmt: off
