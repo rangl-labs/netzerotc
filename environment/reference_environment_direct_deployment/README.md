@@ -19,9 +19,7 @@ The Helper classes are:
 * Parameters -- contains all challenge-specific parameters
 * State -- contains all state information and provides the following methods:
     * initialise_state
-    * reset
     * to_observation -- returns just the observations which will be passed to the agent   
-    * set_agent_prediction -- returns the predictions which will be passed to the agent
     * is_done -- checks whether the episode has finished
 
 and the Helper functions are:
@@ -31,6 +29,7 @@ and the Helper functions are:
 * apply_action -- applies an action to the state and calculates the reward
 * verify_constraints -- checks whether the actions have violated any pre-specified constraints
 * randomise -- adds random noise to the state (representing uncertainty over the future) 
+* reset_param -- reset the randomised costs and revenues in the economic pathways model
 * record -- records data for graphing at the end of the episode
 * plot_episode -- plots the recorded data
 * score -- returns score for the full episode
