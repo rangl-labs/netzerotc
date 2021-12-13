@@ -30,7 +30,7 @@ Design freely: you might use explicit rules, reinforcement learning, or some com
 At each step, the RangL environment uses random noise to model real-world uncertainty. To evaluate an agent yourself, simply average its performance over multiple random seeds. To do this:
 
 * Add your agent to the `Evaluate` helper class (the four agents above are examples)
-* Evaluate it just as in `local_agent_training_and_evaluation/evaluate.py`
+* Evaluate it just as in `local_agent_training_and_evaluation/evaluate.py` or `local_agent_training_and_evaluation/evaluate_standard_agents.py`
 
 ## Training 
 

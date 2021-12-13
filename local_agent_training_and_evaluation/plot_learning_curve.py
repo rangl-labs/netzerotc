@@ -11,7 +11,7 @@ from util import Evaluate
 
 env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
 
-os.chdir("./noise_sigma0.1_modified_workbook_finalized_env.py_DDPG/")
+os.chdir("./saved_models/")
 
 ### Evaluate RL agents model_0 to model_39
 trained_models = 40
