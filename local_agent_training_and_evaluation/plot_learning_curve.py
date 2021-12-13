@@ -11,6 +11,8 @@ import reference_environment_direct_deployment
 
 env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
 
+os.chdir("./saved_models/")
+
 ### Evaluate RL agents model_0 to model_39
 trained_models = 40
 episodes_per_model = 1000
