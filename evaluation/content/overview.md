@@ -42,11 +42,11 @@ Your score in the competition will be equal to the total reward received by your
 
 #### Support
 
-All registered competitors should receive an invitation to an 'Ask away!' (`#askaway`) channel on Slack, where you can get support.
+All registered competitors should receive an invitation to the RangL Slack workspace where you can network, get support, and more.
 
 #### Computing requirements
 
-To start developing your agent you will need to install the following (in case of difficulty please `#askaway`): 
+To start developing your agent you will need to install the following: 
 
 * git
 
