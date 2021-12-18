@@ -57,6 +57,74 @@ challenge_phases:
     is_restricted_to_select_one_submission: False
     is_partial_submission_evaluation_enabled: False
 
+challenge_phases:
+  - id: 2
+    name: Open-loop Phase
+    description: templates/challenge_phase_2_description.html
+    leaderboard_public: True
+    is_public: True
+    is_submission_public: True
+    start_date: 2021-01-01 00:00:00
+    end_date: 2022-02-01 00:00:00
+    test_annotation_file: annotations/test_annotations_devsplit.json
+    codename: open
+    max_submissions_per_day: 5
+    max_submissions_per_month: 50
+    max_submissions: 50
+    submission_meta_attributes:
+      - name: TextAttribute
+        description: Sample
+        type: text
+        required: False
+      - name: SingleOptionAttribute
+        description: Sample
+        type: radio
+        options: ["A", "B", "C"]
+      - name: MultipleChoiceAttribute
+        description: Sample
+        type: checkbox
+        options: ["alpha", "beta", "gamma"]
+      - name: TrueFalseField
+        description: Sample
+        type: boolean
+        required: True
+    is_restricted_to_select_one_submission: False
+    is_partial_submission_evaluation_enabled: False
+
+challenge_phases:
+  - id: 3
+    name: Closed-loop Phase
+    description: templates/challenge_phase_3_description.html
+    leaderboard_public: True
+    is_public: True
+    is_submission_public: True
+    start_date: 2021-01-01 00:00:00
+    end_date: 2022-02-01 00:00:00
+    test_annotation_file: annotations/test_annotations_devsplit.json
+    codename: closed
+    max_submissions_per_day: 5
+    max_submissions_per_month: 50
+    max_submissions: 50
+    submission_meta_attributes:
+      - name: TextAttribute
+        description: Sample
+        type: text
+        required: False
+      - name: SingleOptionAttribute
+        description: Sample
+        type: radio
+        options: ["A", "B", "C"]
+      - name: MultipleChoiceAttribute
+        description: Sample
+        type: checkbox
+        options: ["alpha", "beta", "gamma"]
+      - name: TrueFalseField
+        description: Sample
+        type: boolean
+        required: True
+    is_restricted_to_select_one_submission: False
+    is_partial_submission_evaluation_enabled: False
+
 dataset_splits:
   - id: 1
     name: Train Split
