@@ -10,5 +10,8 @@ Modified environments can be checked using the `test_reference_environment.py` s
     * illustrate useful concepts such as random seeding
 * Run a rule-based agent and create a plot `fixed_policy_DirectDeployment.png` of the episode
  
+Modified environments can also be tested using the `test_random_agent.py` script. This will run an agent taking random actions on each step, and then it will calculate its averaged performance in terms of mean reward.
 
+If you modify the environment and change the name of the folder containing `env.py`, you will need to update the `setup.py` script and re-run `pip install -e environment` to register the new folder name (see README.md at https://github.com/rangl-labs/netzerotc). Alternatively, you can also manually import the new folder name before creating the environment by `gym.make()`.
 
+The `server.py` is used by EvalAI platform, and will not be used for local training and development.

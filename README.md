@@ -22,6 +22,9 @@ Design freely: you might use explicit rules, reinforcement learning, or some com
 
 * the `min_agent` method gives your actions the smallest possible value at each step
 * `max_agent`: largest possible actions at each step
+* `breeze_agent`: actions according to the Breeze scenario in the economic model, which represents slower and moderate deployment of new technologies
+* `storm_agent`: actions according to the Storm scenario in the economic model, which represents faster and radical deployment of new technologies
+* `gale_agent`: actions according to the Gale scenario in the economic model, which lies between the Breeze and Storm scenarios above
 * `random_agent`: random actions at each step
 * `RL_agent`: actions are provided by a previously trained RL agent
 
