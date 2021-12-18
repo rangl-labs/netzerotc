@@ -6,7 +6,7 @@ from util import Evaluate
 
 
 env = gym.make(
-    "reference_environment_direct_deployment:rangl-nztc-v0"
+    "reference_environment:rangl-nztc-v0"
 )
 
 evaluate = Evaluate(env)

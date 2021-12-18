@@ -11,7 +11,7 @@ from util import Evaluate
 
 os.chdir("../environment/")
 env = gym.make(
-    "reference_environment_direct_deployment:rangl-nztc-v0"
+    "reference_environment:rangl-nztc-v0"
 )
 os.chdir("../local_agent_training_and_evaluation/")
 
@@ -19,7 +19,7 @@ os.chdir("../local_agent_training_and_evaluation/")
 RL_agent = PPO.load("./saved_models/MODEL_39")
 
 env = gym.make(
-    "reference_environment_direct_deployment:rangl-nztc-v0"
+    "reference_environment:rangl-nztc-v0"
 )
 
 seeds = []
