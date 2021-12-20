@@ -49,4 +49,3 @@ Explicit seeds persist upon reset() . So:
 
 *	If you set env.seed(None), reset() produces different noise
 *	If you set e.g. env.seed(42), reset() produces identical noise
-
