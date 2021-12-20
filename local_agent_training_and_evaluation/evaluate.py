@@ -9,7 +9,7 @@ from util import Evaluate
 
 env = gym.make("reference_environment:rangl-nztc-v0")
 
-trained_models_dir = "noise_sigma0.1_modified_workbook_finalized_env.py_DDPG"
+trained_models_dir = "saved_models"
 model_number_str = "39"
 # agent = PPO.load("./" + trained_models_dir + "/" + "MODEL_" + model_number_str)
 # agent = A2C.load("./" + trained_models_dir + "/" + "MODEL_" + model_number_str)
