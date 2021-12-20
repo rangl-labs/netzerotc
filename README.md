@@ -22,17 +22,20 @@ Design freely: you might use explicit rules, reinforcement learning, or some com
 
 * the `min_agent` method gives your actions the smallest possible value at each step
 * `max_agent`: largest possible actions at each step
-* `breeze_agent`: actions according to the Breeze scenario in the economic model, which represents slower and moderate deployment of new technologies
-* `storm_agent`: actions according to the Storm scenario in the economic model, which represents faster and radical deployment of new technologies
-* `gale_agent`: actions according to the Gale scenario in the economic model, which lies between the Breeze and Storm scenarios above
 * `random_agent`: random actions at each step
 * `RL_agent`: actions are provided by a previously trained RL agent
+
+The `Evaluate` class also provides benchmark agents drawn from the [Integrated Energy Vision](https://ore.catapult.org.uk/press-releases/reimagining-a-net-zero-north-sea-an-integrated-energy-vision-for-2050/) study, which your agent should aim to beat:
+
+* `breeze_agent`: implements actions corresponding to the Emerging scenario in the IEV study. These actions focus on deploying offshore wind
+* `gale_agent`: implements the Progressive IEV scenario: Higher offshore wind and a mix of blue and green hydrogen
+* `storm_agent`: implements the Transformational IEV scenario: Highest offshore wind, paired with and green hydrogen
 
 ## Self-evaluation
 
 At each step, the RangL environment uses random noise to model real-world uncertainty. To evaluate an agent yourself, simply average its performance over multiple random seeds. To do this:
 
-* Add your agent to the `Evaluate` helper class (the four agents above are examples)
+* Add your agent to the `Evaluate` helper class (the agents above are examples)
 * Evaluate it just as in `local_agent_training_and_evaluation/evaluate.py` or `local_agent_training_and_evaluation/evaluate_standard_agents.py`
 
 ## Training 
