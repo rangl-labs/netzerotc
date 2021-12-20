@@ -7,9 +7,9 @@ import matplotlib.pyplot as plt
 from stable_baselines3 import PPO, A2C, DDPG
 
 from util import Evaluate
-# import reference_environment_direct_deployment
+# import reference_environment
 
-env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
+env = gym.make("reference_environment:rangl-nztc-v0")
 
 os.chdir("./saved_models/")
 

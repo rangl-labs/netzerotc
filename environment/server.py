@@ -7,7 +7,7 @@ import six
 import argparse
 import json
 
-import reference_environment_direct_deployment
+import reference_environment
 
 import logging
 

@@ -7,7 +7,7 @@ from stable_baselines3 import PPO, A2C, DDPG
 
 from util import Evaluate
 
-env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
+env = gym.make("reference_environment:rangl-nztc-v0")
 
 trained_models_dir = "noise_sigma0.1_modified_workbook_finalized_env.py_DDPG"
 model_number_str = "39"
