@@ -2,24 +2,10 @@ version: "3"
 services:
   nztc:
     build:
-      context: environment
+      context: .
       dockerfile: Dockerfile
     ports:
       - 5000:5000
-
-  nztc-open-loop:
-    build:
-      context: environment
-      dockerfile: Dockerfile-open-loop
-    ports:
-      - 5001:5001      
-
-  nztc-closed-loop:
-    build:
-      context: environment
-      dockerfile: Dockerfile-closed-loop
-    ports:
-      - 5002:5002
 
 networks:
   default:

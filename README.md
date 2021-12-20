@@ -8,9 +8,9 @@ To get started, read the [challenge overview](http://51.132.63.168:8888/web/chal
 
 RangL uses the [Openai Gym framework](https://gym.openai.com). To install the RangL environment on your local machine, 
 
-1. If necessary, install the pip package manager (you can do this by running the `get-pip.py` Python script)
+1. If necessary, install the pip package manager (you can do this by running the `get-pip.py` Python script as detailed here: https://pip.pypa.io/en/stable/installation/#get-pip-py)
 
-2. Run `pip install -e environment`
+2. Run `pip install -e .`
 
 Then head into the `environment` folder and check out the README there.
 

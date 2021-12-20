@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
+
 from flask import Flask, request, jsonify
 import uuid
-import gym
-import numpy as np
 import six
 import argparse
 import json
-
-import closed_loop_env
-
 import logging
+
+import gym
+import numpy as np
+import rangl
+
 
 logger = logging.getLogger("werkzeug")
 logger.setLevel(logging.ERROR)
@@ -487,7 +488,7 @@ def upload():
 
 @app.route("/v1/shutdown/", methods=["POST"])
 def shutdown():
-    """ Request a server shutdown - currently used by the integration tests to repeatedly create and destroy fresh copies of the server running in a separate thread"""
+    """Request a server shutdown - currently used by the integration tests to repeatedly create and destroy fresh copies of the server running in a separate thread"""
     f = request.environ.get("werkzeug.server.shutdown")
     f()
     return "Server shutting down"
@@ -561,7 +562,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-l", "--listen", help="interface to listen to", default="0.0.0.0"
     )
-    parser.add_argument("-p", "--port", default=5002, type=int, help="port to bind to")
+    parser.add_argument("-p", "--port", default=5000, type=int, help="port to bind to")
 
     args = parser.parse_args()
     print("Server starting at: " + "http://{}:{}".format(args.listen, args.port))

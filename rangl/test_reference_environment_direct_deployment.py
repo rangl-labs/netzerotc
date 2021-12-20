@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 # Create an environment named env
-env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
+env = gym.make("rangl:nztc-dev-v0")
 
 # Generate a random action and check it has the right length
 action = env.action_space.sample()
@@ -69,9 +69,9 @@ assert Path("fixed_policy_DirectDeployment.png").is_file()
 
 # randomizedPrice = []
 # for yearColumnID in env.param.Pathways2Net0ColumnInds:
-    # fmt: off
+# fmt: off
 #     randomizedPrice.append(env.param.Pathways2Net0.evaluate('CCUS!' + yearColumnID + '26'))
-    # fmt: on
+# fmt: on
 # randomizedPrice = np.array(randomizedPrice)
 # plt.plot(randomizedPrice)
 # plt.xlabel("time")
@@ -93,13 +93,13 @@ assert env.state.observations_all[-1][0] == env.param.steps_per_episode - 1
 # check that specifying the same seed gives the same noise
 env.seed(123)
 obs1 = env.reset()
-env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
+env = gym.make("rangl:nztc-dev-v0")
 env.seed(123)
 obs2 = env.reset()
 assert obs1 == obs2
 
 # check that the seed can be reverted to None, so reset() gives different noise
-# env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
+# env = gym.make("rangl:nztc-dev-v0")
 # env.seed(123)
 # env.seed(None)
 # obs1 = env.reset()

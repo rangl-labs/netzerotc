@@ -1,3 +1,0 @@
-docker==3.6.0
-requests==2.20.0
-pycel==1.0b29
