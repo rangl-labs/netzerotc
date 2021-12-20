@@ -9,6 +9,11 @@ remote_base = os.getenv("RANGL_ENVIRONMENT_URL", "http://localhost:5000/")
 client = Client(remote_base)
 
 env_id = "nztc-dev-v0"
+
+# submit to additional challenges phases by changing the env_id
+# env_id = "nztc-open-loop-v0"
+# env_id = "nztc-closed-loop-v0"
+
 seed = int(os.getenv("RANGL_SEED", 123456))
 instance_id = client.env_create(env_id, seed)
 
