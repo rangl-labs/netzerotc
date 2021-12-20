@@ -45,3 +45,7 @@ To get started with training RL agents, head to the `local_agent_training_and_ev
 ## Submission
 
 To submit your agent to the competition, head to the `random_agent_submission` folder and check out its README.
+
+## Note
+
+The `evaluation` folder is used to generate the challenge's web front-end and is not relevant to agent development.
