@@ -113,7 +113,7 @@ def evaluate(test_annotation_file, user_submission_file, phase_codename, **kwarg
     print("phase_codename", phase_codename)
 
     output = {}
-    if phase_codename == "dev":
+    if phase_codename in ["dev", "open", "closed"]:
         output["result"] = [
             {
                 "train_split": {
@@ -123,95 +123,5 @@ def evaluate(test_annotation_file, user_submission_file, phase_codename, **kwarg
         ]
         output["submission_result"] = output["result"][0]["train_split"]
         print("Completed evaluation for dev phase")
-    
-    if phase_codename == "open":
-        
-        open_loop_score_list = []
-        for seed in seed_list:
-            container_output = client.containers.run(
-                submitted_image_uri,
-                network="evalai_rangl",
-                environment=[
-                    "RANGL_ENVIRONMENT_URL=http://nztc:5001/",
-                    f"RANGL_SEED={seed}",
-                ],
-            )
-            output = container_output.decode("utf-8").strip()
 
-            print("output")
-            print(output)
-
-            # assumption: final line in stdout is the instance id
-            instance_id = output.split("\n")[-1]
-            print(f"instance_id: {instance_id}")
-
-            # fetch score for submission
-            ENVIRONMENT_URL = "http://nztc:5001/"
-            url = f"{ENVIRONMENT_URL}/v1/envs/{instance_id}/score/"
-            response = requests.get(
-                f"{ENVIRONMENT_URL}/v1/envs/{instance_id}/score/"
-            ).json()
-
-            print(response)
-            score = float(response["score"]["value1"])
-            open_loop_score_list.append(score)
-
-        open_loop_mean_score = sum(open_loop_score_list) / len(open_loop_score_list)
-        print("open_loop_mean_score", open_loop_mean_score)
-        
-        output["result"] = [
-            {
-                "train_split": {
-                    "Average Cost": -open_loop_mean_score,
-                }
-            }
-        ]
-        output["submission_result"] = output["result"][0]["train_split"]
-        print("Completed evaluation for open-loop phase")
-        
-    if phase_codename == "closed":
-        
-        closed_loop_score_list = []
-        for seed in seed_list:
-            container_output = client.containers.run(
-                submitted_image_uri,
-                network="evalai_rangl",
-                environment=[
-                    "RANGL_ENVIRONMENT_URL=http://nztc:5002/",
-                    f"RANGL_SEED={seed}",
-                ],
-            )
-            output = container_output.decode("utf-8").strip()
-
-            print("output")
-            print(output)
-
-            # assumption: final line in stdout is the instance id
-            instance_id = output.split("\n")[-1]
-            print(f"instance_id: {instance_id}")
-
-            # fetch score for submission
-            ENVIRONMENT_URL = "http://nztc:5002/"
-            url = f"{ENVIRONMENT_URL}/v1/envs/{instance_id}/score/"
-            response = requests.get(
-                f"{ENVIRONMENT_URL}/v1/envs/{instance_id}/score/"
-            ).json()
-
-            print(response)
-            score = float(response["score"]["value1"])
-            closed_loop_score_list.append(score)
-
-        closed_loop_mean_score = sum(closed_loop_score_list) / len(closed_loop_score_list)
-        print("closed_loop_mean_score", closed_loop_mean_score)
-        
-        output["result"] = [
-            {
-                "train_split": {
-                    "Average Cost": -closed_loop_mean_score,
-                }
-            }
-        ]
-        output["submission_result"] = output["result"][0]["train_split"]
-        print("Completed evaluation for closed-loop phase")
-    
     return output
