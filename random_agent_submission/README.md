@@ -6,6 +6,13 @@ This folder contains
 - `test_container.py`, a script which tests locally that `agent.py` works in a container
 - the files necessary to submit an agent to the competition platform
 
+Before submitting your agent to the competition:
+
+- Replace `agent.py` with your agent. Ensure that any supporting files needed by your agent are also in this folder
+- Create an account at the [RangL competition platform](https://challenges.rangl.org) (one per team)
+- Log in to the platform and go to Pathways to net zero -> Participate to create a team
+- Go to Submit
+
 Install the dependencies:
 
 ```shell
@@ -82,5 +89,5 @@ The image can be submitted as follows:
 4. Submit the agent:
 
    ```shell
-   evalai push submission:v0.1.0 --phase nztc-dev-5
+   evalai push submission:v0.1.0 --phase <phase_name>
    ```
