@@ -24,4 +24,6 @@ To see how well the models learn from the environment, train and save multiple m
 
 - `seeds.csv` contains 100 random seeds for the purposes of evaluation. (Note that the competition uses an independent set of 1000 random seeds.)
 
-- The `test_environment_reset.py` script verifies that evaluation using `seeds.csv` is reproducible.
+- `test_environment_reset.py` verifies that evaluation using `seeds.csv` is reproducible.
+
+- `test_environment_load.py` verifies that environments have been correctly registered.
