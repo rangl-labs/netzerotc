@@ -19,7 +19,7 @@ Install the dependencies:
 pip install -r requirements.txt
 ```
 
-Build a docker image for the submission:
+With Docker installed and running on your computer, build a Docker image for the submission:
 
 ```shell
 make build
