@@ -1,6 +1,6 @@
 # A guide to the RangL environment (in OpenAI Gym)
 
-This folder contains a copy of the RangL environment which will be used for evaluation in the competition. It can be used right away to train an agent. However to gain an advantage in the competition, you can consider training your agent in a modified environment (although evaluation will still use the reference environment!). If necessary you can change the name of the environment by modifying the `__init__.py` file in this folder. 
+This folder contains the environment used in the open-loop competition phase. It can be used right away to train an agent. However to gain an advantage in the competition, you can consider training your agent in a modified environment (although evaluation will still use this original environment!).
 
 The RangL environment is designed to be easily modified and has the following modular structure:
 
