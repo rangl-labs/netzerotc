@@ -22,8 +22,7 @@ mean_reward = evaluate.RL_agent(seeds) # Add your agent to the Evaluate class an
 print("Mean reward of model " + model_number_str + ":", mean_reward)
 
 os.chdir("./" + trained_models_dir + "/")
-env.plot("MODEL_" + model_number_str + "_eval_on_noisy.png")
-# env.plot("MODEL_" + model_number_str + "_eval_on_deterministic.png")
+env.plot("MODEL_" + model_number_str + "_eval.png")
 os.chdir("../")
 
 
@@ -38,8 +37,7 @@ mean_reward = evaluate.random_agent(seeds) # Add your agent to the Evaluate clas
 print("Mean reward of random agent:", mean_reward)
 
 os.chdir("./" + trained_models_dir + "/")
-env.plot("random_agent_eval_on_noisy.png")
-# env.plot("random_agent_eval_on_deterministic.png")
+env.plot("random_agent_eval.png")
 os.chdir("../")
 
 
@@ -54,8 +52,7 @@ mean_reward = evaluate.breeze_agent(seeds) # Add your agent to the Evaluate clas
 print("Mean reward of BREEZE:", mean_reward)
 
 os.chdir("./" + trained_models_dir + "/")
-env.plot("BREEZE_eval_on_noisy.png")
-# env.plot("BREEZE_eval_on_deterministic.png")
+env.plot("BREEZE_eval.png")
 os.chdir("../")
 
 
@@ -70,8 +67,7 @@ mean_reward = evaluate.gale_agent(seeds) # Add your agent to the Evaluate class 
 print("Mean reward of GALE:", mean_reward)
 
 os.chdir("./" + trained_models_dir + "/")
-env.plot("GALE_eval_on_noisy.png")
-# env.plot("GALE_eval_on_deterministic.png")
+env.plot("GALE_eval.png")
 os.chdir("../")
 
 
@@ -86,6 +82,5 @@ mean_reward = evaluate.storm_agent(seeds) # Add your agent to the Evaluate class
 print("Mean reward of STORM:", mean_reward)
 
 os.chdir("./" + trained_models_dir + "/")
-env.plot("STORM_eval_on_noisy.png")
-# env.plot("STORM_eval_on_deterministic.png")
+env.plot("STORM_eval.png")
 os.chdir("../")
