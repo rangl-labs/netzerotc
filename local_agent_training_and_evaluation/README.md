@@ -1,4 +1,4 @@
-# Getting started
+# Getting started with RL training
 
 To train a reinforcement learning agent, first install the Python requirements:
 
