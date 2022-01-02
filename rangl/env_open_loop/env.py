@@ -397,16 +397,16 @@ def reset_param(param):
             np.array(["S", "X", "Y"]),
             param.pathways2Net0ColumnInds,
             param.pathways2Net0ColumnInds,
-        ]
-    )
+        ],
+    dtype=object)
     # rows to reset in each tab:
     rowInds_BySheets = np.array(
         [
             param.pathways2Net0RowInds,
             param.pathways2Net0RandomRowInds_CCUS,
             param.pathways2Net0RandomRowInds_Outputs,
-        ]
-    )
+        ],
+    dtype=object)
     # for each tab to reset:
     for iSheet in np.arange(len(spreadsheets)):
         # for each column to reset:
