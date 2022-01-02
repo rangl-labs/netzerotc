@@ -12,8 +12,6 @@ Modified environments can be checked using the `test_x_environment.py` script fo
  
 Modified environments can also be tested using the `test_random_agent.py` script. This will run an agent taking random actions on each step, and then it will calculate its averaged performance in terms of mean reward.
 
-If you modify the environment and change the name of the folder containing `env.py`, you will need to update the `setup.py` script and re-run `pip install -e environment` to register the new folder name (see README.md at https://github.com/rangl-labs/netzerotc). Alternatively, you can manually import the new folder name prior to creating an instance of the new environment using `gym.make()`.
-
 The `compiled_workbook_objects` folder contains the economic model used in the environment and should not be altered.
 
 The `server.py` script is used for remote evaluation and is not needed for local training and development.
