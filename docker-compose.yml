@@ -2,7 +2,7 @@ version: "3"
 services:
   nztc:
     build:
-      context: environment
+      context: .
       dockerfile: Dockerfile
     ports:
       - 5000:5000

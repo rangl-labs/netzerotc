@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 
 import csv
+
 import numpy as np
 import gym
 from stable_baselines3 import PPO
-
-import reference_environment
+import rangl
 
 # this test shows that we can run the environment twice and get the same mean reward
 # the environment is reset using a call to env.reset()
 
 # create the environment
-env = gym.make("reference_environment:rangl-nztc-v0")
+env = gym.make("rangl:nztc-open-loop-v0")
 
 # run the environment for the first time
 list1 = []
@@ -44,7 +44,7 @@ mean_reward1 = np.mean(rewards)
 # for completeness we can delete and reload the model
 # though, this is redundant and does not change the outcome
 del model
-model = PPO.load("./saved_models/MODEL_0")
+model = PPO.load("./saved_models/MODEL_test_0")
 
 # run the environment for the second time
 list2 = []

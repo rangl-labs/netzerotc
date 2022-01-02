@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `reference_environment_direct_deployment` folder contains the environment used in the competition. To modify it for development purposes, check out its `README`.
+The `env_open_loop` and `env_closed_loop` folders contain the environments used in the competition. To modify them for development purposes, look at their `README` files.
 
 Modified environments can be checked using the `test_reference_environment.py` script. This will
 * Run logical tests, which

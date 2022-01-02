@@ -1,6 +1,6 @@
 pandas
 numpy
 gym
-requests==2.20.0
+requests
 pytest
-docker==4.4.1
+docker
