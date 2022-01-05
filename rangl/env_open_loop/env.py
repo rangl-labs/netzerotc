@@ -12,7 +12,9 @@ class Parameters:
     # (Avoid sampling random variables here: they would not be resampled upon reset())
     # problem-specific parameters
 
-    techs = 3  # number of technologies (Offshore wind power, blue hydrogen, green hydrogen)
+    techs = (
+        3  # number of technologies (Offshore wind power, blue hydrogen, green hydrogen)
+    )
     # fmt: off
     reward_types = 6 # capital expenditure (capex), operating expenditure (opex), revenue, carbon emissions, total jobs supported, total economic impact
     steps_per_episode = 20 # number of years in the planning horizon (2031 -> 2050 = 20)
@@ -24,12 +26,14 @@ class Parameters:
     # The following 20 rows correspond to years 2031 to 2050 in tabs named 'BREEZE', 'GALE', and 'STORM':
     pathways2Net0RowInds = np.arange(36, 36 + steps_per_episode)
     # pathways2Net0ColumnInds[state.step_count] and pathways2Net0RowInds[state.step_count] will locate the current year's column / row respectively
-    
+
     # Multiplicative noise is applied to all costs. The parameters of this randomisation are:
     noise_mu = 1.0
-    noise_sigma = 0.1  
+    noise_sigma = 0.1
     noise_clipping = 0.5  # (i.e., costs are reduced by 50% at the most)
-    noise_sigma_factor = np.sqrt(0.1) # this factor is applied to make CCUS capex & opex less volatile than other costs  
+    noise_sigma_factor = np.sqrt(
+        0.1
+    )  # this factor is applied to make CCUS capex & opex less volatile than other costs
     # The costs in the Carbon capture utilisation and storage (CCUS) tab to be randomised are capex, opex, and carbon price, with these row numbers:
     pathways2Net0RandomRowInds_CCUS = np.array([23, 24, 26])
     # The costs in the 'Outputs' tab to be randomised are Offshore wind - Devex, Capex, and Opex, Green Hydrogen - Capex, Fixed Opex, and Variable Opex, Blue Hydrogen - price, Gas feedstock price, Capex, Fixed opex, Variable opex, and Natural gas cost, with these row numbers:
@@ -40,15 +44,16 @@ class Parameters:
     noise_mu = 1.0
     noise_sigma = 0.1  # or try 0.1, 0.0, np.sqrt(0.001), 0.02, np.sqrt(0.0003), 0.015, 0.01, np.sqrt(0.00001), 0.001
     noise_clipping = 0.5  # or try 0.001, 0.1, 0.5 (i.e., original costs are reduced by 50% at the most)
-    noise_sigma_factor = np.sqrt(0.1) # as in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24) should have smaller standard deviations
+    noise_sigma_factor = np.sqrt(
+        0.1
+    )  # as in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24) should have smaller standard deviations
     stochastic_sigma = False  # set to False to use one single noise_sigma; set to True to randomly switch between two different std:
     # noise_sigma_low = 0.001
     # noise_sigma_high = np.sqrt(0.00001)
     # OR, sample a sigma from a uniform distribution centered at noise_sigma with total 2-side range of noise_sigma_range:
     noise_sigma_range = 0.002
-    noise_observability = False  # set to True to make the observation_space contain randomized costs/prices; set to False to restrict the observation_space to contain only the state.step_count
+    noise_observability = False  # set to True to make the observation_space contain randomized costs/prices ("closed loop"); set to False to restrict the observation_space to contain only the state.step_count ("open loop")
 
-    
 
 class State:
     def __init__(self, seed=None, param=Parameters()):
@@ -80,11 +85,9 @@ class State:
         # NOTE: our convention is to update step_count at the beginning of the gym step() function
         self.step_count = -1
         self.steps_per_episode = param.steps_per_episode
-        
+
         # initial jobs supported in 2030
-        self.jobs = np.float32(
-            110484
-        )  
+        self.jobs = np.float32(110484)
         # variable to record jobs created each year
         self.jobs_increment = np.zeros(1, dtype=np.float32)  # initialized as 0
         # fmt: off
@@ -108,19 +111,15 @@ class State:
         self.emission_amount_all = []
 
     def to_observation(self):
-        observation = (self.step_count,) + tuple(
-            self.randomized_costs
-        )  
+        observation = (self.step_count,) + tuple(self.randomized_costs)
         if self.noise_observability == False:
             observation = (self.step_count,)
-
 
         return observation
 
     def is_done(self):
         done = bool(self.step_count >= self.steps_per_episode - 1)
         return done
-
 
 
 def record(state, action, reward, weightedRewardComponents):
@@ -136,10 +135,12 @@ def observation_space(self):
     obs_low = np.full_like(self.state.to_observation(), 0, dtype=np.float32)
     obs_low[0] = -1  # first entry of obervation is the timestep
     obs_high = np.full_like(self.state.to_observation(), 1e5, dtype=np.float32)
-    obs_high[0] = self.param.steps_per_episode  # first entry of obervation is the timestep
+    obs_high[
+        0
+    ] = self.param.steps_per_episode  # first entry of obervation is the timestep
     if self.state.noise_observability == True:
-        obs_high[5] = 1e6  
-        obs_high[7] = 1e6  
+        obs_high[5] = 1e6
+        obs_high[7] = 1e6
     result = spaces.Box(obs_low, obs_high, dtype=np.float32)
     return result
 
@@ -149,7 +150,7 @@ def action_space(self):
     # lower limit on increments is zero
     act_low = np.zeros(self.param.techs, dtype=np.float32)
     # upper limits on increments depend on the technology
-    act_high = np.float32([27, 25, 24]) 
+    act_high = np.float32([27, 25, 24])
     result = spaces.Box(act_low, act_high, dtype=np.float32)
     return result
 
@@ -160,19 +161,18 @@ def apply_action(action, state, param):
 
     # each technology gives rewards of various types (ie costs and revenues)
     # create an array to hold the reward components (aggregated over all technologies):
-    weightedRewardComponents = np.zeros(
-        param.reward_types
-    )  
+    weightedRewardComponents = np.zeros(param.reward_types)
 
     # read in the current deployment for offshore wind power
     offshoreWind = param.pathways2Net0.evaluate(
         # "GALE!P" + str(param.pathways2Net0RowInds[state.step_count] - 1)
-        "GALE!S" + str(param.pathways2Net0RowInds[state.step_count] - 1)
+        "GALE!S"
+        + str(param.pathways2Net0RowInds[state.step_count] - 1)
     )
 
     # add the increment of offshore wind for this timestep (specified by the action), imposing a maximum deployment
     offshoreWind = np.clip(offshoreWind + action[0], offshoreWind, 380)
-    
+
     # similarly for blue and green hydrogen
     blueHydrogen = param.pathways2Net0.evaluate(
         "GALE!X" + str(param.pathways2Net0RowInds[state.step_count] - 1)
@@ -182,17 +182,18 @@ def apply_action(action, state, param):
         "GALE!Y" + str(param.pathways2Net0RowInds[state.step_count] - 1)
     )
     greenHydrogen = np.clip(greenHydrogen + action[2], greenHydrogen, 253)
-    
+
     # record the new deployments in an array
     state.deployments = np.array(
         [offshoreWind, blueHydrogen, greenHydrogen], dtype=np.float32
     )
-    
+
     # evaluate the model cells containing the deployment values for the current timestep (for offshore wind power, blue hydrogen and green hydrogen respectively)
-    # this enables the current timestep's deployment values to be entered into the model 
+    # this enables the current timestep's deployment values to be entered into the model
     param.pathways2Net0.evaluate(
         # "GALE!P" + str(param.pathways2Net0RowInds[state.step_count])
-        "GALE!S" + str(param.pathways2Net0RowInds[state.step_count])
+        "GALE!S"
+        + str(param.pathways2Net0RowInds[state.step_count])
     )
     param.pathways2Net0.evaluate(
         "GALE!X" + str(param.pathways2Net0RowInds[state.step_count])
@@ -223,11 +224,12 @@ def apply_action(action, state, param):
             "CCUS!" + param.pathways2Net0ColumnInds[state.step_count] + "68"
         )
     )
-    
+
     # enter the deployment values for this timestep into the model
     param.pathways2Net0.set_value(
         # "GALE!P" + str(param.pathways2Net0RowInds[state.step_count]), offshoreWind
-        "GALE!S" + str(param.pathways2Net0RowInds[state.step_count]), offshoreWind
+        "GALE!S" + str(param.pathways2Net0RowInds[state.step_count]),
+        offshoreWind,
     )
     param.pathways2Net0.set_value(
         "GALE!X" + str(param.pathways2Net0RowInds[state.step_count]), blueHydrogen
@@ -277,10 +279,12 @@ def apply_action(action, state, param):
     )
     state.jobs_increment = weightedRewardComponents[-2] - state.jobs
     state.jobs = weightedRewardComponents[-2]
-    # calculate reward for this timestep: revenue - (capex + opex + emissions) + timestep * (increment in jobs) 
+    # calculate reward for this timestep: revenue - (capex + opex + emissions) + timestep * (increment in jobs)
     reward = (
-        weightedRewardComponents[2] - np.sum(weightedRewardComponents[[0, 1, 3]]) + (state.step_count * state.jobs_increment)
-    )  
+        weightedRewardComponents[2]
+        - np.sum(weightedRewardComponents[[0, 1, 3]])
+        + (state.step_count * state.jobs_increment)
+    )
     # copy model from param to state
     state.pathways2Net0 = param.pathways2Net0
     return state, reward, weightedRewardComponents
@@ -295,8 +299,8 @@ def randomise(state, action, param):
     # copy model from state to param
     param.pathways2Net0 = state.pathways2Net0
 
-    # noise will be applied by multiplication 
-    
+    # noise will be applied by multiplication
+
     # evaluate capex, opex, revenue, and emissions for each technology:
     # fmt: off
     np.float32([param.pathways2Net0.evaluate('Outputs!'+param.pathways2Net0ColumnInds[state.step_count]+'24'), 
@@ -318,8 +322,10 @@ def randomise(state, action, param):
     # fmt: on
     rowInds_CCUS = param.pathways2Net0RandomRowInds_CCUS
     rowInds_Outputs = param.pathways2Net0RandomRowInds_Outputs
-    # specify smaller standard deviation for CCUS capex & opex 
-    noise_sigma_CCUS = np.full(len(rowInds_CCUS), param.noise_sigma) * np.array([param.noise_sigma_factor, param.noise_sigma_factor, 1.0])
+    # specify smaller standard deviation for CCUS capex & opex
+    noise_sigma_CCUS = np.full(len(rowInds_CCUS), param.noise_sigma) * np.array(
+        [param.noise_sigma_factor, param.noise_sigma_factor, 1.0]
+    )
     # generate Gaussian noise N~(1,0.1), clipped at a (positive) minimum value:
     multiplicativeNoise_CCUS = np.maximum(
         param.noise_clipping,
@@ -341,7 +347,7 @@ def randomise(state, action, param):
             currentCost = param.pathways2Net0.evaluate(
                 "CCUS!" + yearColumnID + str(rowInds_CCUS[costRowID])
             )
-            # apply noise 
+            # apply noise
             param.pathways2Net0.set_value(
                 "CCUS!" + yearColumnID + str(rowInds_CCUS[costRowID]),
                 multiplicativeNoise_CCUS[costRowID] * currentCost,
@@ -381,7 +387,7 @@ def randomise(state, action, param):
 
 
 def reset_param(param):
-    # use param.pathways2Net0_reset (the reference model) to reset the randomised costs and revenues in param.pathways2Net0 (the working model) 
+    # use param.pathways2Net0_reset (the reference model) to reset the randomised costs and revenues in param.pathways2Net0 (the working model)
     # tabs to reset:
     spreadsheets = np.array(["GALE", "CCUS", "Outputs"])
     # columns to reset in each tab:
@@ -391,16 +397,16 @@ def reset_param(param):
             np.array(["S", "X", "Y"]),
             param.pathways2Net0ColumnInds,
             param.pathways2Net0ColumnInds,
-        ]
-    )
-    # rows to reset in each tab:    
+        ],
+    dtype=object)
+    # rows to reset in each tab:
     rowInds_BySheets = np.array(
         [
             param.pathways2Net0RowInds,
             param.pathways2Net0RandomRowInds_CCUS,
             param.pathways2Net0RandomRowInds_Outputs,
-        ]
-    )
+        ],
+    dtype=object)
     # for each tab to reset:
     for iSheet in np.arange(len(spreadsheets)):
         # for each column to reset:
@@ -423,7 +429,9 @@ def cal_reset_diff(param):
     # reload the model:
     workbooks_dir = Path(__file__).resolve().parent.parent / "compiled_workbook_objects"
     # pathways2Net0_loaded = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Compiled")
-    pathways2Net0_loaded = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Modified_Compiled")
+    pathways2Net0_loaded = ExcelCompiler.from_file(
+        filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Modified_Compiled"
+    )
     spreadsheets = np.array(["GALE", "CCUS", "Outputs"])
     columnInds_BySheets = np.array(
         [
@@ -443,15 +451,47 @@ def cal_reset_diff(param):
     for iSheet in np.arange(len(spreadsheets)):
         for iColumn in columnInds_BySheets[iSheet]:
             for iRow in rowInds_BySheets[iSheet]:
-                if param.pathways2Net0.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)) != None and pathways2Net0_loaded.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)) != None:
+                if (
+                    param.pathways2Net0.evaluate(
+                        spreadsheets[iSheet] + "!" + iColumn + str(iRow)
+                    )
+                    != None
+                    and pathways2Net0_loaded.evaluate(
+                        spreadsheets[iSheet] + "!" + iColumn + str(iRow)
+                    )
+                    != None
+                ):
                     abs_diff = abs_diff + np.abs(
-                        param.pathways2Net0.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)) - pathways2Net0_loaded.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow))
+                        param.pathways2Net0.evaluate(
+                            spreadsheets[iSheet] + "!" + iColumn + str(iRow)
+                        )
+                        - pathways2Net0_loaded.evaluate(
+                            spreadsheets[iSheet] + "!" + iColumn + str(iRow)
+                        )
                     )
                 else:
-                    if param.pathways2Net0.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)) != None:
-                        abs_diff = abs_diff + np.abs(param.pathways2Net0.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)))
-                    if pathways2Net0_loaded.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)) != None:
-                        abs_diff = abs_diff + np.abs(pathways2Net0_loaded.evaluate(spreadsheets[iSheet] + "!" + iColumn + str(iRow)))
+                    if (
+                        param.pathways2Net0.evaluate(
+                            spreadsheets[iSheet] + "!" + iColumn + str(iRow)
+                        )
+                        != None
+                    ):
+                        abs_diff = abs_diff + np.abs(
+                            param.pathways2Net0.evaluate(
+                                spreadsheets[iSheet] + "!" + iColumn + str(iRow)
+                            )
+                        )
+                    if (
+                        pathways2Net0_loaded.evaluate(
+                            spreadsheets[iSheet] + "!" + iColumn + str(iRow)
+                        )
+                        != None
+                    ):
+                        abs_diff = abs_diff + np.abs(
+                            pathways2Net0_loaded.evaluate(
+                                spreadsheets[iSheet] + "!" + iColumn + str(iRow)
+                            )
+                        )
     # abs_diff should be 0 if reset_param works correctly:
     return abs_diff
 
@@ -462,56 +502,66 @@ def plot_episode(state, fname):
 
     # plot cumulative total rewards and deployments for the 3 technologies:
     ax1 = plt.subplot(221)
-    plt.plot(np.cumsum(state.rewards_all), label='cumulative reward',color='black')
+    plt.plot(np.cumsum(state.rewards_all), label="cumulative reward", color="black")
     plt.xlabel("time, avg reward: " + str(np.mean(state.rewards_all)))
     plt.ylabel("cumulative reward")
-    plt.legend(loc='upper left', fontsize='xx-small')
+    plt.legend(loc="upper left", fontsize="xx-small")
     plt.tight_layout()
 
     ax2 = ax1.twinx()
-    ax2.plot(np.array(state.deployments_all)[:,0],label="offshore wind")
-    ax2.plot(np.array(state.deployments_all)[:,1],label="blue hydrogen")
-    ax2.plot(np.array(state.deployments_all)[:,2],label="green hydrogen")
-    ax2.plot(np.array(state.emission_amount_all),label="CO2 emissions amount") 
+    ax2.plot(np.array(state.deployments_all)[:, 0], label="offshore wind")
+    ax2.plot(np.array(state.deployments_all)[:, 1], label="blue hydrogen")
+    ax2.plot(np.array(state.deployments_all)[:, 2], label="green hydrogen")
+    ax2.plot(np.array(state.emission_amount_all), label="CO2 emissions amount")
     ax2.set_ylabel("deployments and CO2 emissions")
-    plt.legend(loc='lower right',fontsize='xx-small')
+    plt.legend(loc="lower right", fontsize="xx-small")
     plt.tight_layout()
 
     # plot a subset of the observations:
     plt.subplot(222)
     # first 5 elements of observations are step counts and first 4 randomized costs
-    plt.plot(np.array(state.observations_all)[:,0], label="step counts", color='black')
-    if state.noise_observability == True:        
-        plt.plot(np.array(state.observations_all)[:,1], label="CCS Capex £/tonne")
-        plt.plot(np.array(state.observations_all)[:,2], label="CCS Opex £/tonne")
-        plt.plot(np.array(state.observations_all)[:,3], label="Carbon price £/tonne")
-        plt.plot(np.array(state.observations_all)[:,4], label="Offshore wind Devex £/kW")
-        plt.plot(np.array(state.observations_all)[:,5], label="Offshore wind Capex £/kW")
+    plt.plot(np.array(state.observations_all)[:, 0], label="step counts", color="black")
+    if state.noise_observability == True:
+        plt.plot(np.array(state.observations_all)[:, 1], label="CCS Capex £/tonne")
+        plt.plot(np.array(state.observations_all)[:, 2], label="CCS Opex £/tonne")
+        plt.plot(np.array(state.observations_all)[:, 3], label="Carbon price £/tonne")
+        plt.plot(
+            np.array(state.observations_all)[:, 4], label="Offshore wind Devex £/kW"
+        )
+        plt.plot(
+            np.array(state.observations_all)[:, 5], label="Offshore wind Capex £/kW"
+        )
     plt.xlabel("time")
     plt.ylabel("observations")
-    plt.legend(loc='lower right',fontsize='xx-small')
+    plt.legend(loc="lower right", fontsize="xx-small")
     plt.tight_layout()
 
     # plot the agent's actions:
     plt.subplot(223)
     # plt.plot(np.array(state.actions_all)[:,0],label="offshore wind capacity [GW]")
-    plt.plot(np.array(state.actions_all)[:,0],label="offshore wind to power [TWh]")
-    plt.plot(np.array(state.actions_all)[:,1],label="blue hydrogen energy [TWh]")
-    plt.plot(np.array(state.actions_all)[:,2],label="green hydrogen energy [TWh]")    
+    plt.plot(np.array(state.actions_all)[:, 0], label="offshore wind to power [TWh]")
+    plt.plot(np.array(state.actions_all)[:, 1], label="blue hydrogen energy [TWh]")
+    plt.plot(np.array(state.actions_all)[:, 2], label="green hydrogen energy [TWh]")
     plt.xlabel("time")
     plt.ylabel("actions")
-    plt.legend(title="increment in",loc='lower right',fontsize='xx-small')
+    plt.legend(title="increment in", loc="lower right", fontsize="xx-small")
     plt.tight_layout()
 
     # plot jobs and increments in jobs:
     plt.subplot(224)
-    to_plot = np.vstack((np.array(state.weightedRewardComponents_all)[:,4],
-                        np.hstack((np.nan,np.diff(np.array(state.weightedRewardComponents_all)[:,4]))))).T    
-    plt.plot(to_plot[:,0], label="jobs")
-    plt.plot(to_plot[:,1], label="increment in jobs")
+    to_plot = np.vstack(
+        (
+            np.array(state.weightedRewardComponents_all)[:, 4],
+            np.hstack(
+                (np.nan, np.diff(np.array(state.weightedRewardComponents_all)[:, 4]))
+            ),
+        )
+    ).T
+    plt.plot(to_plot[:, 0], label="jobs")
+    plt.plot(to_plot[:, 1], label="increment in jobs")
     plt.xlabel("time")
     plt.ylabel("jobs and increments")
-    plt.legend(loc='lower left', fontsize='xx-small')
+    plt.legend(loc="lower left", fontsize="xx-small")
     plt.tight_layout()
 
     plt.savefig(fname)
@@ -527,13 +577,19 @@ class GymEnv(gym.Env):
         self.seed()
         self.load_workbooks()
         self.initialise_state()
-    
+
     def load_workbooks(self):
         self.param = Parameters()
-        workbooks_dir = Path(__file__).resolve().parent.parent / "compiled_workbook_objects"
-        # load a working model and a reference model:      
-        self.param.pathways2Net0 = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Modified_Compiled")
-        self.param.pathways2Net0_reset = ExcelCompiler.from_file(filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Modified_Compiled")
+        workbooks_dir = (
+            Path(__file__).resolve().parent.parent / "compiled_workbook_objects"
+        )
+        # load a working model and a reference model:
+        self.param.pathways2Net0 = ExcelCompiler.from_file(
+            filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Modified_Compiled"
+        )
+        self.param.pathways2Net0_reset = ExcelCompiler.from_file(
+            filename=f"{workbooks_dir}/PathwaysToNetZero_Simplified_Anonymized_Modified_Compiled"
+        )
 
     def initialise_state(self):
 
@@ -546,7 +602,7 @@ class GymEnv(gym.Env):
         self.initialise_state()
         observation = self.state.to_observation()
         return observation
-    
+
     def check_reset(self):
         reset_diff = cal_reset_diff(self.param)
         return reset_diff
@@ -554,7 +610,9 @@ class GymEnv(gym.Env):
     def step(self, action):
         self.state.step_count += 1
         self.state = randomise(self.state, action, self.param)
-        self.state, reward, weightedRewardComponents = apply_action(action, self.state, self.param)
+        self.state, reward, weightedRewardComponents = apply_action(
+            action, self.state, self.param
+        )
         observation = self.state.to_observation()
         done = self.state.is_done()
         record(self.state, action, reward, weightedRewardComponents)

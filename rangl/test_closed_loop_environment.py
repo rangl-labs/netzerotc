@@ -1,19 +1,20 @@
+#!/usr/bin/env python
+
+
 import logging
+from pathlib import Path
 
 import pandas as pd
 import numpy as np
 import gym
-
-import reference_environment
-
-from pathlib import Path
+import rangl
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 # Create an environment named env
-env = gym.make("reference_environment:rangl-nztc-v0")
+env = gym.make("rangl:nztc-closed-loop-v0")
 
 # Generate a random action and check it has the right length
 action = env.action_space.sample()
@@ -56,29 +57,10 @@ print(differences)
 
 
 # Plot the episode
-env.plot("fixed_policy_DirectDeployment.png")
-# env.plot("10models_100episodes_DirectDeployment.png")
-# env.plot("10models_100episodes_DirectDeployment_MODEL_1.png")
-# env.plot("fixed_policy_DirectDeploymentCorrelationRandomized_max(N(1,0),0.5).png")
-assert Path("fixed_policy_DirectDeployment.png").is_file()
-
-## Plot the noise:
-# import matplotlib.pyplot as plt
-# from pycel import ExcelCompiler
-# from IPython.display import FileLink
-
-# randomizedPrice = []
-# for yearColumnID in env.param.Pathways2Net0ColumnInds:
-    # fmt: off
-#     randomizedPrice.append(env.param.Pathways2Net0.evaluate('CCUS!' + yearColumnID + '26'))
-    # fmt: on
-# randomizedPrice = np.array(randomizedPrice)
-# plt.plot(randomizedPrice)
-# plt.xlabel("time")
-# plt.ylabel("price or cost (carbon, capex, opex, or other)")
-# plt.tight_layout()
-## plt.savefig('NoiseVisualization_ApplyingToAllYears.png')
-# plt.savefig("NoiseVisualization_ApplyingToCurrentStepTo2050.png")
+env.plot("fixed_policy.png")
+# env.plot("10models_100episodes.png")
+# env.plot("10models_100episodes_MODEL_1.png")
+assert Path("fixed_policy.png").is_file()
 
 # logger.info(f"observations_all: {env.state.observations_all}")
 # logger.info(f"actions_all: {env.state.actions_all}")
@@ -93,13 +75,13 @@ assert env.state.observations_all[-1][0] == env.param.steps_per_episode - 1
 # check that specifying the same seed gives the same noise
 env.seed(123)
 obs1 = env.reset()
-env = gym.make("reference_environment:rangl-nztc-v0")
+env = gym.make("rangl:nztc-closed-loop-v0")
 env.seed(123)
 obs2 = env.reset()
 assert obs1 == obs2
 
 # check that the seed can be reverted to None, so reset() gives different noise
-# env = gym.make("reference_environment:rangl-nztc-v0")
+# env = gym.make("rangl:nztc-closed-loop-v0")
 # env.seed(123)
 # env.seed(None)
 # obs1 = env.reset()

@@ -19,7 +19,7 @@ Install the dependencies:
 pip install -r requirements.txt
 ```
 
-Build a docker image for the submission:
+With Docker installed and running on your computer, build a Docker image for the submission:
 
 ```shell
 make build
@@ -40,7 +40,7 @@ For this to work, the following must hold:
 1. An environment container named `nztc` must be running on the docker network named `evalai_rangl`. To create the appropriate container, run the following:
 
    ```shell
-   cd environment
+   cd ..
    docker-compose up --build
    ```
 

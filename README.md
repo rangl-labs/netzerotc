@@ -10,9 +10,9 @@ RangL uses the [Openai Gym framework](https://gym.openai.com). To install the Ra
 
 1. If necessary, install the pip package manager (you can do this by running the `get-pip.py` Python script)
 
-2. Run `pip install -e environment`
+2. Run `pip install -e .`
 
-Then head into the `environment` folder and check out the README there.
+Then head into the `rangl/env_open_loop` folder and check out the README there.
 
 ## Developing your agent
 
@@ -29,7 +29,7 @@ The `Evaluate` class also provides benchmark agents drawn from the [Integrated E
 
 * `breeze_agent`: implements actions corresponding to the Emerging scenario in the IEV study. These actions focus on deploying offshore wind
 * `gale_agent`: implements the Progressive IEV scenario: Higher offshore wind and a mix of blue and green hydrogen
-* `storm_agent`: implements the Transformational IEV scenario: Highest offshore wind, paired with and green hydrogen
+* `storm_agent`: implements the Transformational IEV scenario: Highest offshore wind, paired with green hydrogen
 
 ## Self-evaluation
 

@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-from flask import Flask, request, jsonify
 import uuid
+import logging
+import json
+
+from flask import Flask, request, jsonify
 import gym
 import numpy as np
 import six
 import argparse
-import json
+import rangl
 
-import reference_environment
-
-import logging
 
 logger = logging.getLogger("werkzeug")
 logger.setLevel(logging.ERROR)
@@ -487,7 +487,7 @@ def upload():
 
 @app.route("/v1/shutdown/", methods=["POST"])
 def shutdown():
-    """ Request a server shutdown - currently used by the integration tests to repeatedly create and destroy fresh copies of the server running in a separate thread"""
+    """Request a server shutdown - currently used by the integration tests to repeatedly create and destroy fresh copies of the server running in a separate thread"""
     f = request.environ.get("werkzeug.server.shutdown")
     f()
     return "Server shutting down"

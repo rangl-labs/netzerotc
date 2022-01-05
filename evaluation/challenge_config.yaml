@@ -22,10 +22,16 @@ leaderboard:
         "labels": ["Average Cost"],
         "default_order_by": "Average Cost",
       }
+  - id: 2
+    schema:
+      {
+        "labels": ["Average Cost"],
+        "default_order_by": "Average Cost",
+      }
 
 challenge_phases:
   - id: 1
-    name: Dev Phase
+    name: Open-loop phase
     description: templates/challenge_phase_1_description.html
     leaderboard_public: True
     is_public: True
@@ -37,31 +43,26 @@ challenge_phases:
     max_submissions_per_day: 5
     max_submissions_per_month: 50
     max_submissions: 50
-    submission_meta_attributes:
-      - name: TextAttribute
-        description: Sample
-        type: text
-        required: False
-      - name: SingleOptionAttribute
-        description: Sample
-        type: radio
-        options: ["A", "B", "C"]
-      - name: MultipleChoiceAttribute
-        description: Sample
-        type: checkbox
-        options: ["alpha", "beta", "gamma"]
-      - name: TrueFalseField
-        description: Sample
-        type: boolean
-        required: True
+    is_restricted_to_select_one_submission: False
+    is_partial_submission_evaluation_enabled: False
+  - id: 2
+    name: Closed-loop phase
+    description: templates/challenge_phase_2_description.html
+    leaderboard_public: True
+    is_public: True
+    is_submission_public: True
+    start_date: 2021-01-01 00:00:00
+    end_date: 2022-02-01 00:00:00
+    test_annotation_file: annotations/test_annotations_devsplit.json
+    codename: dev
+    max_submissions_per_day: 5
+    max_submissions_per_month: 50
+    max_submissions: 50
     is_restricted_to_select_one_submission: False
     is_partial_submission_evaluation_enabled: False
 
 dataset_splits:
   - id: 1
-    name: Train Split
-    codename: train_split
-  - id: 2
     name: Test Split
     codename: test_split
 
@@ -70,5 +71,11 @@ challenge_phase_splits:
     leaderboard_id: 1
     dataset_split_id: 1
     visibility: 3
-    leaderboard_decimal_precision: 0
+    leaderboard_decimal_precision: 2
+    is_leaderboard_order_descending: False
+  - challenge_phase_id: 2
+    leaderboard_id: 2
+    dataset_split_id: 1
+    visibility: 3
+    leaderboard_decimal_precision: 2
     is_leaderboard_order_descending: False
