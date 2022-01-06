@@ -1,0 +1,7 @@
+pandas
+numpy
+gym
+requests
+pytest
+docker
+stable_baselines3
