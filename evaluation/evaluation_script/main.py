@@ -113,7 +113,7 @@ def evaluate(test_annotation_file, user_submission_file, phase_codename, **kwarg
     print("phase_codename", phase_codename)
 
     output = {}
-    if phase_codename in ["open", "closed"]:
+    if phase_codename in ["open-loop", "closed-loop"]:
         output["result"] = [
             {
                 "test_split": {
