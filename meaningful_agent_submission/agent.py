@@ -1,6 +1,6 @@
 import os
 
-from stable_baselines3 import PPO, A2C, DDPG
+from stable_baselines3 import DDPG
 
 from util import Client
 
@@ -25,10 +25,8 @@ client.env_monitor_start(
 
 obs = client.env_reset(instance_id)
 
-model_number_str = "0"
-# agent = PPO.load("./" + trained_models_dir + "/" + "MODEL_" + model_number_str)
-# agent = A2C.load("./" + trained_models_dir + "/" + "MODEL_" + model_number_str)
-model = DDPG.load("MODEL_" + model_number_str)
+model_number = 0
+model = DDPG.load(f"MODEL_{model_number}")
 
 while True:
     action, _ = model.predict(obs, deterministic=True)

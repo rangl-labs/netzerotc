@@ -83,11 +83,8 @@ class Client(object):
     def env_reset(self, instance_id):
         route = "/v1/envs/{}/reset/".format(instance_id)
         resp = self._post_request(route, None)
-
-        # NOTE: env.reset() currently has no return values
-        # therefore, bypass the response
-        # observation = resp["observation"]
-        return None
+        observation = resp["observation"]
+        return observation
 
     def env_step(self, instance_id, action, render=False):
         route = "/v1/envs/{}/step/".format(instance_id)
