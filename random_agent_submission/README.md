@@ -41,7 +41,7 @@ For this to work, the following must hold:
 
    ```shell
    cd ..
-   docker-compose up --build
+   docker-compose up -d --build
    ```
 
 Typical output is as follows:
