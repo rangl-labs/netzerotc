@@ -19,7 +19,8 @@ client = docker.from_env()
 # assumes an image "submission:v0.1.0" was created using `make` in reference/environment
 seeds = read_seeds()
 scores = []
-for seed in seeds:
+for i, seed in enumerate(seeds):
+    print(f"INFO: evaluating seed {i} of {len(seeds)}")
     submission = client.containers.run(
         image="submission:v0.1.0",
         name="agent",
