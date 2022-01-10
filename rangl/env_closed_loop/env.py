@@ -518,7 +518,7 @@ def plot_episode(state, fname):
     plt.tight_layout()
 
     # plot a subset of the observations:
-    plt.subplot(222)
+    ax3 = plt.subplot(222)
     # first 5 elements of observations are step counts and first 4 randomized costs
     plt.plot(np.array(state.observations_all)[:, 0], label="step counts", color="black")
     if state.noise_observability == True:
@@ -528,13 +528,20 @@ def plot_episode(state, fname):
         plt.plot(
             np.array(state.observations_all)[:, 4], label="Offshore wind Devex £/kW"
         )
-        plt.plot(
-            np.array(state.observations_all)[:, 5], label="Offshore wind Capex £/kW"
-        )
+        # plt.plot(
+        #     np.array(state.observations_all)[:, 5], label="Offshore wind Capex £/kW"
+        # )
     plt.xlabel("time")
     plt.ylabel("observations")
-    plt.legend(loc="lower right", fontsize="xx-small")
+    plt.legend(loc="upper right", fontsize="xx-small")
     plt.tight_layout()
+
+    if state.noise_observability == True:
+        ax4 = ax3.twinx()
+        ax4.plot(np.array(state.observations_all)[:,5], label="Offshore wind Capex £/kW")
+        ax4.set_ylabel("Offshore wind Capex £/kW")
+        plt.legend(loc='lower left',fontsize='xx-small')
+        plt.tight_layout()
 
     # plot the agent's actions:
     plt.subplot(223)
