@@ -14,5 +14,6 @@ os.chdir("./saved_models/")
 # To resume a previously trained model:
 # trainer.train_rl(models_to_train=80, episodes_per_model=1000, last_model_number=39)
 # To train from scratch:
-trainer.train_rl(models_to_train=40, episodes_per_model=1000)
+
+trainer.train_rl(models_to_train=40, episodes_per_model=100)
 os.chdir("../")

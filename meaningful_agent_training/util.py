@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import gym
 from stable_baselines3 import PPO, A2C, DDPG
+
 # from stable_baselines3.ppo import MlpPolicy
 # from stable_baselines3.a2c import MlpPolicy
 # from stable_baselines3.ddpg import MlpPolicy
@@ -17,7 +18,9 @@ class Trainer:
         self.env = env
         self.param = env.param
 
-    def train_rl(self, models_to_train=40, episodes_per_model=100, last_model_number=-1):
+    def train_rl(
+        self, models_to_train=40, episodes_per_model=100, last_model_number=-1
+    ):
         # specify the RL algorithm to train (eg ACKTR, TRPO...)
         # model = PPO(MlpPolicy, self.env, verbose=1)
         # model = A2C("MlpPolicy", self.env, verbose=1)
@@ -95,8 +98,15 @@ class Evaluate:
         rewards = []
         # deployments = np.array(np.array(pd.read_excel('BREEZE_Deployments.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
         # deployments = np.array(np.array(pd.read_excel('BREEZE_Deployments_Modified.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
-        deployments = np.array(np.array(pd.read_excel('./scenario_agents_actions/BREEZE_Deployments_Modified.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
-        actions = deployments[1:,:] - deployments[:-1,:]
+        deployments = np.array(
+            np.array(
+                pd.read_excel(
+                    "./scenario_agents_actions/BREEZE_Deployments_Modified.xlsx"
+                )
+            )[-(self.env.param.steps_per_episode + 1) :, 1:],
+            dtype=np.float32,
+        )
+        actions = deployments[1:, :] - deployments[:-1, :]
         for seed in seeds:
             self.env.seed(seed)
             self.env.reset()
@@ -110,8 +120,15 @@ class Evaluate:
         rewards = []
         # deployments = np.array(np.array(pd.read_excel('GALE_Deployments.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
         # deployments = np.array(np.array(pd.read_excel('GALE_Deployments_Modified.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
-        deployments = np.array(np.array(pd.read_excel('./scenario_agents_actions/GALE_Deployments_Modified.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
-        actions = deployments[1:,:] - deployments[:-1,:]
+        deployments = np.array(
+            np.array(
+                pd.read_excel(
+                    "./scenario_agents_actions/GALE_Deployments_Modified.xlsx"
+                )
+            )[-(self.env.param.steps_per_episode + 1) :, 1:],
+            dtype=np.float32,
+        )
+        actions = deployments[1:, :] - deployments[:-1, :]
         for seed in seeds:
             self.env.seed(seed)
             self.env.reset()
@@ -125,8 +142,15 @@ class Evaluate:
         rewards = []
         # deployments = np.array(np.array(pd.read_excel('STORM_Deployments.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
         # deployments = np.array(np.array(pd.read_excel('STORM_Deployments_Modified.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
-        deployments = np.array(np.array(pd.read_excel('./scenario_agents_actions/STORM_Deployments_Modified.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
-        actions = deployments[1:,:] - deployments[:-1,:]
+        deployments = np.array(
+            np.array(
+                pd.read_excel(
+                    "./scenario_agents_actions/STORM_Deployments_Modified.xlsx"
+                )
+            )[-(self.env.param.steps_per_episode + 1) :, 1:],
+            dtype=np.float32,
+        )
+        actions = deployments[1:, :] - deployments[:-1, :]
         for seed in seeds:
             self.env.seed(seed)
             self.env.reset()
