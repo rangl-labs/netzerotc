@@ -40,7 +40,7 @@ For this to work, the following must hold:
 1. An environment container named `nztc` must be running on the docker network named `evalai_rangl`. To create the appropriate container, run the following:
 
    ```shell
-   cd ..
+   cd ../..
    docker-compose up -d --build
    ```
 
