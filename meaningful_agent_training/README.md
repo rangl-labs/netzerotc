@@ -29,3 +29,5 @@ To see how well the models learn from the environment, train and save multiple m
 - `test_environment_load.py` verifies that environments have been correctly registered.
 
 - `test_create_models.py` creates two models which can be used for testing the submission process to the two competition phases:  `saved_models/MODEL_closed_loop_0.zip` and `saved_models/MODEL_open_loop_0.zip`.
+
+- `scenario_agents_actions` contains the actions for the benchmark agents and should not be modified.
