@@ -1,5 +1,6 @@
 import json
-import random
+
+# import random
 
 import docker
 import requests
@@ -49,9 +50,113 @@ def evaluate(test_annotation_file, user_submission_file, phase_codename, **kwarg
     print("evaluation_script/main.py")
     print("Submission related metadata:")
 
-    random.seed(3423232)  # set a seed so that we generate the same seed_list each time
-    N_seeds = 5
-    seed_list = [random.randint(0, 1e7) for _ in range(N_seeds)]
+    # random.seed(3423232)  # set a seed so that we generate the same seed_list each time
+    # N_seeds = 5
+    # seed_list = [random.randint(0, 1e7) for _ in range(N_seeds)]
+
+    # explicitly listing the seeds from https://github.com/rangl-labs/netzerotc/blob/main/local_agent_training_and_evaluation/seeds.csv as below:
+    seed_list = [
+        6363661,
+        1940112,
+        9650219,
+        2890621,
+        8651466,
+        1834208,
+        7986844,
+        7053405,
+        # 6612160,
+        # 9156319,
+        # 6333356,
+        # 133106,
+        # 314808,
+        # 5623388,
+        # 221975,
+        # 1504387,
+        # 6970805,
+        # 7341740,
+        # 7576412,
+        # 8297526,
+        # 571960,
+        # 5459592,
+        # 2734582,
+        # 9536951,
+        # 9716755,
+        # 2018774,
+        # 7876799,
+        # 159754,
+        # 4077557,
+        # 3571375,
+        # 164906,
+        # 3681712,
+        # 4703580,
+        # 4666427,
+        # 3298598,
+        # 1534356,
+        # 6531179,
+        # 7759559,
+        # 6815011,
+        # 3911076,
+        # 7942634,
+        # 3715938,
+        # 5198377,
+        # 9535630,
+        # 2166600,
+        # 6854299,
+        # 1134615,
+        # 1175505,
+        # 7386101,
+        # 9921565,
+        # 2069437,
+        # 8558157,
+        # 9230516,
+        # 4624815,
+        # 6512722,
+        # 8281745,
+        # 5897237,
+        # 1925185,
+        # 6901224,
+        # 6934016,
+        # 4004741,
+        # 8041193,
+        # 6667510,
+        # 3720438,
+        # 4884870,
+        # 9873136,
+        # 7773061,
+        # 7630923,
+        # 7115293,
+        # 9724079,
+        # 6028391,
+        # 882684,
+        # 8476098,
+        # 4595056,
+        # 4698906,
+        # 732723,
+        # 6337448,
+        # 6382589,
+        # 7010890,
+        # 9936259,
+        # 4300625,
+        # 6426103,
+        # 5202352,
+        # 823788,
+        # 8368708,
+        # 8891441,
+        # 6171686,
+        # 1351259,
+        # 1624573,
+        # 9537083,
+        # 7355588,
+        # 3361680,
+        # 361488,
+        # 9307853,
+        # 3703568,
+        # 5044473,
+        # 377657,
+        # 8930331,
+        # 2121375,
+        # 7156888,
+    ]
 
     metadata = kwargs["submission_metadata"]
     print(metadata)
@@ -113,16 +218,15 @@ def evaluate(test_annotation_file, user_submission_file, phase_codename, **kwarg
     print("phase_codename", phase_codename)
 
     output = {}
-    if phase_codename in ["open-loop", "closed-loop"]:
-        output["result"] = [
-            {
-                "test_split": {
-                    "Average Cost": -mean_score,
-                }
+    output["result"] = [
+        {
+            "test_split": {
+                "Average Cost": -mean_score,
             }
-        ]
-        output["submission_result"] = output["result"][0]["test_split"]
-        print("output", output)
-        print(f"Completed evaluation for {phase_codename} phase")
+        }
+    ]
+    output["submission_result"] = output["result"][0]["test_split"]
+    print("output", output)
+    print(f"Completed evaluation for {phase_codename} phase")
 
     return output
