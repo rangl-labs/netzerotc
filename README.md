@@ -18,7 +18,7 @@ Then head into the `rangl/env_open_loop` folder and check out the README there.
 
 Write Python code which returns your desired action at each timestep. The performance of this code (your _agent_) will determine your score in the challenge. 
 
-Design freely: you might use explicit rules, reinforcement learning, or some combination of these. The helper class `Evaluate` in `local_agent_training_and_evaluation/util.py` illustrates some basic approaches:
+Design freely: you might use explicit rules, reinforcement learning, or some combination of these. The helper class `Evaluate` in `meaningful_agent_training/util.py` illustrates some basic approaches:
 
 * the `min_agent` method gives your actions the smallest possible value at each step
 * `max_agent`: largest possible actions at each step
@@ -36,11 +36,11 @@ The `Evaluate` class also provides benchmark agents drawn from the [Integrated E
 At each step, the RangL environment uses random noise to model real-world uncertainty. To evaluate an agent yourself, simply average its performance over multiple random seeds. To do this:
 
 * Add your agent to the `Evaluate` helper class (the agents above are examples)
-* Evaluate it just as in `local_agent_training_and_evaluation/evaluate.py` or `local_agent_training_and_evaluation/evaluate_standard_agents.py`
+* Evaluate it just as in `meaningful_agent_training/evaluate.py` or `meaningful_agent_training/evaluate_standard_agents.py`
 
 ## Training 
 
-To get started with training RL agents, head to the `local_agent_training_and_evaluation` folder and check out the README.
+To get started with training RL agents, head to the `meaningful_agent_training` folder and check out the README.
 
 ## Submission
 
