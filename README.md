@@ -44,7 +44,7 @@ To get started with training RL agents, head to the `meaningful_agent_training` 
 
 ## Submission
 
-To submit your agent to the competition, head to the `random_agent_submission` folder and check out its README.
+First test submission of a random agent to the competition by heading to the `random_agent_submission` folder and checking out its README. Then head to the `meaningful_agent_submission` folder to submit your competition entry.
 
 ## Note
 
