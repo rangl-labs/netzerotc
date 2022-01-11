@@ -4,15 +4,18 @@ from stable_baselines3 import DDPG
 
 from util import Client
 
+
+ENV_ID = "nztc-closed-loop-v0"
+MODEL_PATH = "saved_models/MODEL_closed_loop_0"
+
 # when running the agent locally, assume that the environment is accesible at localhost:5000
 # when running a containerised agent, assume that the environment is accesible at $RANGL_ENVIRONMENT_URL (typically http://nztc:5000)
 remote_base = os.getenv("RANGL_ENVIRONMENT_URL", "http://localhost:5000/")
 
 client = Client(remote_base)
 
-env_id = "nztc-open-loop-v0"
 seed = int(os.getenv("RANGL_SEED", 123456))
-instance_id = client.env_create(env_id, seed)
+instance_id = client.env_create(ENV_ID, seed)
 
 
 client.env_monitor_start(
@@ -25,8 +28,7 @@ client.env_monitor_start(
 
 obs = client.env_reset(instance_id)
 
-model_number = 0
-model = DDPG.load(f"MODEL_{model_number}")
+model = DDPG.load(MODEL_PATH)
 
 while True:
     action, _ = model.predict(obs, deterministic=True)

@@ -1,4 +1,4 @@
-stable_baselines3
+stable-baselines3==0.10.0
 pandas
 numpy
 gym

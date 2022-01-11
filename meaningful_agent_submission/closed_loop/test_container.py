@@ -15,6 +15,9 @@ logger.setLevel(logging.DEBUG)
 
 client = docker.from_env()
 
+
+SUBMISSION_IMAGE = "submission-closed-loop:v0.1.0"
+
 # set up a submission (agent) container
 # assumes an image "submission:v0.1.0" was created using `make` in reference/environment
 seeds = read_seeds()
@@ -22,12 +25,11 @@ scores = []
 for i, seed in enumerate(seeds):
     print(f"INFO: evaluating seed {i} of {len(seeds)}")
     submission = client.containers.run(
-        image="submission:v0.1.0",
+        image=SUBMISSION_IMAGE,
         name="agent",
         network="evalai_rangl",
         detach=False,
         auto_remove=True,
-        # command="sleep infinity",  # debug
         environment={
             "RANGL_SEED": seed,
             "RANGL_ENVIRONMENT_URL": "http://nztc:5000",
