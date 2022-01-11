@@ -33,7 +33,7 @@ model = DDPG.load(MODEL_PATH)
 while True:
     action, _ = model.predict(obs, deterministic=True)
     action = [float(action[0]), float(action[1]), float(action[2])]
-    observation, reward, done, info = client.env_step(instance_id, action)
+    obs, reward, done, info = client.env_step(instance_id, action)
     print(instance_id, reward)
     if done:
         print(instance_id)
