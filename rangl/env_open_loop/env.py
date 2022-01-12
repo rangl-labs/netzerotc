@@ -520,7 +520,7 @@ def plot_episode(state, fname):
     # plot a subset of the observations:
     ax3 = plt.subplot(222)
     # first 5 elements of observations are step counts and first 4 randomized costs
-    plt.plot(np.array(state.observations_all)[:, 0], label="step counts", color="black")
+    plt.plot(np.array(state.observations_all)[:, 0], label="step counts")
     if state.noise_observability == True:
         plt.plot(np.array(state.observations_all)[:, 1], label="CCS Capex £/tonne")
         plt.plot(np.array(state.observations_all)[:, 2], label="CCS Opex £/tonne")
@@ -538,7 +538,7 @@ def plot_episode(state, fname):
 
     if state.noise_observability == True:
         ax4 = ax3.twinx()
-        ax4.plot(np.array(state.observations_all)[:,5], label="Offshore wind Capex £/kW")
+        ax4.plot(np.array(state.observations_all)[:,5], label="Offshore wind Capex £/kW", color="black")
         ax4.set_ylabel("Offshore wind Capex £/kW")
         plt.legend(loc='lower left',fontsize='xx-small')
         plt.tight_layout()
