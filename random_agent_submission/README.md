@@ -89,5 +89,5 @@ The image can be submitted as follows:
 4. Submit the agent:
 
    ```shell
-   evalai push submission:v0.1.0 --phase nztc-closed-loop-1
+   evalai push submission:v0.1.0 --phase nztc-open-loop-1
    ```
