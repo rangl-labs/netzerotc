@@ -34,7 +34,6 @@ for i, seed in enumerate(seeds):
             "RANGL_SEED": seed,
             "RANGL_ENVIRONMENT_URL": "http://nztc:5000",
         },
-        command="sleep infinity",
     )
     logger.debug(f"Created submission")
     logger.debug(f"Completed submission")

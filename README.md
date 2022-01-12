@@ -2,7 +2,7 @@
 
 Welcome to the RangL Pathways to Net Zero challenge repository! 
 
-To get started, read the [challenge overview](http://challenges.rangl.org/web/challenges/challenge-page/4/overview).
+To get started, read the [challenge overview](https://challenges.rangl.org/web/challenges/challenge-page/1/overview).
 
 ## The RangL environment
 
