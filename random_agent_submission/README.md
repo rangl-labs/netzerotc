@@ -77,7 +77,7 @@ The image can be submitted as follows:
 2. Set the EvalAI host
 
    ```
-   evalai host -sh http://submissions.rangl.org
+   evalai host -sh https://submissions.rangl.org
    ```
 
 3. Login
@@ -89,5 +89,5 @@ The image can be submitted as follows:
 4. Submit the agent:
 
    ```shell
-   evalai push submission:v0.1.0 --phase <phase_name>
+   evalai push submission:v0.1.0 --phase nztc-closed-loop-1
    ```
