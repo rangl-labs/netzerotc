@@ -221,7 +221,7 @@ def evaluate(test_annotation_file, user_submission_file, phase_codename, **kwarg
     output["result"] = [
         {
             "test_split": {
-                "Average Cost": -mean_score,
+                "Average Cost": mean_score,
             }
         }
     ]
