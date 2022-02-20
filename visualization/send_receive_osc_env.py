@@ -27,7 +27,9 @@ from typing import List, Any
 dispatcher = Dispatcher()
 
 user_action = np.zeros(3)
+steps_back = 0
 def set_user_action(address: str, *args: List[Any]) -> None:
+    global steps_back
     global user_action
     # We expect three float arguments
     # if not len(args) == 3 or type(args[0]) is not float or type(args[1]) or type(args[2]) is not float:
@@ -37,15 +39,22 @@ def set_user_action(address: str, *args: List[Any]) -> None:
     if not address[:-1] == "/user_action":  # Cut off the last character
         return
 
-    value1 = args[0]
-    value2 = args[1]
-    value3 = args[2]
-    current_step = env.state.step_count + 1
+    value1 = args[1]
+    value2 = args[2]
+    value3 = args[3]
+    current_step = env.state.step_count
     # current_step = address[-1]
     # print(f"\n \n Setting user_action values of step {current_step} to: [{value1}, {value2}, {value3}]")
-    print("\n\nSetting user_action values of step %d to: [%f, %f, %f]" %(current_step, value1, value2, value3))
-    set_user_action.values = np.array([args[0], args[1], args[2]])
-    user_action = np.array([args[0], args[1], args[2]])
+    # print("\n\nCurrent env.state.step_count is %d; Setting user_action values of next step %d to: [%f, %f, %f]" %(current_step, current_step+1, value1, value2, value3))
+    set_user_action.steps_back = np.int64(abs(args[0]))
+    set_user_action.values = np.array([args[1], args[2], args[3]])
+    steps_back = np.int64(abs(args[0]))
+    user_action = np.array([args[1], args[2], args[3]])
+    if not steps_back:
+        print("\n\nSetting env.state to step from env.state.step_count = %d to %d, after setting user_action values of next step %d to: [%f, %f, %f] ..." %(current_step, current_step+1, current_step+1, value1, value2, value3))
+    else:
+        print("\n\nRewinding env.state from env.state.step_count = %d back to %d ..." %(current_step, current_step-steps_back))
+        
 
 dispatcher.map("/user_action*", set_user_action)  # Map wildcard address to set_user_action function
 
@@ -62,7 +71,9 @@ server = BlockingOSCUDPServer(("127.0.0.1", 1338), dispatcher)
 
 # Create an environment named env
 env = gym.make("reference_environment_direct_deployment:rangl-nztc-v0")
-
+# set the seed equal to current time in rounded seconds
+seed = int(time.time())
+env.seed(seed)
 # Reset the environment
 env.reset()
 
@@ -74,7 +85,15 @@ while not done:
     action = actions[env.state.step_count + 1]
     client.send_message("/agent_action1", np.hstack((done, action, env.state.step_count + 1)))
     server.handle_request()
-    observation, reward, done, _ = env.step(user_action)
+    if steps_back:
+        previous_actions = env.state.actions_all[:-abs(steps_back)]
+        env.seed(seed)
+        env.reset()
+        for action in previous_actions:
+            observation, reward, done, _ = env.step(action)
+    else:
+        observation, reward, done, _ = env.step(user_action)
+    # observation, reward, done, _ = env.step(user_action)
     print("\nValues sent to OSC server in Unreal Engine for visualization are [step_count, reward, 3-element deployments, CO2 emission amount]: " + str(np.hstack((env.state.step_count, reward, env.state.deployments, env.state.emission_amount))))
     client_toUEosc.send_message("/some/address", np.hstack((env.state.step_count, reward, env.state.deployments, env.state.emission_amount)))
     # client.send_message("/some/address", env.render())
