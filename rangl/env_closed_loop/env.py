@@ -163,6 +163,11 @@ def apply_action(action, state, param):
     # create an array to hold the reward components (aggregated over all technologies):
     weightedRewardComponents = np.zeros(param.reward_types)
 
+    # explicitly enforce action space constraints in action_space(self) for non-RL agents, by np.clip():
+    action[0] = np.clip(action[0], 0, 27)
+    action[1] = np.clip(action[1], 0, 25)
+    action[2] = np.clip(action[2], 0, 24)
+
     # read in the current deployment for offshore wind power
     offshoreWind = param.pathways2Net0.evaluate(
         # "GALE!P" + str(param.pathways2Net0RowInds[state.step_count] - 1)
