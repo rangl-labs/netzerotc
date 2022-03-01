@@ -8,7 +8,25 @@ The challenge took place from 17th to 31st January 2022. After consideration of 
 * **Lanterne-Rouge-BOKU-AIT** (University of Natural Resources and Life Sciences, Vienna, and Austrian Institute of Technology)
 * **VUltures** (Vrije Universiteit Amsterdam). 
 
-Additionally, Team **AIM-Mate** were highly commended for their efforts.
+Additionally, Team **AIM-Mate** were highly commended for their efforts. The final leaderboards were:
+
+**Closed loop phase:**
+
+1.	AIM-Mate (Illegal BO)	        5,120,052.05	
+2. 	Epsilon-greedy	                3,047,274.85	
+3. 	VUltures	                    3,047,274.81	
+4. 	LanterneRougeVienna-BOKU-AIT	3,008,514.93	
+5. 	ShadowXD                      	82,402.63	    
+6. 	uci76ers_past_glory	            -45,401.50	    
+
+**Open loop phase:**
+
+1.	Epsilon-greedy	                3,047,274.85	
+2.	VUltures	                    3,047,274.72	
+3.	LanterneRougeVienna-BOKU-AIT	3,008,514.93	
+4.	Zipper	                        1,864,496.38	
+5.	ShadowXD	                    -159,964.32	    
+6.	uci76ers_past_glory	            -996,916.39   
 
 ## The RangL environment
 
