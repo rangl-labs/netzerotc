@@ -89,8 +89,8 @@ while not done:
         previous_actions = env.state.actions_all[:-abs(steps_back)]
         env.seed(seed)
         env.reset()
-        for action in previous_actions:
-            observation, reward, done, _ = env.step(action)
+        for previous_action in previous_actions:
+            observation, reward, done, _ = env.step(previous_action)
     else:
         observation, reward, done, _ = env.step(user_action)
     # observation, reward, done, _ = env.step(user_action)
@@ -99,7 +99,7 @@ while not done:
     # client.send_message("/some/address", env.render())
     if done:
         client.send_message("/agent_action1", np.hstack((done, action, env.state.step_count)))
-    
+
 
 def storm_agent(self, seeds):
     rewards = []

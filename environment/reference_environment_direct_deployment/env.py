@@ -27,7 +27,7 @@ class Parameters:
     
     # Multiplicative noise is applied to all costs. The parameters of this randomisation are:
     noise_mu = 1.0
-    noise_sigma = 0.1  
+    noise_sigma = 0.0  
     noise_clipping = 0.5  # (i.e., costs are reduced by 50% at the most)
     noise_sigma_factor = np.sqrt(0.1) # this factor is applied to make CCUS capex & opex less volatile than other costs  
     # The costs in the Carbon capture utilisation and storage (CCUS) tab to be randomised are capex, opex, and carbon price, with these row numbers:
@@ -38,7 +38,7 @@ class Parameters:
     # fmt: on
     # multiplicative noise's mu and sigma, and clipping point:
     noise_mu = 1.0
-    noise_sigma = 0.1  # or try 0.1, 0.0, np.sqrt(0.001), 0.02, np.sqrt(0.0003), 0.015, 0.01, np.sqrt(0.00001), 0.001
+    noise_sigma = 0.0  # or try 0.1, 0.0, np.sqrt(0.001), 0.02, np.sqrt(0.0003), 0.015, 0.01, np.sqrt(0.00001), 0.001
     noise_clipping = 0.5  # or try 0.001, 0.1, 0.5 (i.e., original costs are reduced by 50% at the most)
     noise_sigma_factor = np.sqrt(0.1) # as in https://github.com/rangl-labs/netzerotc/issues/36, CCUS capex & opex (CCUS row 23 and 24) should have smaller standard deviations
     stochastic_sigma = False  # set to False to use one single noise_sigma; set to True to randomly switch between two different std:

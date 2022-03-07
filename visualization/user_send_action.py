@@ -54,6 +54,8 @@ server = BlockingOSCUDPServer(("127.0.0.1", 1337), dispatcher)
 user_action = agent_action
 while not done:
     server.handle_request()
+    if done:
+        break
     print("\n\nThe current env.state.step_count is %d; The Storm/RL agent's action of the next step %d for increments in [offshore Wind, blue Hydrogen, green Hydrogen] are: [%f, %f, %f]" %(next_step-1, next_step, agent_action[0], agent_action[1], agent_action[2]))
     steps_back = abs(np.float64(input("To rewind the state, enter the decrement to step back (any non-zero, + or - integer); Otherwise, press '0' to edit or accept this agent's action and step forward in time: ")))
     steps_back = np.minimum(next_step, steps_back) # clip the # of steps back such that env.state.step_count can be rewound back to -1 at most, equivalent to env.reset() and then without any env.step()
