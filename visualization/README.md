@@ -26,7 +26,7 @@ To give this visualization a test:
 
 1. Install Unreal Engine at https://www.unrealengine.com/en-US/download/creators?install=true
 
-2. Within Unreal Engine, open the `BasicVisualization1` project in `UE_Projects` folder. Click the triangle of drop-down menu next to the "Play" button, and then select "Simulate" (Please see the ![screenshot](https://github.com/rangl-labs/netzerotc/raw/visualization/visualization/HowToRunUE.png)).
+2. Within Unreal Engine, open the `BasicVisualization1` project in `UE_Projects` folder. Click the triangle of drop-down menu next to the "Play" button, and then select "Simulate" (Please see the following screenshot ![screenshot](https://github.com/rangl-labs/netzerotc/raw/visualization/visualization/HowToRunUE.png) showing the buttons).
 
 3. Open a Python console and set current directory to this folder, then run `python user_send_action.py`.
 
