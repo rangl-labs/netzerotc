@@ -1,0 +1,4 @@
+numpy
+gym
+python-osc==1.8.0
+osc4py3==1.0.8

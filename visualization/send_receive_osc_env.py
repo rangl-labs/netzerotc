@@ -101,19 +101,19 @@ while not done:
         client.send_message("/agent_action1", np.hstack((done, action, env.state.step_count)))
 
 
-def storm_agent(self, seeds):
-    rewards = []
-    # deployments = np.array(np.array(pd.read_excel('STORM_Deployments.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
-    deployments = np.array(np.array(pd.read_excel('STORM_Deployments_Modified.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
-    actions = deployments[1:,:] - deployments[:-1,:]
-    for seed in seeds:
-        self.env.seed(seed)
-        self.env.reset()
-        while not self.env.state.is_done():
-            action = actions[self.env.state.step_count + 1]
-            self.env.step(action)
-        rewards.append(sum(self.env.state.rewards_all))
-    return np.mean(rewards)
+# def storm_agent(self, seeds):
+#     rewards = []
+#     # deployments = np.array(np.array(pd.read_excel('STORM_Deployments.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
+#     deployments = np.array(np.array(pd.read_excel('STORM_Deployments_Modified.xlsx'))[-(self.env.param.steps_per_episode+1):,1:],dtype=np.float32)
+#     actions = deployments[1:,:] - deployments[:-1,:]
+#     for seed in seeds:
+#         self.env.seed(seed)
+#         self.env.reset()
+#         while not self.env.state.is_done():
+#             action = actions[self.env.state.step_count + 1]
+#             self.env.step(action)
+#         rewards.append(sum(self.env.state.rewards_all))
+#     return np.mean(rewards)
 
 
 
