@@ -19,6 +19,18 @@
 				"Android",
 				"IOS"
 			]
+		},
+		{
+			"Name": "DatasmithC4DImporter",
+			"Enabled": true,
+			"SupportedTargetPlatforms": [
+				"Win64",
+				"Mac"
+			]
+		},
+		{
+			"Name": "SequencerScripting",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [
