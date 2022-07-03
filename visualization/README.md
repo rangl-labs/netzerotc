@@ -28,7 +28,7 @@ For more information of OSC implementations in Python, read the documentations o
 
 To give this visualization a test:
 
-1. Install Unreal Engine at https://www.unrealengine.com/en-US/download/creators?install=true
+1. Install & launch Unreal Engine: follow the instructions at https://www.unrealengine.com/en-US/download/creators?install=true to download, install, and open the Epic Games launcher, and then install & launch Unreal Engine from within the Epic Games launcher; Note: you will need to install Unreal Engine version 4.27.2, as the latest version 5 may have compatibility issues with the plugins and 3D assets used in this project.
 
 <!---
 2. Within Unreal Engine, open the `BasicVisualization1` project in `UE_Projects` folder. Click the triangle of drop-down menu next to the "Play" button, and then select "Simulate" (Please see the following screenshot ![screenshot](https://github.com/rangl-labs/netzerotc/raw/visualization/visualization/HowToRunUE.png "Unreal Engine screenshot") showing the buttons).
