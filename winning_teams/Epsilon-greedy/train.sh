@@ -1,0 +1,1 @@
+python sequential_golden_section_search.py --seeds_fname=training_seeds.csv --results_folder="results" --search_direction="backward" --search_iterations=1 --max_num_steps=1000 --tol=0.0005 --num_seeds_per_eval=-1
